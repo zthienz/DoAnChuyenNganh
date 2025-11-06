@@ -71,7 +71,7 @@ CREATE TABLE products (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL
-);
+)
 
 -- =============================================
 -- BẢNG HÌNH ẢNH SẢN PHẨM (PRODUCT_IMAGES)
