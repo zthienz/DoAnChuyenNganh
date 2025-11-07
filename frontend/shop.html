@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/shop.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-main">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <!-- Logo -->
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="GOOJODOQ" class="logo">
+                    </a>
+
+                    <!-- Toggle button for mobile -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <!-- Navigation Menu -->
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    QUẠT <i class="fas fa-chevron-down"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="shop.html?cat=quat-mini">Quạt mini</a></li>
+                                    <li><a class="dropdown-item" href="shop.html?cat=quat-cam-tay">Quạt cầm tay</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html?cat=loa-bluetooth">Loa Bluetooth</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html?cat=tai-nghe-bluetooth">Tai nghe Bluetooth</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="shop.html">Mua sắm</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="blog.html">Blog</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Liên hệ</a>
+                            </li>
+                        </ul>
+
+                        <!-- Right side icons -->
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <!-- Search -->
+                            <div class="search-box me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <button class="btn-search" onclick="searchProducts()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
+                            <!-- Notifications -->
+                            <a href="#" class="nav-link position-relative me-2">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">3</span>
+                            </a>
+
+                            <!-- Wishlist -->
+                            <a href="wishlist.html" class="nav-link position-relative me-2">
+                                <i class="fas fa-heart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistCount">0</span>
+                            </a>
+
+                            <!-- Cart -->
+                            <a href="cart.html" class="nav-link position-relative me-3">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                            </a>
+
+                            <!-- User Account -->
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user"></i> Tài khoản của tôi
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="login.html">Đăng nhập</a></li>
+                                    <li><a class="dropdown-item" href="register.html">Đăng ký</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="profile.html">Thông tin cá nhân</a></li>
+                                    <li><a class="dropdown-item" href="orders.html">Đơn hàng của tôi</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1 class="page-title">Shop</h1>
+                    <p class="page-subtitle">Tất cả sản phẩm chất lượng cao từ GOOJODOQ</p>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Shop</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shop Section -->
+    <section class="shop-section py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar Filters -->
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <div class="shop-sidebar">
+                        <!-- Search Widget -->
+                        <div class="sidebar-widget">
+                            <h5 class="widget-title">Tìm kiếm</h5>
+                            <div class="search-widget">
+                                <input type="text" class="form-control" placeholder="Tìm sản phẩm..." id="sidebarSearch">
+                                <button class="btn btn-primary w-100 mt-2" onclick="filterProducts()">
+                                    <i class="fas fa-search me-2"></i>Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Category Filter -->
+                        <div class="sidebar-widget">
+                            <h5 class="widget-title">Danh mục</h5>
+                            <div class="category-list">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="all" id="catAll" checked>
+                                    <label class="form-check-label" for="catAll">
+                                        Tất cả sản phẩm
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="1" id="cat1">
+                                    <label class="form-check-label" for="cat1">
+                                        Tai nghe Bluetooth
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="2" id="cat2">
+                                    <label class="form-check-label" for="cat2">
+                                        Loa Bluetooth
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="3" id="cat3">
+                                    <label class="form-check-label" for="cat3">
+                                        Phụ kiện điện thoại
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="4" id="cat4">
+                                    <label class="form-check-label" for="cat4">
+                                        Sạc dự phòng
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="5" id="cat5">
+                                    <label class="form-check-label" for="cat5">
+                                        Cáp sạc
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Filter -->
+                        <div class="sidebar-widget">
+                            <h5 class="widget-title">Khoảng giá</h5>
+                            <div class="price-filter">
+                                <div class="mb-3">
+                                    <label class="form-label">Từ:</label>
+                                    <input type="number" class="form-control" id="priceMin" placeholder="0" value="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Đến:</label>
+                                    <input type="number" class="form-control" id="priceMax" placeholder="10000000" value="10000000">
+                                </div>
+                                <button class="btn btn-primary w-100" onclick="filterProducts()">
+                                    <i class="fas fa-filter me-2"></i>Lọc giá
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filter by Status -->
+                        <div class="sidebar-widget">
+                            <h5 class="widget-title">Trạng thái</h5>
+                            <div class="status-filter">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filterSale">
+                                    <label class="form-check-label" for="filterSale">
+                                        Đang giảm giá
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filterNew">
+                                    <label class="form-check-label" for="filterNew">
+                                        Sản phẩm mới
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filterBestseller">
+                                    <label class="form-check-label" for="filterBestseller">
+                                        Bán chạy
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reset Filters -->
+                        <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                            <i class="fas fa-redo me-2"></i>Đặt lại bộ lọc
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="col-lg-9 col-md-8">
+                    <!-- Toolbar -->
+                    <div class="shop-toolbar mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <p class="result-count mb-0">
+                                    Hiển thị <span id="resultCount">0</span> sản phẩm
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-md-end align-items-center">
+                                    <label class="me-2 mb-0">Sắp xếp:</label>
+                                    <select class="form-select" id="sortSelect" onchange="sortProducts()" style="width: auto;">
+                                        <option value="default">Mặc định</option>
+                                        <option value="name-asc">Tên: A-Z</option>
+                                        <option value="name-desc">Tên: Z-A</option>
+                                        <option value="price-asc">Giá: Thấp đến cao</option>
+                                        <option value="price-desc">Giá: Cao đến thấp</option>
+                                        <option value="newest">Mới nhất</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Grid -->
+                    <div class="row" id="productsGrid">
+                        <!-- Products will be loaded here -->
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <nav aria-label="Product pagination">
+                                <ul class="pagination justify-content-center" id="pagination">
+                                    <!-- Pagination will be generated here -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <
+!-- Footer -->
+    <footer class="footer bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Company Info -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">COMPANY</h5>
+                    <ul class="footer-links">
+                        <li><a href="about.html">Về chúng tôi</a></li>
+                        <li><a href="contact.html">Liên hệ với chúng tôi</a></li>
+                        <li><a href="career.html">Chương trình Người anh hướng</a></li>
+                        <li><a href="faq.html">Câu Hỏi Thường Gặp</a></li>
+                    </ul>
+                </div>
+
+                <!-- Shop Info -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">SHOP</h5>
+                    <ul class="footer-links">
+                        <li><a href="shop.html">Quạt cầm tay</a></li>
+                        <li><a href="shop.html">Giỏ hàng</a></li>
+                        <li><a href="wishlist.html">Danh sách yêu thích</a></li>
+                        <li><a href="shipping.html">Shipping Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">HỖ TRỢ KHÁCH HÀNG</h5>
+                    <div class="support-info">
+                        <p><i class="fas fa-headset me-2"></i>Hỗ trợ khách hàng</p>
+                        <p class="support-desc">Trợ giúp trực tuyến bởi nhân viên của chúng tôi</p>
+                    </div>
+                    <div class="support-features mt-3">
+                        <div class="support-item mb-2">
+                            <i class="fas fa-truck me-2"></i>
+                            <span>Giao hàng miễn phí</span>
+                        </div>
+                        <div class="support-item mb-2">
+                            <i class="fas fa-undo me-2"></i>
+                            <span>Đổi trả dễ dàng và nhanh chóng</span>
+                        </div>
+                        <div class="support-item mb-2">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            <span>Thanh toán 100% an toàn</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">SUBSCRIBE</h5>
+                    <p class="footer-desc">Đăng ký để nhận cập nhật sản phẩm, khuyến mãi và tin tức độc quyền từ GOOJODOQ!</p>
+                    
+                    <form class="footer-newsletter" onsubmit="subscribeNewsletter(event)">
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control" placeholder="Enter your email" required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Social Links -->
+                    <div class="social-links mt-3">
+                        <a href="#" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link me-2"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="row mt-4 pt-4 border-top">
+                <div class="col-md-6">
+                    <p class="footer-copyright mb-0">
+                        Giờ làm việc: Thứ Hai đến Thứ Sáu 8:00 sáng - 17:00 chiều
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="footer-copyright mb-0">
+                        Copyright © 2023. GOOJODOQ
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/main.js"></script>
+    <script src="js/shop.js"></script>
+</body>
+</html>
