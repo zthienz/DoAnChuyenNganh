@@ -830,3 +830,45 @@ body {
 .transition-all {
     transition: all 0.3s ease !important;
 }
+
+/* =============================================
+   ADMIN ADD PRODUCT CARD
+   ============================================= */
+.add-product-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 3px dashed rgba(255,255,255,0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.add-product-card:hover {
+    border-color: white;
+    transform: translateY(-5px) scale(1.02);
+}
+
+.add-product-content {
+    text-align: center;
+    color: white;
+    padding: 40px 20px;
+}
+
+.add-product-content i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.add-product-content h5 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.add-product-content p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0;
+}

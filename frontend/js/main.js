@@ -8,6 +8,7 @@ const API_BASE_URL = 'http://localhost:3000/api';
 // Global Variables
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+let isAdminMode = JSON.parse(localStorage.getItem('isAdminMode')) || false;
 
 // Slideshow Variables
 let currentSlideIndex = 0;
@@ -28,6 +29,37 @@ function initializeApp() {
     loadFeaturedProducts();
     setupEventListeners();
     initializeSlideshow();
+    initializeAdminMode();
+}
+
+// =============================================
+// ADMIN MODE FUNCTIONS
+// =============================================
+function initializeAdminMode() {
+    const adminToggle = document.getElementById('adminModeToggle');
+    if (!adminToggle) return;
+    
+    if (isAdminMode) {
+        adminToggle.innerHTML = `
+            <button class="btn btn-danger btn-sm" onclick="toggleAdminMode()">
+                <i class="fas fa-user-shield me-1"></i>Admin Mode: ON
+            </button>
+        `;
+    } else {
+        adminToggle.innerHTML = `
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.location.href='admin-login.html'">
+                <i class="fas fa-user-shield me-1"></i>Admin
+            </button>
+        `;
+    }
+}
+
+function toggleAdminMode() {
+    if (confirm('Bạn có muốn thoát chế độ Admin?')) {
+        localStorage.setItem('isAdminMode', 'false');
+        localStorage.removeItem('adminEmail');
+        window.location.reload();
+    }
 }
 
 // =============================================
@@ -86,7 +118,11 @@ function displayProducts(products) {
         return;
     }
 
-    productGrid.innerHTML = products.map(product => `
+    // Merge with admin products from localStorage
+    const adminProducts = JSON.parse(localStorage.getItem('products') || '[]');
+    const allProducts = [...products, ...adminProducts];
+
+    let productsHTML = allProducts.map(product => `
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="product-card fade-in">
                 <div class="product-image">
@@ -122,6 +158,30 @@ function displayProducts(products) {
             </div>
         </div>
     `).join('');
+    
+    // Add "Add Product" card if admin mode
+    if (isAdminMode) {
+        productsHTML += `
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="product-card add-product-card" onclick="goToAddProduct()">
+                    <div class="add-product-content">
+                        <i class="fas fa-plus-circle"></i>
+                        <h5>Thêm sản phẩm mới</h5>
+                        <p>Click để thêm sản phẩm</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    productGrid.innerHTML = productsHTML;
+}
+
+// Function to go to add product page
+function goToAddProduct() {
+    // Save current page to localStorage
+    localStorage.setItem('previousPage', window.location.pathname.split('/').pop() || 'index.html');
+    window.location.href = 'add-product.html';
 }
 
 // =============================================

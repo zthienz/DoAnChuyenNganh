@@ -43,6 +43,11 @@ async function loadAllProducts() {
         }
         
         allProducts = await response.json();
+        
+        // Merge with admin products from localStorage
+        const adminProducts = JSON.parse(localStorage.getItem('products') || '[]');
+        allProducts = [...allProducts, ...adminProducts];
+        
         filteredProducts = [...allProducts];
         
         displayProducts();
@@ -72,7 +77,7 @@ function displayProducts() {
     const endIndex = startIndex + productsPerPage;
     const productsToShow = filteredProducts.slice(startIndex, endIndex);
 
-    productsGrid.innerHTML = productsToShow.map(product => `
+    let productsHTML = productsToShow.map(product => `
         <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
             <div class="product-card fade-in">
                 <div class="product-image">
@@ -111,9 +116,33 @@ function displayProducts() {
             </div>
         </div>
     `).join('');
+    
+    // Add "Add Product" card if admin mode
+    const isAdminMode = JSON.parse(localStorage.getItem('isAdminMode')) || false;
+    if (isAdminMode && currentPage === 1) {
+        productsHTML += `
+            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+                <div class="product-card add-product-card" onclick="goToAddProduct()">
+                    <div class="add-product-content">
+                        <i class="fas fa-plus-circle"></i>
+                        <h5>Thêm sản phẩm mới</h5>
+                        <p>Click để thêm sản phẩm</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    productsGrid.innerHTML = productsHTML;
 
     // Generate pagination
     generatePagination();
+}
+
+// Function to go to add product page
+function goToAddProduct() {
+    localStorage.setItem('previousPage', 'shop.html');
+    window.location.href = 'add-product.html';
 }
 
 // =============================================
