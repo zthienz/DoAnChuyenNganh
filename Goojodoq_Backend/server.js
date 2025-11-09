@@ -10,6 +10,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files (images)
+app.use('/images', express.static('../frontend/images'));
+
 // ✅ Test route kiểm tra kết nối DB
 app.get("/test-db", async (req, res) => {
   try {

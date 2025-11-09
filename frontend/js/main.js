@@ -118,11 +118,7 @@ function displayProducts(products) {
         return;
     }
 
-    // Merge with admin products from localStorage
-    const adminProducts = JSON.parse(localStorage.getItem('products') || '[]');
-    const allProducts = [...products, ...adminProducts];
-
-    let productsHTML = allProducts.map(product => `
+    let productsHTML = products.map(product => `
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="product-card fade-in">
                 <div class="product-image">

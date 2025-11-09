@@ -116,17 +116,47 @@ function submitProduct(event) {
     // Show loading
     showLoading('Đang thêm sản phẩm...');
     
-    // Simulate API call (replace with actual API call later)
-    setTimeout(() => {
-        // Save to localStorage temporarily
-        saveProductToLocalStorage(productData);
+    // Call API to save product
+    saveProductToDatabase(productData);
+}
+
+// =============================================
+// SAVE TO DATABASE VIA API
+// =============================================
+async function saveProductToDatabase(productData) {
+    try {
+        const API_BASE_URL = 'http://localhost:3000/api';
+        
+        const response = await fetch(`${API_BASE_URL}/products`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save product');
+        }
+        
+        const result = await response.json();
         
         // Hide loading
         hideLoading();
         
         // Show success message
         showSuccessMessage(productData);
-    }, 2000);
+        
+    } catch (error) {
+        console.error('Error saving product:', error);
+        hideLoading();
+        alert('Lỗi khi thêm sản phẩm: ' + error.message + '\n\nSản phẩm sẽ được lưu tạm thời vào localStorage.');
+        
+        // Fallback to localStorage if API fails
+        saveProductToLocalStorage(productData);
+        hideLoading();
+        showSuccessMessage(productData);
+    }
 }
 
 // =============================================

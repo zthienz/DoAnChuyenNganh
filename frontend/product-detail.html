@@ -15,34 +15,37 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg">
                 <div class="container-fluid">
+                    <!-- Logo -->
                     <a class="navbar-brand" href="index.html">
                         <img src="images/logo.png" alt="GOOJODOQ" class="logo">
                     </a>
 
+                    <!-- Toggle button for mobile -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
+                    <!-- Navigation Menu -->
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav me-auto">
                             <li class="nav-item">
-                                <a class="nav-link" href="index.html">Home</a>
-                            </li>
+                                <a class="nav-link active" href="index.html">Home</a>
+                            <!-- </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     QUẠT <i class="fas fa-chevron-down"></i>
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="shop.html?cat=quat-mini">Quạt mini</a></li>
-                                    <li><a class="dropdown-item" href="shop.html?cat=quat-cam-tay">Quạt cầm tay</a></li>
+                                    <li><a class="dropdown-item" href="category.html?cat=quat-mini">Quạt mini</a></li>
+                                    <li><a class="dropdown-item" href="category.html?cat=quat-cam-tay">Quạt cầm tay</a></li>
                                 </ul>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="shop.html?cat=loa-bluetooth">Loa Bluetooth</a>
+                                <a class="nav-link" href="category.html?cat=loa-bluetooth">Loa</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="shop.html?cat=tai-nghe-bluetooth">Tai nghe Bluetooth</a>
-                            </li>
+                                <a class="nav-link" href="category.html?cat=tai-nghe-bluetooth">Tai nghe</a>
+                            </li> -->
                             <li class="nav-item">
                                 <a class="nav-link" href="shop.html">Mua sắm</a>
                             </li>
@@ -54,7 +57,9 @@
                             </li>
                         </ul>
 
+                        <!-- Right side icons -->
                         <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <!-- Search -->
                             <div class="search-box me-3">
                                 <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
                                 <button class="btn-search" onclick="searchProducts()">
@@ -62,21 +67,25 @@
                                 </button>
                             </div>
 
-                            <a href="#" class="nav-link position-relative me-2">
+                            <!-- Notifications -->
+                            <!-- <a href="#" class="nav-link position-relative me-2">
                                 <i class="fas fa-bell"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">3</span>
-                            </a>
+                            </a> -->
 
-                            <a href="wishlist.html" class="nav-link position-relative me-2">
+                            <!-- Wishlist -->
+                            <!-- <a href="wishlist.html" class="nav-link position-relative me-2">
                                 <i class="fas fa-heart"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistCount">0</span>
-                            </a>
+                            </a> -->
 
+                            <!-- Cart -->
                             <a href="cart.html" class="nav-link position-relative me-3">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
                             </a>
 
+                            <!-- User Account -->
                             <div class="dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-user"></i> Tài khoản của tôi
@@ -88,6 +97,11 @@
                                     <li><a class="dropdown-item" href="profile.html">Thông tin cá nhân</a></li>
                                     <li><a class="dropdown-item" href="orders.html">Đơn hàng của tôi</a></li>
                                 </ul>
+                            </div>
+
+                            <!-- Admin Mode Toggle -->
+                            <div class="admin-mode-toggle ms-2" id="adminModeToggle">
+                                <!-- Will be populated by JavaScript -->
                             </div>
                         </div>
                     </div>
