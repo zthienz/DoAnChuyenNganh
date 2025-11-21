@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { pool } from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
@@ -11,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files (images)
-app.use('/images', express.static('../frontend/images'));
+app.use('/images', express.static('../Goojodoq_Frontend/images'));
 
 // ✅ Test route kiểm tra kết nối DB
 app.get("/test-db", async (req, res) => {
@@ -25,6 +26,9 @@ app.get("/test-db", async (req, res) => {
 
 // 🛍️ Route sản phẩm
 app.use("/api/products", productRoutes);
+
+// 🔐 Route xác thực
+app.use("/api/auth", authRoutes);
 
 // 🔥 Chạy server
 const PORT = process.env.PORT || 3000;

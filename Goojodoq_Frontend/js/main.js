@@ -9,6 +9,7 @@ const API_BASE_URL = 'http://localhost:3000/api';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
 let isAdminMode = JSON.parse(localStorage.getItem('isAdminMode')) || false;
+let currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
 
 // Slideshow Variables
 let currentSlideIndex = 0;
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeApp() {
     updateCartCount();
     updateWishlistCount();
+    updateUserDisplay();
     loadFeaturedProducts();
     setupEventListeners();
     initializeSlideshow();
@@ -118,14 +120,23 @@ function displayProducts(products) {
         return;
     }
 
-    let productsHTML = products.map(product => `
+    let productsHTML = products.map(product => {
+        // Xử lý đường dẫn ảnh từ backend
+        let imageUrl = product.image || '/images/products/default.jpg';
+        
+        // Nếu đường dẫn bắt đầu bằng /images, thêm API_BASE_URL
+        if (imageUrl.startsWith('/images')) {
+            imageUrl = `http://localhost:3000${imageUrl}`;
+        }
+        
+        return `
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <div class="product-card fade-in">
                 <div class="product-image">
-                    <img src="${product.image || 'images/products/default.jpg'}" 
+                    <img src="${imageUrl}" 
                          alt="${product.product_name}" 
                          onerror="this.src='images/products/default.jpg'">
-                    ${product.sale_price ? '<div class="product-badge sale">SALE</div>' : ''}
+                    ${product.sale_price && product.price > product.sale_price ? '<div class="product-badge sale">SALE</div>' : ''}
                     ${product.is_new ? '<div class="product-badge new">MỚI</div>' : ''}
                 </div>
                 <div class="product-info">
@@ -134,26 +145,27 @@ function displayProducts(products) {
                     </h5>
                     <div class="product-rating">
                         <span class="stars">
-                            ${'★'.repeat(5)}
+                            ${'★'.repeat(Math.round(product.avg_rating || 0))}${'☆'.repeat(5 - Math.round(product.avg_rating || 0))}
                         </span>
-                        <span class="rating-count">(0)</span>
+                        <span class="rating-count">(${product.review_count || 0})</span>
                     </div>
                     <div class="product-price">
-                        <span class="price-current">${formatPrice(product.sale_price || product.price)}</span>
-                        ${product.sale_price ? `<span class="price-original">${formatPrice(product.price)}</span>` : ''}
+                        <span class="price-current">${formatPrice(product.price)}</span>
+                        ${product.sale_price && product.sale_price < product.price ? `<span class="price-original">${formatPrice(product.sale_price)}</span>` : ''}
                     </div>
                     <div class="product-actions">
-                        <button class="btn-add-cart" onclick="addToCart(${product.product_id}, '${product.product_name}', ${product.sale_price || product.price}, '${product.image || 'images/products/default.jpg'}')">
+                        <button class="btn-add-cart" onclick="addToCart(${product.product_id}, '${escapeHtml(product.product_name)}', ${product.price}, '${imageUrl}')">
                             <i class="fas fa-shopping-cart me-2"></i>Đặt hàng
                         </button>
-                        <button class="btn-wishlist" onclick="toggleWishlist(${product.product_id}, '${product.product_name}', ${product.sale_price || product.price}, '${product.image || 'images/products/default.jpg'}')">
+                        <button class="btn-wishlist" onclick="toggleWishlist(${product.product_id}, '${escapeHtml(product.product_name)}', ${product.price}, '${imageUrl}')">
                             <i class="fas fa-heart"></i>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
     
     // Add "Add Product" card if admin mode
     if (isAdminMode) {
@@ -171,6 +183,18 @@ function displayProducts(products) {
     }
     
     productGrid.innerHTML = productsHTML;
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
 }
 
 // Function to go to add product page
@@ -654,4 +678,55 @@ function handleSwipe() {
             changeSlide(-1);
         }
     }
+}
+
+/
+/ =============================================
+// USER AUTHENTICATION FUNCTIONS
+// =============================================
+function updateUserDisplay() {
+    // Update user dropdown in header
+    const userDropdown = document.querySelector('.dropdown');
+    if (!userDropdown) return;
+
+    if (currentUser) {
+        // User is logged in
+        const userName = currentUser.hoten || currentUser.email.split('@')[0];
+        userDropdown.innerHTML = `
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-user-circle"></i> ${userName}
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a></li>
+                <li><a class="dropdown-item" href="orders.html"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
+                <li><hr class="dropdown-divider"></li>
+                ${currentUser.quyen === 'admin' ? '<li><a class="dropdown-item" href="admin-dashboard.html"><i class="fas fa-user-shield me-2"></i>Quản trị</a></li><li><hr class="dropdown-divider"></li>' : ''}
+                <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+            </ul>
+        `;
+    }
+}
+
+function logout() {
+    if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
+        localStorage.removeItem('isAdminMode');
+        showNotification('Đã đăng xuất thành công!', 'success');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1000);
+    }
+}
+
+function checkAuth() {
+    const user = localStorage.getItem('user') || sessionStorage.getItem('user');
+    if (!user) {
+        showNotification('Vui lòng đăng nhập để tiếp tục!', 'warning');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return false;
+    }
+    return true;
 }
