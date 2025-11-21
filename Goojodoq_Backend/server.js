@@ -16,7 +16,7 @@ app.use('/images', express.static('../frontend/images'));
 // ✅ Test route kiểm tra kết nối DB
 app.get("/test-db", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT COUNT(*) AS total FROM users");
+    const [rows] = await pool.query("SELECT COUNT(*) AS total FROM nguoidung");
     res.json({ message: "Database connected!", result: rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
