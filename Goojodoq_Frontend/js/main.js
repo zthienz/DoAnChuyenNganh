@@ -9,7 +9,21 @@ const API_BASE_URL = 'http://localhost:3000/api';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
 let isAdminMode = JSON.parse(localStorage.getItem('isAdminMode')) || false;
-let currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+
+// Get current user from storage
+function getCurrentUser() {
+    const localUser = localStorage.getItem('user');
+    const sessionUser = sessionStorage.getItem('user');
+    
+    if (localUser) {
+        return JSON.parse(localUser);
+    } else if (sessionUser) {
+        return JSON.parse(sessionUser);
+    }
+    return null;
+}
+
+let currentUser = getCurrentUser();
 
 // Slideshow Variables
 let currentSlideIndex = 0;
@@ -28,7 +42,13 @@ function initializeApp() {
     updateCartCount();
     updateWishlistCount();
     updateUserDisplay();
-    loadFeaturedProducts();
+    
+    // Only load featured products on index page
+    const productGrid = document.getElementById('productGrid');
+    if (productGrid && !document.getElementById('productsGrid')) {
+        loadFeaturedProducts();
+    }
+    
     setupEventListeners();
     initializeSlideshow();
     initializeAdminMode();
@@ -680,28 +700,55 @@ function handleSwipe() {
     }
 }
 
-/
-/ =============================================
+// =============================================
 // USER AUTHENTICATION FUNCTIONS
 // =============================================
 function updateUserDisplay() {
+    // Refresh current user from storage
+    currentUser = getCurrentUser();
+    
+    console.log('🔍 updateUserDisplay called');
+    console.log('👤 Current User:', currentUser);
+    
     // Update user dropdown in header
-    const userDropdown = document.querySelector('.dropdown');
-    if (!userDropdown) return;
+    const userDropdown = document.getElementById('userAccountDropdown');
+    
+    if (!userDropdown) {
+        console.warn('⚠️ userAccountDropdown not found in DOM');
+        return;
+    }
 
     if (currentUser) {
         // User is logged in
         const userName = currentUser.hoten || currentUser.email.split('@')[0];
+        console.log('✅ User logged in:', userName);
+        
         userDropdown.innerHTML = `
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                 <i class="fas fa-user-circle"></i> ${userName}
             </a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user me-2"></i>Thông tin cá nhân</a></li>
+                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
                 <li><a class="dropdown-item" href="orders.html"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
                 <li><hr class="dropdown-divider"></li>
                 ${currentUser.quyen === 'admin' ? '<li><a class="dropdown-item" href="admin-dashboard.html"><i class="fas fa-user-shield me-2"></i>Quản trị</a></li><li><hr class="dropdown-divider"></li>' : ''}
-                <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+            </ul>
+        `;
+    } else {
+        // User is not logged in
+        console.log('❌ User not logged in');
+        
+        userDropdown.innerHTML = `
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-user"></i> Tài khoản của tôi
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="login.html"><i class="fas fa-sign-in-alt me-2"></i>Đăng nhập</a></li>
+                <li><a class="dropdown-item" href="register.html"><i class="fas fa-user-plus me-2"></i>Đăng ký</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
+                <li><a class="dropdown-item" href="orders.html"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
             </ul>
         `;
     }
@@ -709,14 +756,24 @@ function updateUserDisplay() {
 
 function logout() {
     if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        // Xóa thông tin user
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
         localStorage.removeItem('isAdminMode');
+        
+        // Cập nhật biến global
+        currentUser = null;
+        isAdminMode = false;
+        
+        // Hiển thị thông báo
         showNotification('Đã đăng xuất thành công!', 'success');
+        
+        // Reload trang để cập nhật UI
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.reload();
         }, 1000);
     }
+    return false;
 }
 
 function checkAuth() {

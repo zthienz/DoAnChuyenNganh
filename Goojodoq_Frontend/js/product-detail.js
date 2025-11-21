@@ -1,19 +1,17 @@
 // =============================================
 // PRODUCT DETAIL PAGE JAVASCRIPT
-// ============================================= */
+// =============================================
 
-// Global Variables
+// API_BASE_URL is defined in main.js
+
+// Global variables
 let currentProduct = null;
-let selectedRating = 5;
+let currentQuantity = 1;
 
 // =============================================
 // INITIALIZATION
 // =============================================
 document.addEventListener('DOMContentLoaded', function() {
-    initializeProductDetail();
-});
-
-function initializeProductDetail() {
     // Get product ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
@@ -21,74 +19,41 @@ function initializeProductDetail() {
     if (productId) {
         loadProductDetail(productId);
     } else {
-        showError('Không tìm thấy sản phẩm');
+        showError('Không tìm thấy sản phẩm. Vui lòng quay lại trang shop.');
+    }
+    
+    // Update user display and cart count
+    if (typeof updateUserDisplay === 'function') {
+        updateUserDisplay();
+    }
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
     }
     
     setupRatingInput();
-}
+});
 
 // =============================================
 // LOAD PRODUCT DETAIL
 // =============================================
 async function loadProductDetail(productId) {
     try {
-        // Simulate loading product (replace with actual API call later)
-        currentProduct = {
-            product_id: productId,
-            product_name: 'GOOJODOQ Loa Bluetooth Outdoor',
-            price: 899000,
-            sale_price: 799000,
-            stock_quantity: 20,
-            sku: 'LOA-OUT-001',
-            category_name: 'Loa Bluetooth',
-            short_description: 'Loa Bluetooth chống nước, âm bass mạnh mẽ, thời lượng pin lên đến 12 giờ',
-            description: `
-                <h4>Đặc điểm nổi bật</h4>
-                <ul>
-                    <li>Âm thanh stereo chất lượng cao</li>
-                    <li>Chống nước chuẩn IPX7</li>
-                    <li>Pin 5000mAh, sử dụng liên tục 12 giờ</li>
-                    <li>Kết nối Bluetooth 5.0 ổn định</li>
-                    <li>Thiết kế nhỏ gọn, dễ mang theo</li>
-                </ul>
-                
-                <h4>Thông tin chi tiết</h4>
-                <p>GOOJODOQ Loa Bluetooth Outdoor là sản phẩm loa di động cao cấp với chất lượng âm thanh vượt trội. 
-                Được trang bị công nghệ Bluetooth 5.0 mới nhất, loa đảm bảo kết nối ổn định trong phạm vi 10m.</p>
-                
-                <p>Với khả năng chống nước chuẩn IPX7, bạn có thể yên tâm sử dụng loa ở bất kỳ đâu, 
-                kể cả trong điều kiện thời tiết khắc nghiệt. Pin dung lượng 5000mAh cho phép sử dụng liên tục 
-                lên đến 12 giờ với một lần sạc.</p>
-            `,
-            specifications: {
-                'Thương hiệu': 'GOOJODOQ',
-                'Model': 'BT-OUT-2023',
-                'Công suất': '20W',
-                'Kết nối': 'Bluetooth 5.0',
-                'Pin': '5000mAh',
-                'Thời gian sử dụng': '12 giờ',
-                'Chống nước': 'IPX7',
-                'Trọng lượng': '450g',
-                'Kích thước': '180 x 70 x 70mm',
-                'Xuất xứ': 'Trung Quốc',
-                'Bảo hành': '12 tháng'
-            },
-            images: [
-                'images/products/loa-outdoor.jpg',
-                'images/products/loa-outdoor-2.jpg',
-                'images/products/loa-outdoor-3.jpg',
-                'images/products/loa-outdoor-4.jpg'
-            ],
-            is_new: true,
-            review_count: 0
-        };
+        showLoading();
+        
+        const response = await fetch(`${API_BASE_URL}/products/${productId}`);
+        if (!response.ok) {
+            throw new Error('Không tìm thấy sản phẩm');
+        }
+        
+        currentProduct = await response.json();
+        console.log('✅ Loaded product:', currentProduct);
         
         displayProductDetail();
         loadRelatedProducts();
         
     } catch (error) {
-        console.error('Error loading product:', error);
-        showError('Không thể tải thông tin sản phẩm');
+        console.error('❌ Error:', error);
+        showError(error.message);
     }
 }
 
@@ -98,263 +63,239 @@ async function loadProductDetail(productId) {
 function displayProductDetail() {
     if (!currentProduct) return;
     
+    const product = currentProduct;
+    
     // Update page title
-    document.title = `${currentProduct.product_name} - GOOJODOQ`;
+    document.title = `${product.product_name} - GOOJODOQ`;
     
-    // Breadcrumb
-    document.getElementById('productBreadcrumb').textContent = currentProduct.product_name;
+    // Update breadcrumb (with null check)
+    const breadcrumb = document.getElementById('productBreadcrumb');
+    if (breadcrumb) {
+        breadcrumb.textContent = product.product_name;
+    }
     
-    // Product name
-    document.getElementById('productName').textContent = currentProduct.product_name;
+    // Update product name
+    const productNameEl = document.getElementById('productName');
+    if (productNameEl) {
+        productNameEl.textContent = product.product_name;
+    }
     
-    // Images
-    const mainImage = document.getElementById('mainImage');
-    mainImage.src = currentProduct.images[0] || 'images/products/default.jpg';
-    mainImage.onerror = function() { this.src = 'images/products/default.jpg'; };
-    
-    // Thumbnails
-    const thumbnails = document.querySelectorAll('.thumbnail');
-    thumbnails.forEach((thumb, index) => {
-        if (currentProduct.images[index]) {
-            thumb.src = currentProduct.images[index];
-            thumb.onerror = function() { this.src = 'images/products/default.jpg'; };
+    // Update images
+    if (product.images && product.images.length > 0) {
+        const mainImage = document.getElementById('mainImage');
+        if (mainImage) {
+            mainImage.src = `http://localhost:3000${product.images[0]}`;
+            mainImage.alt = product.product_name;
         }
-    });
-    
-    // Badges
-    if (currentProduct.sale_price) {
-        document.getElementById('saleBadge').style.display = 'block';
-    }
-    if (currentProduct.is_new) {
-        document.getElementById('newBadge').style.display = 'block';
-    }
-    
-    // Price
-    const currentPrice = currentProduct.sale_price || currentProduct.price;
-    document.getElementById('currentPrice').textContent = formatPrice(currentPrice);
-    
-    if (currentProduct.sale_price) {
-        document.getElementById('originalPrice').textContent = formatPrice(currentProduct.price);
-        document.getElementById('originalPrice').style.display = 'inline';
         
-        const discount = Math.round((1 - currentProduct.sale_price / currentProduct.price) * 100);
-        document.getElementById('discountBadge').textContent = `-${discount}%`;
-        document.getElementById('discountBadge').style.display = 'inline-block';
-    }
-    
-    // Short description
-    document.getElementById('shortDescription').textContent = currentProduct.short_description;
-    
-    // Stock status
-    const stockStatus = document.getElementById('stockStatus');
-    if (currentProduct.stock_quantity > 0) {
-        stockStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i>Còn hàng';
-        stockStatus.className = 'stock-value in-stock';
-    } else {
-        stockStatus.innerHTML = '<i class="fas fa-times-circle me-1"></i>Hết hàng';
-        stockStatus.className = 'stock-value out-of-stock';
-    }
-    
-    // Meta
-    document.getElementById('productSKU').textContent = currentProduct.sku;
-    document.getElementById('productCategory').textContent = currentProduct.category_name;
-    
-    // Review count
-    document.getElementById('reviewCount').textContent = currentProduct.review_count;
-    document.getElementById('reviewCountTab').textContent = currentProduct.review_count;
-    document.getElementById('totalReviews').textContent = currentProduct.review_count;
-    
-    // Description
-    document.getElementById('productDescription').innerHTML = currentProduct.description;
-    
-    // Specifications
-    const specsTable = document.getElementById('specificationsTable');
-    specsTable.innerHTML = '';
-    for (const [key, value] of Object.entries(currentProduct.specifications)) {
-        specsTable.innerHTML += `
-            <tr>
-                <td class="spec-label">${key}</td>
-                <td class="spec-value">${value}</td>
-            </tr>
-        `;
-    }
-}
-
-// =============================================
-// IMAGE FUNCTIONS
-// =============================================
-function changeMainImage(thumbnail) {
-    const mainImage = document.getElementById('mainImage');
-    mainImage.src = thumbnail.src;
-    
-    // Update active thumbnail
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    thumbnail.classList.add('active');
-}
-
-// =============================================
-// QUANTITY FUNCTIONS
-// =============================================
-function increaseQuantity() {
-    const input = document.getElementById('quantity');
-    const currentValue = parseInt(input.value);
-    const maxValue = parseInt(input.max);
-    
-    if (currentValue < maxValue) {
-        input.value = currentValue + 1;
-    }
-}
-
-function decreaseQuantity() {
-    const input = document.getElementById('quantity');
-    const currentValue = parseInt(input.value);
-    const minValue = parseInt(input.min);
-    
-    if (currentValue > minValue) {
-        input.value = currentValue - 1;
-    }
-}
-
-// =============================================
-// CART FUNCTIONS
-// =============================================
-function addToCartDetail() {
-    if (!currentProduct) return;
-    
-    const quantity = parseInt(document.getElementById('quantity').value);
-    const price = currentProduct.sale_price || currentProduct.price;
-    const image = currentProduct.images[0] || 'images/products/default.jpg';
-    
-    // Add to cart multiple times based on quantity
-    for (let i = 0; i < quantity; i++) {
-        addToCart(
-            currentProduct.product_id,
-            currentProduct.product_name,
-            price,
-            image
-        );
-    }
-    
-    // Reset quantity
-    document.getElementById('quantity').value = 1;
-}
-
-function toggleWishlistDetail() {
-    if (!currentProduct) return;
-    
-    const price = currentProduct.sale_price || currentProduct.price;
-    const image = currentProduct.images[0] || 'images/products/default.jpg';
-    
-    toggleWishlist(
-        currentProduct.product_id,
-        currentProduct.product_name,
-        price,
-        image
-    );
-}
-
-// =============================================
-// RATING INPUT
-// =============================================
-function setupRatingInput() {
-    const stars = document.querySelectorAll('.rating-input i');
-    
-    stars.forEach(star => {
-        star.addEventListener('click', function() {
-            selectedRating = parseInt(this.dataset.rating);
-            document.getElementById('ratingValue').value = selectedRating;
+        // Update thumbnails
+        const thumbnailContainer = document.querySelector('.thumbnail-images .row');
+        if (thumbnailContainer) {
+            let thumbnailsHTML = '';
             
-            // Update stars
-            stars.forEach(s => {
-                const rating = parseInt(s.dataset.rating);
-                if (rating <= selectedRating) {
-                    s.className = 'fas fa-star';
-                } else {
-                    s.className = 'far fa-star';
-                }
+            product.images.forEach((img, index) => {
+                const imageUrl = `http://localhost:3000${img}`;
+                thumbnailsHTML += `
+                    <div class="col-3">
+                        <img src="${imageUrl}" 
+                             alt="Thumbnail ${index + 1}" 
+                             class="img-fluid thumbnail ${index === 0 ? 'active' : ''}" 
+                             onclick="changeMainImage(this)">
+                    </div>
+                `;
             });
-        });
-        
-        star.addEventListener('mouseenter', function() {
-            const rating = parseInt(this.dataset.rating);
-            stars.forEach(s => {
-                const r = parseInt(s.dataset.rating);
-                if (r <= rating) {
-                    s.className = 'fas fa-star';
-                } else {
-                    s.className = 'far fa-star';
-                }
-            });
-        });
-    });
+            
+            thumbnailContainer.innerHTML = thumbnailsHTML;
+        }
+    }
     
-    // Reset on mouse leave
-    document.querySelector('.rating-input').addEventListener('mouseleave', function() {
-        stars.forEach(s => {
-            const rating = parseInt(s.dataset.rating);
-            if (rating <= selectedRating) {
-                s.className = 'fas fa-star';
-            } else {
-                s.className = 'far fa-star';
-            }
-        });
-    });
+    // Update rating
+    const avgRating = product.avg_rating || 0;
+    const reviewCount = product.review_count || 0;
+    updateStars(avgRating);
+    
+    const reviewCountEl = document.getElementById('reviewCount');
+    if (reviewCountEl) reviewCountEl.textContent = reviewCount;
+    
+    const reviewCountTabEl = document.getElementById('reviewCountTab');
+    if (reviewCountTabEl) reviewCountTabEl.textContent = reviewCount;
+    
+    const totalReviewsEl = document.getElementById('totalReviews');
+    if (totalReviewsEl) totalReviewsEl.textContent = reviewCount;
+    
+    // Update price
+    const price = parseFloat(product.price);
+    const currentPriceEl = document.getElementById('currentPrice');
+    if (currentPriceEl) {
+        currentPriceEl.textContent = formatPrice(price);
+    }
+    
+    // Hide sale price and discount (as requested)
+    const originalPriceEl = document.getElementById('originalPrice');
+    if (originalPriceEl) originalPriceEl.style.display = 'none';
+    
+    const discountBadgeEl = document.getElementById('discountBadge');
+    if (discountBadgeEl) discountBadgeEl.style.display = 'none';
+    
+    const saleBadgeEl = document.getElementById('saleBadge');
+    if (saleBadgeEl) saleBadgeEl.style.display = 'none';
+    
+    // Show new badge if applicable
+    if (product.is_new) {
+        const newBadgeEl = document.getElementById('newBadge');
+        if (newBadgeEl) newBadgeEl.style.display = 'inline-block';
+    }
+    
+    // Update short description
+    const shortDescEl = document.getElementById('shortDescription');
+    if (shortDescEl) {
+        shortDescEl.textContent = product.short_description || product.product_name;
+    }
+    
+    // Update stock status
+    const stockStatus = document.getElementById('stockStatus');
+    if (stockStatus) {
+        if (product.stock_quantity > 0) {
+            stockStatus.innerHTML = `<i class="fas fa-check-circle me-1"></i>Còn hàng (${product.stock_quantity} sản phẩm)`;
+            stockStatus.className = 'stock-value in-stock';
+            const addToCartBtn = document.querySelector('.btn-add-to-cart');
+            if (addToCartBtn) addToCartBtn.disabled = false;
+        } else {
+            stockStatus.innerHTML = '<i class="fas fa-times-circle me-1"></i>Hết hàng';
+            stockStatus.className = 'stock-value out-of-stock';
+            const addToCartBtn = document.querySelector('.btn-add-to-cart');
+            if (addToCartBtn) addToCartBtn.disabled = true;
+        }
+    }
+    
+    // Update quantity max
+    const quantityEl = document.getElementById('quantity');
+    if (quantityEl) {
+        quantityEl.max = product.stock_quantity;
+    }
+    
+    // Update SKU
+    const skuEl = document.getElementById('productSKU');
+    if (skuEl) {
+        skuEl.textContent = product.sku || 'N/A';
+    }
+    
+    // Update category
+    const categoryEl = document.getElementById('productCategory');
+    if (categoryEl) {
+        categoryEl.textContent = product.category_name || 'N/A';
+    }
+    
+    // Update description
+    const descriptionHTML = `
+        <p>${product.description || product.short_description || 'Sản phẩm chất lượng cao từ GOOJODOQ.'}</p>
+        <h4>Đặc điểm nổi bật:</h4>
+        <ul>
+            <li>Chất lượng cao, bền bỉ</li>
+            <li>Thiết kế hiện đại, sang trọng</li>
+            <li>Dễ dàng sử dụng</li>
+            <li>Bảo hành chính hãng 12 tháng</li>
+            <li>Giao hàng toàn quốc</li>
+        </ul>
+    `;
+    const productDescEl = document.getElementById('productDescription');
+    if (productDescEl) {
+        productDescEl.innerHTML = descriptionHTML;
+    }
+    
+    // Update specifications
+    const specsHTML = `
+        <tr>
+            <td class="spec-label">Thương hiệu</td>
+            <td class="spec-value">GOOJODOQ</td>
+        </tr>
+        <tr>
+            <td class="spec-label">Mã sản phẩm</td>
+            <td class="spec-value">${product.sku || 'N/A'}</td>
+        </tr>
+        <tr>
+            <td class="spec-label">Tình trạng</td>
+            <td class="spec-value">${product.stock_quantity > 0 ? 'Còn hàng' : 'Hết hàng'}</td>
+        </tr>
+        <tr>
+            <td class="spec-label">Xuất xứ</td>
+            <td class="spec-value">Trung Quốc</td>
+        </tr>
+        <tr>
+            <td class="spec-label">Bảo hành</td>
+            <td class="spec-value">12 tháng</td>
+        </tr>
+        <tr>
+            <td class="spec-label">Giao hàng</td>
+            <td class="spec-value">Toàn quốc</td>
+        </tr>
+    `;
+    const specsTableEl = document.getElementById('specificationsTable');
+    if (specsTableEl) {
+        specsTableEl.innerHTML = specsHTML;
+    }
+    
+    // Load reviews
+    if (product.reviews && product.reviews.length > 0) {
+        displayReviews(product.reviews);
+    }
 }
 
 // =============================================
-// REVIEW FUNCTIONS
+// DISPLAY REVIEWS
 // =============================================
-function submitReview(event) {
-    event.preventDefault();
+function displayReviews(reviews) {
+    const reviewsList = document.getElementById('reviewsList');
+    let html = '';
     
-    const rating = document.getElementById('ratingValue').value;
-    const title = document.getElementById('reviewTitle').value;
-    const content = document.getElementById('reviewContent').value;
+    reviews.forEach(review => {
+        html += `
+            <div class="review-item">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <strong>${review.user_name || 'Khách hàng'}</strong>
+                        <div class="review-stars">
+                            ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                        </div>
+                    </div>
+                    <div class="review-date">
+                        ${new Date(review.created_at).toLocaleDateString('vi-VN')}
+                    </div>
+                </div>
+                <div class="review-body">
+                    <h6>${review.title}</h6>
+                    <p>${review.comment}</p>
+                </div>
+            </div>
+        `;
+    });
     
-    // Simulate review submission
-    showNotification('Cảm ơn bạn đã đánh giá! Đánh giá của bạn sẽ được duyệt trong thời gian sớm nhất.', 'success');
-    
-    // Reset form
-    document.getElementById('reviewForm').reset();
-    selectedRating = 5;
+    reviewsList.innerHTML = html;
 }
 
 // =============================================
-// RELATED PRODUCTS
+// LOAD RELATED PRODUCTS
 // =============================================
 async function loadRelatedProducts() {
     try {
-        // Simulate loading related products
-        const relatedProducts = [
-            {
-                product_id: 2,
-                product_name: 'GOOJODOQ Loa Bluetooth Mini',
-                price: 399000,
-                sale_price: 299000,
-                image: 'images/products/loa-bluetooth-mini.jpg'
-            },
-            {
-                product_id: 6,
-                product_name: 'GOOJODOQ Tai nghe Gaming',
-                price: 799000,
-                sale_price: 699000,
-                image: 'images/products/tai-nghe-gaming.jpg'
-            },
-            {
-                product_id: 1,
-                product_name: 'GOOJODOQ Tai nghe TWS Pro',
-                price: 599000,
-                sale_price: 499000,
-                image: 'images/products/tai-nghe-tws-pro.jpg'
-            },
-            {
-                product_id: 5,
-                product_name: 'GOOJODOQ Quạt mini',
-                price: 199000,
-                sale_price: 149000,
-                image: 'images/products/quat-mini.jpg'
-            }
-        ];
+        const response = await fetch(`${API_BASE_URL}/products`);
+        const allProducts = await response.json();
+        
+        // Filter products from same category, exclude current product
+        let relatedProducts = allProducts.filter(p => 
+            p.category_id === currentProduct.category_id && 
+            p.product_id !== currentProduct.product_id
+        );
+        
+        // If not enough, get random products
+        if (relatedProducts.length < 4) {
+            relatedProducts = allProducts
+                .filter(p => p.product_id !== currentProduct.product_id)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 4);
+        } else {
+            relatedProducts = relatedProducts.slice(0, 4);
+        }
         
         displayRelatedProducts(relatedProducts);
         
@@ -365,53 +306,223 @@ async function loadRelatedProducts() {
 
 function displayRelatedProducts(products) {
     const container = document.getElementById('relatedProducts');
+    let html = '';
     
-    container.innerHTML = products.map(product => `
-        <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-            <div class="product-card">
-                <div class="product-image">
-                    <a href="product-detail.html?id=${product.product_id}">
-                        <img src="${product.image}" alt="${product.product_name}" onerror="this.src='images/products/default.jpg'">
-                    </a>
-                    ${product.sale_price ? '<div class="product-badge sale">SALE</div>' : ''}
-                </div>
-                <div class="product-info">
-                    <h5 class="product-title">
-                        <a href="product-detail.html?id=${product.product_id}">${product.product_name}</a>
-                    </h5>
-                    <div class="product-price">
-                        <span class="price-current">${formatPrice(product.sale_price || product.price)}</span>
-                        ${product.sale_price ? `<span class="price-original">${formatPrice(product.price)}</span>` : ''}
+    products.forEach(product => {
+        const imageUrl = product.image ? `http://localhost:3000${product.image}` : 'images/products/default.jpg';
+        const price = parseFloat(product.price);
+        
+        html += `
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="${imageUrl}" alt="${product.product_name}">
+                        <div class="product-overlay">
+                            <a href="product-detail.html?id=${product.product_id}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye me-2"></i>Xem chi tiết
+                            </a>
+                        </div>
                     </div>
-                    <div class="product-actions">
-                        <button class="btn-add-cart" onclick="addToCart(${product.product_id}, '${product.product_name}', ${product.sale_price || product.price}, '${product.image}')">
-                            <i class="fas fa-shopping-cart me-2"></i>Đặt hàng
-                        </button>
-                        <button class="btn-wishlist" onclick="toggleWishlist(${product.product_id}, '${product.product_name}', ${product.sale_price || product.price}, '${product.image}')">
-                            <i class="fas fa-heart"></i>
-                        </button>
+                    <div class="product-info">
+                        <h6 class="product-title">
+                            <a href="product-detail.html?id=${product.product_id}">${product.product_name}</a>
+                        </h6>
+                        <div class="product-price">
+                            <span class="price-current">${formatPrice(price)}</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    });
+    
+    container.innerHTML = html;
 }
 
 // =============================================
 // UTILITY FUNCTIONS
 // =============================================
-function showError(message) {
-    document.querySelector('.product-detail-section').innerHTML = `
-        <div class="container">
-            <div class="alert alert-danger text-center">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                ${message}
-            </div>
-            <div class="text-center">
-                <a href="shop.html" class="btn btn-primary">
-                    <i class="fas fa-arrow-left me-2"></i>Quay lại cửa hàng
-                </a>
-            </div>
+function changeMainImage(thumbnail) {
+    const mainImage = document.getElementById('mainImage');
+    mainImage.src = thumbnail.src;
+    
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    thumbnail.classList.add('active');
+}
+
+function updateStars(rating) {
+    const starsContainer = document.querySelector('.product-rating .stars');
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    let html = '';
+    for (let i = 0; i < fullStars; i++) {
+        html += '<i class="fas fa-star"></i>';
+    }
+    if (hasHalfStar) {
+        html += '<i class="fas fa-star-half-alt"></i>';
+    }
+    for (let i = Math.ceil(rating); i < 5; i++) {
+        html += '<i class="far fa-star"></i>';
+    }
+    
+    starsContainer.innerHTML = html;
+}
+
+function increaseQuantity() {
+    const input = document.getElementById('quantity');
+    const max = parseInt(input.max);
+    const current = parseInt(input.value);
+    
+    if (current < max) {
+        input.value = current + 1;
+        currentQuantity = current + 1;
+    }
+}
+
+function decreaseQuantity() {
+    const input = document.getElementById('quantity');
+    const current = parseInt(input.value);
+    
+    if (current > 1) {
+        input.value = current - 1;
+        currentQuantity = current - 1;
+    }
+}
+
+function addToCartDetail() {
+    if (!currentProduct) return;
+    
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const imageUrl = currentProduct.images && currentProduct.images.length > 0 
+        ? `http://localhost:3000${currentProduct.images[0]}` 
+        : 'images/products/default.jpg';
+    
+    // Use addToCart from main.js if available
+    if (typeof addToCart === 'function') {
+        addToCart(
+            currentProduct.product_id,
+            currentProduct.product_name,
+            parseFloat(currentProduct.price),
+            imageUrl
+        );
+    } else {
+        // Fallback: add to cart manually
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.id === currentProduct.product_id);
+        
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cart.push({
+                id: currentProduct.product_id,
+                name: currentProduct.product_name,
+                price: parseFloat(currentProduct.price),
+                image: imageUrl,
+                quantity: quantity
+            });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        if (typeof showNotification === 'function') {
+            showNotification('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+        } else {
+            alert('Đã thêm sản phẩm vào giỏ hàng!');
+        }
+        
+        if (typeof updateCartCount === 'function') {
+            updateCartCount();
+        }
+    }
+}
+
+function toggleWishlistDetail() {
+    if (!currentProduct) return;
+    
+    const imageUrl = currentProduct.images && currentProduct.images.length > 0 
+        ? `http://localhost:3000${currentProduct.images[0]}` 
+        : 'images/products/default.jpg';
+    
+    if (typeof toggleWishlist === 'function') {
+        toggleWishlist(
+            currentProduct.product_id,
+            currentProduct.product_name,
+            parseFloat(currentProduct.price),
+            imageUrl
+        );
+    }
+}
+
+function setupRatingInput() {
+    const ratingStars = document.querySelectorAll('.rating-input i');
+    
+    ratingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            document.getElementById('ratingValue').value = rating;
+            
+            ratingStars.forEach((s, index) => {
+                if (index < rating) {
+                    s.classList.remove('far');
+                    s.classList.add('fas');
+                } else {
+                    s.classList.remove('fas');
+                    s.classList.add('far');
+                }
+            });
+        });
+    });
+}
+
+function submitReview(event) {
+    event.preventDefault();
+    
+    const rating = document.getElementById('ratingValue').value;
+    const title = document.getElementById('reviewTitle').value;
+    const content = document.getElementById('reviewContent').value;
+    
+    // TODO: Send review to API
+    console.log('Submit review:', { rating, title, content });
+    
+    if (typeof showNotification === 'function') {
+        showNotification('Cảm ơn bạn đã đánh giá sản phẩm!', 'success');
+    } else {
+        alert('Cảm ơn bạn đã đánh giá sản phẩm!');
+    }
+    
+    // Reset form
+    document.getElementById('reviewForm').reset();
+}
+
+function showLoading() {
+    const container = document.querySelector('.product-detail-section .container');
+    container.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+            <p class="mt-3">Đang tải thông tin sản phẩm...</p>
         </div>
     `;
+}
+
+function showError(message) {
+    const container = document.querySelector('.product-detail-section .container');
+    container.innerHTML = `
+        <div class="text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+            <h4>Có lỗi xảy ra</h4>
+            <p>${message}</p>
+            <a href="shop.html" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại Shop
+            </a>
+        </div>
+    `;
+}
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(price);
 }

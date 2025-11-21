@@ -2,40 +2,37 @@
 // SHOP PAGE JAVASCRIPT
 // =============================================
 
-// Global Variables
+// API_BASE_URL is defined in main.js
+
+// Global variables
 let allProducts = [];
-let filteredProducts = [];
+let displayedProducts = [];
 let currentPage = 1;
-const productsPerPage = 12;
+const PRODUCTS_PER_PAGE = 12;
+let filteredProducts = [];
 
 // =============================================
 // INITIALIZATION
 // =============================================
 document.addEventListener('DOMContentLoaded', function() {
-    initializeShop();
-});
-
-function initializeShop() {
     loadAllProducts();
-    setupFilterListeners();
+    setupEventListeners();
     
-    // Check URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const category = urlParams.get('cat');
-    const search = urlParams.get('search');
-    
-    if (search) {
-        document.getElementById('sidebarSearch').value = search;
-        document.getElementById('searchInput').value = search;
+    // Update user display if function exists
+    if (typeof updateUserDisplay === 'function') {
+        updateUserDisplay();
     }
-}
+    if (typeof updateCartCount === 'function') {
+        updateCartCount();
+    }
+});
 
 // =============================================
 // LOAD PRODUCTS
 // =============================================
 async function loadAllProducts() {
     try {
-        showLoadingOverlay();
+        showLoading();
         
         const response = await fetch(`${API_BASE_URL}/products`);
         if (!response.ok) {
@@ -43,199 +40,234 @@ async function loadAllProducts() {
         }
         
         allProducts = await response.json();
-        
-        // Merge with admin products from localStorage
-        const adminProducts = JSON.parse(localStorage.getItem('products') || '[]');
-        allProducts = [...allProducts, ...adminProducts];
-        
         filteredProducts = [...allProducts];
         
-        displayProducts();
+        console.log(`✅ Loaded ${allProducts.length} products`);
+        
+        displayShopProducts();
         updateResultCount();
-        hideLoadingOverlay();
         
     } catch (error) {
         console.error('Error loading products:', error);
-        hideLoadingOverlay();
-        showEmptyState('Không thể tải sản phẩm. Vui lòng thử lại sau.');
+        showError('Không thể tải sản phẩm. Vui lòng thử lại sau.');
     }
 }
 
 // =============================================
 // DISPLAY PRODUCTS
 // =============================================
-function displayProducts() {
+function displayShopProducts(reset = true) {
     const productsGrid = document.getElementById('productsGrid');
     
-    if (!filteredProducts || filteredProducts.length === 0) {
-        showEmptyState('Không tìm thấy sản phẩm nào. Vui lòng thử lại với bộ lọc khác.');
+    if (reset) {
+        currentPage = 1;
+        displayedProducts = [];
+    }
+    
+    // Calculate products to display
+    const startIndex = 0;
+    const endIndex = currentPage * PRODUCTS_PER_PAGE;
+    const productsToShow = filteredProducts.slice(startIndex, endIndex);
+    
+    displayedProducts = productsToShow;
+    
+    if (productsToShow.length === 0) {
+        productsGrid.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                <h4>Không tìm thấy sản phẩm</h4>
+                <p class="text-muted">Vui lòng thử lại với bộ lọc khác</p>
+            </div>
+        `;
+        hideLoadMoreButton();
         return;
     }
-
-    // Calculate pagination
-    const startIndex = (currentPage - 1) * productsPerPage;
-    const endIndex = startIndex + productsPerPage;
-    const productsToShow = filteredProducts.slice(startIndex, endIndex);
-
-    let productsHTML = productsToShow.map(product => `
-        <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
-            <div class="product-card fade-in">
-                <div class="product-image">
-                    <a href="product-detail.html?id=${product.product_id}">
-                        <img src="${product.image || 'images/products/default.jpg'}" 
+    
+    let html = '';
+    
+    productsToShow.forEach(product => {
+        const imageUrl = product.image ? `http://localhost:3000${product.image}` : 'images/products/default.jpg';
+        const price = parseFloat(product.price);
+        const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
+        
+        html += `
+            <div class="col-lg-4 col-md-6 col-sm-6 mb-4 product-item">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="${imageUrl}" 
                              alt="${product.product_name}" 
                              onerror="this.src='images/products/default.jpg'">
-                    </a>
-                    ${product.sale_price ? '<div class="product-badge sale">SALE</div>' : ''}
-                    ${product.is_new ? '<div class="product-badge new">MỚI</div>' : ''}
-                    ${product.is_bestseller ? '<div class="product-badge" style="background: #ffc107; color: #333;">BÁN CHẠY</div>' : ''}
-                </div>
-                <div class="product-info">
-                    <h5 class="product-title">
-                        <a href="product-detail.html?id=${product.product_id}">${product.product_name}</a>
-                    </h5>
-                    <div class="product-rating">
-                        <span class="stars">
-                            ${'★'.repeat(5)}
-                        </span>
-                        <span class="rating-count">(${product.review_count || 0})</span>
+                        ${salePrice && salePrice < price ? '<div class="product-badge sale">SALE</div>' : ''}
+                        ${product.is_new ? '<div class="product-badge new">MỚI</div>' : ''}
+                        ${product.is_bestseller ? '<div class="product-badge bestseller">BÁN CHẠY</div>' : ''}
+                        <div class="product-overlay">
+                            <button class="btn-quick-view" onclick="viewProduct(${product.product_id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="product-price">
-                        <span class="price-current">${formatPrice(product.sale_price || product.price)}</span>
-                        ${product.sale_price ? `<span class="price-original">${formatPrice(product.price)}</span>` : ''}
-                    </div>
-                    <div class="product-actions">
-                        <button class="btn-add-cart" onclick="addToCart(${product.product_id}, '${product.product_name}', ${product.sale_price || product.price}, '${product.image || 'images/products/default.jpg'}')">
-                            <i class="fas fa-shopping-cart me-2"></i>Đặt hàng
-                        </button>
-                        <button class="btn-wishlist" onclick="toggleWishlist(${product.product_id}, '${product.product_name}', ${product.sale_price || product.price}, '${product.image || 'images/products/default.jpg'}')">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-    
-    // Add "Add Product" card if admin mode
-    const isAdminMode = JSON.parse(localStorage.getItem('isAdminMode')) || false;
-    if (isAdminMode && currentPage === 1) {
-        productsHTML += `
-            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
-                <div class="product-card add-product-card" onclick="goToAddProduct()">
-                    <div class="add-product-content">
-                        <i class="fas fa-plus-circle"></i>
-                        <h5>Thêm sản phẩm mới</h5>
-                        <p>Click để thêm sản phẩm</p>
+                    <div class="product-info">
+                        <h5 class="product-title">
+                            <a href="product-detail.html?id=${product.product_id}">${product.product_name}</a>
+                        </h5>
+                        <div class="product-rating">
+                            <span class="stars">
+                                ${'★'.repeat(Math.round(product.avg_rating || 0))}${'☆'.repeat(5 - Math.round(product.avg_rating || 0))}
+                            </span>
+                            <span class="rating-count">(${product.review_count || 0})</span>
+                        </div>
+                        <div class="product-price">
+                            <span class="price-current">${formatPrice(price)}</span>
+                            ${salePrice && salePrice < price ? `<span class="price-original">${formatPrice(salePrice)}</span>` : ''}
+                        </div>
+                        <div class="product-stock">
+                            ${product.stock_quantity > 0 ? 
+                                `<span class="in-stock"><i class="fas fa-check-circle me-1"></i>Còn hàng (${product.stock_quantity})</span>` : 
+                                '<span class="out-of-stock"><i class="fas fa-times-circle me-1"></i>Hết hàng</span>'}
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn-add-cart" onclick="addToCart(${product.product_id}, '${escapeHtml(product.product_name)}', ${price}, '${imageUrl}')" ${product.stock_quantity <= 0 ? 'disabled' : ''}>
+                                <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
+    });
+    
+    productsGrid.innerHTML = html;
+    
+    // Show/hide load more button
+    if (endIndex < filteredProducts.length) {
+        showLoadMoreButton();
+    } else {
+        hideLoadMoreButton();
     }
     
-    productsGrid.innerHTML = productsHTML;
-
-    // Generate pagination
-    generatePagination();
+    updateResultCount();
 }
 
-// Function to go to add product page
-function goToAddProduct() {
-    localStorage.setItem('previousPage', 'shop.html');
-    window.location.href = 'add-product.html';
+// =============================================
+// LOAD MORE FUNCTIONALITY
+// =============================================
+function showLoadMoreButton() {
+    let loadMoreSection = document.getElementById('loadMoreSection');
+    
+    if (!loadMoreSection) {
+        const productsGrid = document.getElementById('productsGrid');
+        loadMoreSection = document.createElement('div');
+        loadMoreSection.id = 'loadMoreSection';
+        loadMoreSection.className = 'col-12 text-center mt-4';
+        loadMoreSection.innerHTML = `
+            <button class="btn btn-primary btn-lg" onclick="loadMore()">
+                <i class="fas fa-plus-circle me-2"></i>Xem thêm sản phẩm
+            </button>
+            <p class="text-muted mt-2">
+                Đang hiển thị <span id="displayedCount">${displayedProducts.length}</span> / <span id="totalCount">${filteredProducts.length}</span> sản phẩm
+            </p>
+        `;
+        productsGrid.parentElement.appendChild(loadMoreSection);
+    } else {
+        loadMoreSection.style.display = 'block';
+        document.getElementById('displayedCount').textContent = displayedProducts.length;
+        document.getElementById('totalCount').textContent = filteredProducts.length;
+    }
+}
+
+function hideLoadMoreButton() {
+    const loadMoreSection = document.getElementById('loadMoreSection');
+    if (loadMoreSection) {
+        loadMoreSection.style.display = 'none';
+    }
+}
+
+function loadMore() {
+    currentPage++;
+    displayShopProducts(false);
+    
+    // Smooth scroll to new products
+    setTimeout(() => {
+        const newProducts = document.querySelectorAll('.product-item');
+        if (newProducts.length > 0) {
+            const lastOldProduct = newProducts[displayedProducts.length - PRODUCTS_PER_PAGE - 1];
+            if (lastOldProduct) {
+                lastOldProduct.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, 100);
 }
 
 // =============================================
 // FILTER FUNCTIONS
 // =============================================
-function setupFilterListeners() {
-    // Category filters
-    document.querySelectorAll('.category-filter').forEach(checkbox => {
-        checkbox.addEventListener('change', filterProducts);
-    });
-    
-    // "All" checkbox
-    document.getElementById('catAll').addEventListener('change', function() {
-        if (this.checked) {
-            document.querySelectorAll('.category-filter').forEach(cb => cb.checked = false);
-        }
-        filterProducts();
-    });
-    
-    // Status filters
-    document.getElementById('filterSale').addEventListener('change', filterProducts);
-    document.getElementById('filterNew').addEventListener('change', filterProducts);
-    document.getElementById('filterBestseller').addEventListener('change', filterProducts);
-    
-    // Search on Enter
-    document.getElementById('sidebarSearch').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            filterProducts();
-        }
-    });
-}
-
 function filterProducts() {
-    let filtered = [...allProducts];
-    
-    // Search filter
     const searchTerm = document.getElementById('sidebarSearch').value.toLowerCase();
-    if (searchTerm) {
-        filtered = filtered.filter(product => 
-            product.product_name.toLowerCase().includes(searchTerm)
-        );
-    }
+    const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
+    const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
     
-    // Category filter
-    const selectedCategories = Array.from(document.querySelectorAll('.category-filter:checked'))
-        .map(cb => parseInt(cb.value));
-    
-    if (selectedCategories.length > 0 && !document.getElementById('catAll').checked) {
-        filtered = filtered.filter(product => 
-            selectedCategories.includes(product.category_id)
-        );
-    }
-    
-    // Price filter
-    const minPrice = parseInt(document.getElementById('priceMin').value) || 0;
-    const maxPrice = parseInt(document.getElementById('priceMax').value) || Infinity;
-    
-    filtered = filtered.filter(product => {
-        const price = product.sale_price || product.price;
-        return price >= minPrice && price <= maxPrice;
+    // Get selected categories
+    const selectedCategories = [];
+    document.querySelectorAll('.category-filter:checked').forEach(checkbox => {
+        selectedCategories.push(parseInt(checkbox.value));
     });
     
-    // Status filters
-    if (document.getElementById('filterSale').checked) {
-        filtered = filtered.filter(product => product.sale_price);
-    }
+    // Get status filters
+    const filterSale = document.getElementById('filterSale').checked;
+    const filterNew = document.getElementById('filterNew').checked;
+    const filterBestseller = document.getElementById('filterBestseller').checked;
     
-    if (document.getElementById('filterNew').checked) {
-        filtered = filtered.filter(product => product.is_new);
-    }
+    // Filter products
+    filteredProducts = allProducts.filter(product => {
+        const price = parseFloat(product.price);
+        const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
+        
+        // Search filter
+        if (searchTerm && !product.product_name.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+        
+        // Price filter
+        if (price < priceMin || price > priceMax) {
+            return false;
+        }
+        
+        // Category filter
+        if (selectedCategories.length > 0 && !selectedCategories.includes(product.category_id)) {
+            return false;
+        }
+        
+        // Status filters
+        if (filterSale && (!salePrice || salePrice >= price)) {
+            return false;
+        }
+        if (filterNew && !product.is_new) {
+            return false;
+        }
+        if (filterBestseller && !product.is_bestseller) {
+            return false;
+        }
+        
+        return true;
+    });
     
-    if (document.getElementById('filterBestseller').checked) {
-        filtered = filtered.filter(product => product.is_bestseller);
-    }
-    
-    filteredProducts = filtered;
-    currentPage = 1;
-    displayProducts();
-    updateResultCount();
+    console.log(`🔍 Filtered: ${filteredProducts.length} products`);
+    displayShopProducts(true);
 }
 
 function resetFilters() {
     // Reset search
     document.getElementById('sidebarSearch').value = '';
-    document.getElementById('searchInput').value = '';
-    
-    // Reset categories
-    document.getElementById('catAll').checked = true;
-    document.querySelectorAll('.category-filter').forEach(cb => cb.checked = false);
     
     // Reset price
-    document.getElementById('priceMin').value = 0;
-    document.getElementById('priceMax').value = 10000000;
+    document.getElementById('priceMin').value = '0';
+    document.getElementById('priceMax').value = '10000000';
+    
+    // Reset categories
+    document.querySelectorAll('.category-filter').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.getElementById('catAll').checked = true;
     
     // Reset status
     document.getElementById('filterSale').checked = false;
@@ -245,11 +277,9 @@ function resetFilters() {
     // Reset sort
     document.getElementById('sortSelect').value = 'default';
     
-    // Reload products
+    // Reload all products
     filteredProducts = [...allProducts];
-    currentPage = 1;
-    displayProducts();
-    updateResultCount();
+    displayShopProducts(true);
 }
 
 // =============================================
@@ -266,137 +296,129 @@ function sortProducts() {
             filteredProducts.sort((a, b) => b.product_name.localeCompare(a.product_name));
             break;
         case 'price-asc':
-            filteredProducts.sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+            filteredProducts.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
             break;
         case 'price-desc':
-            filteredProducts.sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+            filteredProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
             break;
         case 'newest':
-            filteredProducts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            filteredProducts.sort((a, b) => b.product_id - a.product_id);
             break;
         default:
-            filteredProducts = [...allProducts];
-            filterProducts();
-            return;
+            // Default sort by ID
+            filteredProducts.sort((a, b) => a.product_id - b.product_id);
     }
     
-    currentPage = 1;
-    displayProducts();
-}
-
-// =============================================
-// PAGINATION
-// =============================================
-function generatePagination() {
-    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-    const pagination = document.getElementById('pagination');
-    
-    if (totalPages <= 1) {
-        pagination.innerHTML = '';
-        return;
-    }
-    
-    let paginationHTML = '';
-    
-    // Previous button
-    paginationHTML += `
-        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">
-                <i class="fas fa-chevron-left"></i>
-            </a>
-        </li>
-    `;
-    
-    // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-            paginationHTML += `
-                <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>
-                </li>
-            `;
-        } else if (i === currentPage - 2 || i === currentPage + 2) {
-            paginationHTML += `
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
-                </li>
-            `;
-        }
-    }
-    
-    // Next button
-    paginationHTML += `
-        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">
-                <i class="fas fa-chevron-right"></i>
-            </a>
-        </li>
-    `;
-    
-    pagination.innerHTML = paginationHTML;
-}
-
-function changePage(page) {
-    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-    
-    if (page < 1 || page > totalPages) return;
-    
-    currentPage = page;
-    displayProducts();
-    
-    // Scroll to top of products
-    document.querySelector('.shop-section').scrollIntoView({ behavior: 'smooth' });
+    displayShopProducts(true);
 }
 
 // =============================================
 // UTILITY FUNCTIONS
 // =============================================
 function updateResultCount() {
-    document.getElementById('resultCount').textContent = filteredProducts.length;
-}
-
-function showEmptyState(message) {
-    const productsGrid = document.getElementById('productsGrid');
-    productsGrid.innerHTML = `
-        <div class="col-12">
-            <div class="empty-state">
-                <i class="fas fa-box-open"></i>
-                <h3>Không có sản phẩm</h3>
-                <p>${message}</p>
-                <button class="btn btn-primary" onclick="resetFilters()">
-                    <i class="fas fa-redo me-2"></i>Đặt lại bộ lọc
-                </button>
-            </div>
-        </div>
-    `;
-    document.getElementById('pagination').innerHTML = '';
-}
-
-function showLoadingOverlay() {
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
-    overlay.id = 'loadingOverlay';
-    overlay.innerHTML = `
-        <div class="loading-spinner">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Đang tải...</span>
-            </div>
-            <p>Đang tải sản phẩm...</p>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-}
-
-function hideLoadingOverlay() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.remove();
+    const resultCount = document.getElementById('resultCount');
+    if (resultCount) {
+        resultCount.textContent = filteredProducts.length;
     }
 }
 
-// Search from header
+function showLoading() {
+    const productsGrid = document.getElementById('productsGrid');
+    productsGrid.innerHTML = `
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="mt-3 text-muted">Đang tải sản phẩm...</p>
+        </div>
+    `;
+}
+
+function showError(message) {
+    const productsGrid = document.getElementById('productsGrid');
+    productsGrid.innerHTML = `
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+            <h4>Có lỗi xảy ra</h4>
+            <p class="text-muted">${message}</p>
+            <button class="btn btn-primary" onclick="loadAllProducts()">
+                <i class="fas fa-redo me-2"></i>Thử lại
+            </button>
+        </div>
+    `;
+}
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(price);
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function viewProduct(productId) {
+    window.location.href = `product-detail.html?id=${productId}`;
+}
+
+// =============================================
+// EVENT LISTENERS
+// =============================================
+function setupEventListeners() {
+    // Category "All" checkbox
+    const catAll = document.getElementById('catAll');
+    if (catAll) {
+        catAll.addEventListener('change', function() {
+            if (this.checked) {
+                document.querySelectorAll('.category-filter').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+        });
+    }
+    
+    // Individual category checkboxes
+    document.querySelectorAll('.category-filter').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('catAll').checked = false;
+            }
+            filterProducts();
+        });
+    });
+    
+    // Status filters
+    ['filterSale', 'filterNew', 'filterBestseller'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', filterProducts);
+        }
+    });
+    
+    // Search on Enter
+    const sidebarSearch = document.getElementById('sidebarSearch');
+    if (sidebarSearch) {
+        sidebarSearch.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                filterProducts();
+            }
+        });
+    }
+}
+
 function searchProducts() {
-    const searchTerm = document.getElementById('searchInput').value;
-    document.getElementById('sidebarSearch').value = searchTerm;
-    filterProducts();
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput && searchInput.value.trim()) {
+        document.getElementById('sidebarSearch').value = searchInput.value.trim();
+        filterProducts();
+    }
 }

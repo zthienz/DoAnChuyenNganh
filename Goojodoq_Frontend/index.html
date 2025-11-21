@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header-main">
@@ -29,7 +31,7 @@
                         <ul class="navbar-nav me-auto">
                             <li class="nav-item">
                                 <a class="nav-link active" href="index.html">Home</a>
-                            <!-- </li>
+                                <!-- </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     QUẠT <i class="fas fa-chevron-down"></i>
@@ -60,7 +62,8 @@
                         <div class="navbar-nav ms-auto d-flex align-items-center">
                             <!-- Search -->
                             <div class="search-box me-3">
-                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..."
+                                    id="searchInput">
                                 <button class="btn-search" onclick="searchProducts()">
                                     <i class="fas fa-search"></i>
                                 </button>
@@ -81,20 +84,27 @@
                             <!-- Cart -->
                             <a href="cart.html" class="nav-link position-relative me-3">
                                 <i class="fas fa-shopping-cart"></i>
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle"
+                                    id="cartCount">0</span>
                             </a>
 
                             <!-- User Account -->
-                            <div class="dropdown">
+                            <div class="dropdown" id="userAccountDropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-user"></i> Tài khoản của tôi
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="login.html">Đăng nhập</a></li>
-                                    <li><a class="dropdown-item" href="register.html">Đăng ký</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="profile.html">Thông tin cá nhân</a></li>
-                                    <li><a class="dropdown-item" href="orders.html">Đơn hàng của tôi</a></li>
+                                    <li><a class="dropdown-item" href="login.html"><i
+                                                class="fas fa-sign-in-alt me-2"></i>Đăng nhập</a></li>
+                                    <li><a class="dropdown-item" href="register.html"><i
+                                                class="fas fa-user-plus me-2"></i>Đăng ký</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="profile.html"><i
+                                                class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
+                                    <li><a class="dropdown-item" href="orders.html"><i
+                                                class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
                                 </ul>
                             </div>
 
@@ -123,7 +133,8 @@
                             <div class="col-lg-6">
                                 <div class="hero-text">
                                     <h1 class="hero-title">Nailtoong Xuất Hiện - Đế Thương Bung Nổi</h1>
-                                    <p class="hero-subtitle">Khám phá bộ sưu tập phụ kiện điện tử chất lượng cao từ GOOJODOQ</p>
+                                    <p class="hero-subtitle">Khám phá bộ sưu tập phụ kiện điện tử chất lượng cao từ
+                                        GOOJODOQ</p>
                                     <div class="hero-buttons">
                                         <a href="shop.html" class="btn btn-primary btn-lg me-3">MUA NGAY</a>
                                         <a href="#products" class="btn btn-outline-light btn-lg">XEM SẢN PHẨM</a>
@@ -228,7 +239,7 @@
                 <i class="fas fa-pause" id="playPauseIcon"></i>
             </button>
         </div>
-    </section>    <!-- 
+    </section> <!-- 
 Featured Products Section -->
     <section class="featured-products py-5" id="products">
         <div class="container">
@@ -238,7 +249,7 @@ Featured Products Section -->
                     <p class="section-subtitle">Những sản phẩm được yêu thích nhất tại GOOJODOQ</p>
                 </div>
             </div>
-            
+
             <!-- Product Grid -->
             <div class="row" id="productGrid">
                 <!-- Products will be loaded here via JavaScript -->
@@ -262,7 +273,7 @@ Featured Products Section -->
                     <p class="section-subtitle">Khám phá các danh mục sản phẩm đa dạng</p>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-lg-2 col-md-4 col-6 mb-4">
                     <div class="category-card text-center">
@@ -273,7 +284,7 @@ Featured Products Section -->
                         <p class="category-count">2 sản phẩm</p>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-4 col-6 mb-4">
                     <div class="category-card text-center">
                         <div class="category-icon">
@@ -283,7 +294,7 @@ Featured Products Section -->
                         <p class="category-count">1 sản phẩm</p>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-4 col-6 mb-4">
                     <div class="category-card text-center">
                         <div class="category-icon">
@@ -293,7 +304,7 @@ Featured Products Section -->
                         <p class="category-count">1 sản phẩm</p>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-4 col-6 mb-4">
                     <div class="category-card text-center">
                         <div class="category-icon">
@@ -303,7 +314,7 @@ Featured Products Section -->
                         <p class="category-count">4 sản phẩm</p>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-4 col-6 mb-4">
                     <div class="category-card text-center">
                         <div class="category-icon">
@@ -313,7 +324,7 @@ Featured Products Section -->
                         <p class="category-count">3 sản phẩm</p>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-4 col-6 mb-4">
                     <div class="category-card text-center">
                         <div class="category-icon">
@@ -324,7 +335,7 @@ Featured Products Section -->
                     </div>
                 </div>
             </div>
-            
+
             <div class="row mt-4">
                 <div class="col-12 text-center">
                     <button class="btn btn-dark btn-lg">Xem tất cả chuyên mục</button>
@@ -340,10 +351,11 @@ Featured Products Section -->
                 <div class="col-lg-8 text-center">
                     <h3 class="newsletter-title">Đăng ký để nhận cập nhật sản phẩm mới</h3>
                     <p class="newsletter-subtitle">Nhận thông tin về khuyến mãi và sản phẩm mới từ GOOJODOQ</p>
-                    
+
                     <form class="newsletter-form mt-4" onsubmit="subscribeNewsletter(event)">
                         <div class="input-group">
-                            <input type="email" class="form-control form-control-lg" placeholder="Nhập email của bạn..." required>
+                            <input type="email" class="form-control form-control-lg" placeholder="Nhập email của bạn..."
+                                required>
                             <button class="btn btn-primary btn-lg" type="submit">
                                 <i class="fas fa-paper-plane me-2"></i>Đăng ký
                             </button>
@@ -407,8 +419,9 @@ Featured Products Section -->
                 <!-- Newsletter -->
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h5 class="footer-title">SUBSCRIBE</h5>
-                    <p class="footer-desc">Đăng ký để nhận cập nhật sản phẩm, khuyến mãi và tin tức độc quyền từ GOOJODOQ!</p>
-                    
+                    <p class="footer-desc">Đăng ký để nhận cập nhật sản phẩm, khuyến mãi và tin tức độc quyền từ
+                        GOOJODOQ!</p>
+
                     <form class="footer-newsletter" onsubmit="subscribeNewsletter(event)">
                         <div class="input-group mb-3">
                             <input type="email" class="form-control" placeholder="Enter your email" required>
@@ -448,4 +461,5 @@ Featured Products Section -->
     <!-- Custom JS -->
     <script src="js/main.js"></script>
 </body>
+
 </html>
