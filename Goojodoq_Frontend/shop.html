@@ -54,40 +54,19 @@
                                 </button>
                             </div>
 
-                            <!-- Notifications -->
-                            <!-- <a href="#" class="nav-link position-relative me-2">
-                                <i class="fas fa-bell"></i>
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">3</span>
-                            </a> -->
+                            <!-- Auth Buttons (Login/Register) - Hiện khi chưa đăng nhập -->
+                            <div id="authButtons" class="d-flex align-items-center me-3" style="display: none;">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
 
-                            <!-- Wishlist -->
-                            <!-- <a href="wishlist.html" class="nav-link position-relative me-2">
-                                <i class="fas fa-heart"></i>
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="wishlistCount">0</span>
-                            </a> -->
-
-                            <!-- Cart -->
-                            <a href="cart.html" class="nav-link position-relative me-3">
+                            <!-- Cart Icon - Chỉ hiện khi user đăng nhập (không phải admin) -->
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
                             </a>
 
-                            <!-- User Account -->
-                            <div class="dropdown" id="userAccountDropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user"></i> Tài khoản của tôi
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="login.html"><i class="fas fa-sign-in-alt me-2"></i>Đăng nhập</a></li>
-                                    <li><a class="dropdown-item" href="register.html"><i class="fas fa-user-plus me-2"></i>Đăng ký</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
-                                    <li><a class="dropdown-item" href="orders.html"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
-                                </ul>
-                            </div>
-
-                            <!-- Admin Mode Toggle -->
-                            <div class="admin-mode-toggle ms-2" id="adminModeToggle">
+                            <!-- User Account Dropdown - Hiện khi đã đăng nhập -->
+                            <div class="dropdown" id="userAccountDropdown" style="display: none;">
                                 <!-- Will be populated by JavaScript -->
                             </div>
                         </div>

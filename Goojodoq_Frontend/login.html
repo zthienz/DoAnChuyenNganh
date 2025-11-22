@@ -242,18 +242,19 @@
                         sessionStorage.setItem('user', JSON.stringify(data.user));
                     }
 
-                    showAlert('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+                    // Hiển thị thông báo dựa trên role
+                    if (data.user.quyen === 'admin') {
+                        showAlert('Đăng nhập Admin thành công! Đang chuyển hướng...', 'success');
+                    } else {
+                        showAlert('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+                    }
                     
-                    // Redirect based on user role
+                    // Redirect về trang chủ (header sẽ tự động cập nhật dựa trên role)
                     setTimeout(() => {
-                        if (data.user.quyen === 'admin') {
-                            window.location.href = 'admin-dashboard.html';
-                        } else {
-                            window.location.href = 'index.html';
-                        }
+                        window.location.href = 'index.html';
                     }, 1500);
                 } else {
-                    showAlert(data.message || 'Đăng nhập thất bại!', 'danger');
+                    showAlert(data.message || 'Email hoặc mật khẩu không đúng!', 'danger');
                     btnLogin.disabled = false;
                     btnLogin.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Đăng nhập';
                 }
@@ -282,13 +283,10 @@
             const user = localStorage.getItem('user') || sessionStorage.getItem('user');
             if (user) {
                 const userData = JSON.parse(user);
-                showAlert('Bạn đã đăng nhập rồi. Đang chuyển hướng...', 'info');
+                const roleText = userData.quyen === 'admin' ? 'Admin' : 'người dùng';
+                showAlert(`Bạn đã đăng nhập với tài khoản ${roleText}. Đang chuyển hướng...`, 'info');
                 setTimeout(() => {
-                    if (userData.quyen === 'admin') {
-                        window.location.href = 'admin-dashboard.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
+                    window.location.href = 'index.html';
                 }, 1500);
             }
         });

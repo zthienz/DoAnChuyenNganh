@@ -41,9 +41,10 @@ export const register = async (req, res) => {
       success: true,
       message: "Đăng ký thành công!",
       user: {
-        id: result.insertId,
+        id_nguoidung: result.insertId,
         email: email,
         hoten: hoten,
+        sodienthoai: sdt,
         quyen: "nguoidung"
       }
     });
@@ -110,10 +111,11 @@ export const login = async (req, res) => {
       success: true,
       message: "Đăng nhập thành công!",
       user: {
-        id: user.id_nguoidung,
+        id_nguoidung: user.id_nguoidung,
         email: user.email,
         hoten: user.hoten,
-        sdt: user.sdt,
+        sodienthoai: user.sdt,
+        diachi: null, // Sẽ được cập nhật trong profile
         quyen: user.quyen
       }
     });

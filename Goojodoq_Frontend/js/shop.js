@@ -2,7 +2,7 @@
 // SHOP PAGE JAVASCRIPT
 // =============================================
 
-// API_BASE_URL is defined in main.js
+// API_BASE_URL is defined in main.js and available via window.API_BASE_URL
 
 // Global variables
 let allProducts = [];
@@ -34,7 +34,7 @@ async function loadAllProducts() {
     try {
         showLoading();
         
-        const response = await fetch(`${API_BASE_URL}/products`);
+        const response = await fetch(`${window.API_BASE_URL}/products`);
         if (!response.ok) {
             throw new Error('Failed to fetch products');
         }
@@ -128,6 +128,9 @@ function displayShopProducts(reset = true) {
                         <div class="product-actions">
                             <button class="btn-add-cart" onclick="addToCart(${product.product_id}, '${escapeHtml(product.product_name)}', ${price}, '${imageUrl}')" ${product.stock_quantity <= 0 ? 'disabled' : ''}>
                                 <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm ms-2" onclick="toggleWishlist(${product.product_id}, '${escapeHtml(product.product_name)}', ${price}, '${imageUrl}')" title="Thêm vào yêu thích">
+                                <i class="far fa-heart"></i>
                             </button>
                         </div>
                     </div>

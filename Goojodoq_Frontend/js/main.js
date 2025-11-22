@@ -4,6 +4,7 @@
 
 // API Configuration
 const API_BASE_URL = 'http://localhost:3000/api';
+window.API_BASE_URL = API_BASE_URL; // Make it globally accessible
 
 // Global Variables
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -31,6 +32,11 @@ let slideInterval;
 let isAutoplayActive = true;
 const SLIDE_DURATION = 7000; // 7 seconds
 
+// Auto Logout Variables
+let inactivityTimer = null;
+const INACTIVITY_TIMEOUT = 2 * 60 * 1000; // 2 minutes in milliseconds
+const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
 // =============================================
 // INITIALIZATION
 // =============================================
@@ -42,6 +48,11 @@ function initializeApp() {
     updateCartCount();
     updateWishlistCount();
     updateUserDisplay();
+    
+    // Initialize auto logout if user is logged in
+    if (currentUser) {
+        initAutoLogout();
+    }
     
     // Only load featured products on index page
     const productGrid = document.getElementById('productGrid');
@@ -228,6 +239,15 @@ function goToAddProduct() {
 // CART FUNCTIONS
 // =============================================
 function addToCart(productId, productName, price, image) {
+    // Kiểm tra đăng nhập
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'warning');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return;
+    }
+    
     const existingItem = cart.find(item => item.id === productId);
     
     if (existingItem) {
@@ -267,6 +287,15 @@ function updateCartCount() {
 // WISHLIST FUNCTIONS
 // =============================================
 function toggleWishlist(productId, productName, price, image) {
+    // Kiểm tra đăng nhập
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!', 'warning');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return;
+    }
+    
     const existingIndex = wishlist.findIndex(item => item.id === productId);
     
     if (existingIndex > -1) {
@@ -710,52 +739,117 @@ function updateUserDisplay() {
     console.log('🔍 updateUserDisplay called');
     console.log('👤 Current User:', currentUser);
     
-    // Update user dropdown in header
+    // Update auth buttons (login/register)
+    const authButtons = document.getElementById('authButtons');
+    
+    // Update cart icon
+    const cartIcon = document.getElementById('cartIcon');
+    
+    // Update user dropdown
     const userDropdown = document.getElementById('userAccountDropdown');
     
-    if (!userDropdown) {
-        console.warn('⚠️ userAccountDropdown not found in DOM');
-        return;
-    }
-
-    if (currentUser) {
-        // User is logged in
+    if (!currentUser) {
+        // ===== CHƯA ĐĂNG NHẬP =====
+        console.log('❌ User not logged in');
+        
+        // Hiện nút đăng nhập và đăng ký
+        if (authButtons) {
+            authButtons.style.display = 'flex';
+            authButtons.innerHTML = `
+                <a href="login.html" class="btn btn-outline-primary btn-sm me-2">
+                    <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
+                </a>
+                <a href="register.html" class="btn btn-primary btn-sm">
+                    <i class="fas fa-user-plus me-1"></i>Đăng ký
+                </a>
+            `;
+        }
+        
+        // Ẩn giỏ hàng
+        if (cartIcon) {
+            cartIcon.style.display = 'none';
+        }
+        
+        // Ẩn dropdown tài khoản
+        if (userDropdown) {
+            userDropdown.style.display = 'none';
+        }
+        
+    } else if (currentUser.quyen === 'admin') {
+        // ===== ĐĂNG NHẬP ADMIN =====
+        const userName = currentUser.hoten || currentUser.email.split('@')[0];
+        console.log('✅ Admin logged in:', userName);
+        
+        // Ẩn nút đăng nhập/đăng ký
+        if (authButtons) {
+            authButtons.style.display = 'none';
+        }
+        
+        // Ẩn giỏ hàng
+        if (cartIcon) {
+            cartIcon.style.display = 'none';
+        }
+        
+        // Hiện dropdown admin
+        if (userDropdown) {
+            userDropdown.style.display = 'block';
+            userDropdown.innerHTML = `
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-shield"></i> ${userName}
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header"><i class="fas fa-user-shield me-2"></i>Quản trị hệ thống</h6></li>
+                    <li><a class="dropdown-item" href="admin-customers.html"><i class="fas fa-users me-2"></i>Quản lý khách hàng</a></li>
+                    <li><a class="dropdown-item" href="admin-orders.html"><i class="fas fa-shopping-bag me-2"></i>Quản lý đơn hàng</a></li>
+                    <li><a class="dropdown-item" href="admin-products.html"><i class="fas fa-box me-2"></i>Quản lý sản phẩm</a></li>
+                    <li><a class="dropdown-item" href="admin-revenue.html"><i class="fas fa-chart-line me-2"></i>Tổng doanh thu</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                </ul>
+            `;
+        }
+        
+    } else {
+        // ===== ĐĂNG NHẬP NGƯỜI DÙNG =====
         const userName = currentUser.hoten || currentUser.email.split('@')[0];
         console.log('✅ User logged in:', userName);
         
-        userDropdown.innerHTML = `
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-user-circle"></i> ${userName}
-            </a>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
-                <li><a class="dropdown-item" href="orders.html"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
-                <li><hr class="dropdown-divider"></li>
-                ${currentUser.quyen === 'admin' ? '<li><a class="dropdown-item" href="admin-dashboard.html"><i class="fas fa-user-shield me-2"></i>Quản trị</a></li><li><hr class="dropdown-divider"></li>' : ''}
-                <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
-            </ul>
-        `;
-    } else {
-        // User is not logged in
-        console.log('❌ User not logged in');
+        // Ẩn nút đăng nhập/đăng ký
+        if (authButtons) {
+            authButtons.style.display = 'none';
+        }
         
-        userDropdown.innerHTML = `
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-user"></i> Tài khoản của tôi
-            </a>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="login.html"><i class="fas fa-sign-in-alt me-2"></i>Đăng nhập</a></li>
-                <li><a class="dropdown-item" href="register.html"><i class="fas fa-user-plus me-2"></i>Đăng ký</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
-                <li><a class="dropdown-item" href="orders.html"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
-            </ul>
-        `;
+        // Hiện giỏ hàng
+        if (cartIcon) {
+            cartIcon.style.display = 'block';
+        }
+        
+        // Hiện dropdown người dùng
+        if (userDropdown) {
+            userDropdown.style.display = 'block';
+            userDropdown.innerHTML = `
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-circle"></i> ${userName}
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
+                    <li><a class="dropdown-item" href="orders.html"><i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi</a></li>
+                    <li><a class="dropdown-item" href="wishlist.html"><i class="fas fa-heart me-2"></i>Sản phẩm yêu thích</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                </ul>
+            `;
+        }
     }
 }
 
 function logout() {
     if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        // Stop auto logout timer
+        stopAutoLogout();
+        
         // Xóa thông tin user
         localStorage.removeItem('user');
         sessionStorage.removeItem('user');
@@ -786,4 +880,83 @@ function checkAuth() {
         return false;
     }
     return true;
+}
+
+// =============================================
+// AUTO LOGOUT FUNCTIONS
+// =============================================
+function initAutoLogout() {
+    console.log('🔒 Auto logout initialized (2 minutes inactivity)');
+    
+    // Start the inactivity timer
+    resetInactivityTimer();
+    
+    // Add event listeners for user activity
+    ACTIVITY_EVENTS.forEach(event => {
+        document.addEventListener(event, resetInactivityTimer, true);
+    });
+}
+
+function resetInactivityTimer() {
+    // Clear existing timer
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+    }
+    
+    // Only set timer if user is logged in
+    if (!currentUser) {
+        return;
+    }
+    
+    // Set new timer
+    inactivityTimer = setTimeout(() => {
+        autoLogout();
+    }, INACTIVITY_TIMEOUT);
+}
+
+function autoLogout() {
+    console.log('⏰ Auto logout triggered due to inactivity');
+    
+    // Clear timer
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    
+    // Remove event listeners
+    ACTIVITY_EVENTS.forEach(event => {
+        document.removeEventListener(event, resetInactivityTimer, true);
+    });
+    
+    // Clear user data
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    localStorage.removeItem('isAdminMode');
+    
+    // Update global variables
+    currentUser = null;
+    isAdminMode = false;
+    
+    // Show notification
+    showNotification('Phiên đăng nhập đã hết hạn do không hoạt động. Vui lòng đăng nhập lại!', 'warning');
+    
+    // Redirect to login after 2 seconds
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 2000);
+}
+
+function stopAutoLogout() {
+    console.log('🔓 Auto logout stopped');
+    
+    // Clear timer
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    
+    // Remove event listeners
+    ACTIVITY_EVENTS.forEach(event => {
+        document.removeEventListener(event, resetInactivityTimer, true);
+    });
 }

@@ -2,7 +2,7 @@
 // PRODUCT DETAIL PAGE JAVASCRIPT
 // =============================================
 
-// API_BASE_URL is defined in main.js
+// API_BASE_URL is defined in main.js and available via window.API_BASE_URL
 
 // Global variables
 let currentProduct = null;
@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get product ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
+    
+    console.log('🔍 Product ID from URL:', productId);
+    console.log('🔍 Full URL:', window.location.href);
+    console.log('🔍 API_BASE_URL:', window.API_BASE_URL);
     
     if (productId) {
         loadProductDetail(productId);
@@ -40,7 +44,7 @@ async function loadProductDetail(productId) {
     try {
         showLoading();
         
-        const response = await fetch(`${API_BASE_URL}/products/${productId}`);
+        const response = await fetch(`${window.API_BASE_URL}/products/${productId}`);
         if (!response.ok) {
             throw new Error('Không tìm thấy sản phẩm');
         }
@@ -57,11 +61,20 @@ async function loadProductDetail(productId) {
     }
 }
 
-// =============================================
-// DISPLAY PRODUCT DETAIL
-// =============================================
+
 function displayProductDetail() {
     if (!currentProduct) return;
+    
+    // Hide loading and show content
+    const container = document.querySelector('.product-detail-section .container');
+    const loadingDiv = container.querySelector('.loading-indicator');
+    if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+    }
+    const existingContent = container.querySelector('.row');
+    if (existingContent) {
+        existingContent.style.display = '';
+    }
     
     const product = currentProduct;
     
@@ -278,7 +291,7 @@ function displayReviews(reviews) {
 // =============================================
 async function loadRelatedProducts() {
     try {
-        const response = await fetch(`${API_BASE_URL}/products`);
+        const response = await fetch(`${window.API_BASE_URL}/products`);
         const allProducts = await response.json();
         
         // Filter products from same category, exclude current product
@@ -339,9 +352,7 @@ function displayRelatedProducts(products) {
     container.innerHTML = html;
 }
 
-// =============================================
-// UTILITY FUNCTIONS
-// =============================================
+
 function changeMainImage(thumbnail) {
     const mainImage = document.getElementById('mainImage');
     mainImage.src = thumbnail.src;
@@ -353,6 +364,13 @@ function changeMainImage(thumbnail) {
 
 function updateStars(rating) {
     const starsContainer = document.querySelector('.product-rating .stars');
+    
+    // Check if element exists
+    if (!starsContainer) {
+        console.warn('⚠️ Stars container not found');
+        return;
+    }
+    
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
     
@@ -497,13 +515,26 @@ function submitReview(event) {
 }
 
 function showLoading() {
+    // Instead of replacing entire container, just hide content and show loading
     const container = document.querySelector('.product-detail-section .container');
-    container.innerHTML = `
-        <div class="text-center py-5">
+    const existingContent = container.querySelector('.row');
+    
+    if (existingContent) {
+        existingContent.style.display = 'none';
+    }
+    
+    // Add loading indicator if not exists
+    let loadingDiv = container.querySelector('.loading-indicator');
+    if (!loadingDiv) {
+        loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-indicator text-center py-5';
+        loadingDiv.innerHTML = `
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
             <p class="mt-3">Đang tải thông tin sản phẩm...</p>
-        </div>
-    `;
+        `;
+        container.insertBefore(loadingDiv, container.firstChild);
+    }
+    loadingDiv.style.display = 'block';
 }
 
 function showError(message) {
