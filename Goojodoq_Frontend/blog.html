@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog & Tin tức - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .blog-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            color: white;
+            text-align: center;
+        }
+
+        .blog-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .blog-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .blog-card-body {
+            padding: 25px;
+        }
+
+        .blog-category {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .blog-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #333;
+        }
+
+        .blog-excerpt {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #999;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .blog-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .blog-read-more {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .blog-read-more:hover {
+            color: #764ba2;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar-widget {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .sidebar-widget h5 {
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .category-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .category-list li:last-child {
+            border-bottom: none;
+        }
+
+        .category-list a {
+            color: #666;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            transition: color 0.3s ease;
+        }
+
+        .category-list a:hover {
+            color: #667eea;
+        }
+
+        .recent-post {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .recent-post:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .recent-post img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .recent-post-content h6 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .recent-post-content a {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .recent-post-content a:hover {
+            color: #667eea;
+        }
+
+        .recent-post-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .search-box-blog {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-box-blog input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box-blog input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-box-blog button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .search-box-blog button:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header-main">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="GOOJODOQ" class="logo">
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html">Mua sắm</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="blog.html">Blog</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Liên hệ</a>
+                            </li>
+                        </ul>
+
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <div class="search-box me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <button class="btn-search" onclick="searchProducts()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
+                            <div id="authButtons" class="d-flex align-items-center me-3" style="display: none;"></div>
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                            </a>
+                            <div class="dropdown" id="userAccountDropdown" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="blog-hero">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Blog & Tin tức</h1>
+            <p class="lead">Cập nhật tin tức mới nhất về công nghệ và sản phẩm GOOJODOQ</p>
+        </div>
+    </section>
+
+    <!-- Blog Content -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8">
+                    <!-- Search Box -->
+                    <div class="search-box-blog">
+                        <input type="text" placeholder="Tìm kiếm bài viết...">
+                        <button><i class="fas fa-search"></i></button>
+                    </div>
+
+                    <!-- Blog Posts -->
+                    <div class="row" id="blogPosts">
+                        <!-- Blog posts will be loaded here -->
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Blog pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Trước</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Sau</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <div class="sidebar">
+                        <!-- Categories Widget -->
+                        <div class="sidebar-widget">
+                            <h5>Danh mục</h5>
+                            <ul class="category-list">
+                                <li><a href="#"><span>Tin công nghệ</span> <span class="badge bg-secondary">12</span></a></li>
+                                <li><a href="#"><span>Đánh giá sản phẩm</span> <span class="badge bg-secondary">8</span></a></li>
+                                <li><a href="#"><span>Hướng dẫn sử dụng</span> <span class="badge bg-secondary">15</span></a></li>
+                                <li><a href="#"><span>Khuyến mãi</span> <span class="badge bg-secondary">6</span></a></li>
+                                <li><a href="#"><span>Tin tức GOOJODOQ</span> <span class="badge bg-secondary">10</span></a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Recent Posts Widget -->
+                        <div class="sidebar-widget">
+                            <h5>Bài viết gần đây</h5>
+                            <div id="recentPosts">
+                                <!-- Recent posts will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Tags Widget -->
+                        <div class="sidebar-widget">
+                            <h5>Tags</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-light text-dark">Công nghệ</span>
+                                <span class="badge bg-light text-dark">Phụ kiện</span>
+                                <span class="badge bg-light text-dark">Tai nghe</span>
+                                <span class="badge bg-light text-dark">Loa</span>
+                                <span class="badge bg-light text-dark">Quạt mini</span>
+                                <span class="badge bg-light text-dark">Bluetooth</span>
+                                <span class="badge bg-light text-dark">Review</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">CHÍNH SÁCH</h5>
+                    <ul class="footer-links">
+                        <li><a href="warranty.html">Chính sách bảo hành</a></li>
+                        <li><a href="return.html">Chính sách đổi trả</a></li>
+                        <li><a href="shipping.html">Chính sách vận chuyển</a></li>
+                        <li><a href="payment.html">Chính sách thanh toán</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">HỖ TRỢ KHÁCH HÀNG</h5>
+                    <ul class="footer-links">
+                        <li><a href="contact.html">Liên hệ</a></li>
+                    </ul>
+                    <div class="mt-3">
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i>Hotline: 1900-xxxx</p>
+                        <p class="mb-0"><i class="fas fa-envelope me-2"></i>support@goojodoq.com</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">VỀ GOOJODOQ</h5>
+                    <ul class="footer-links">
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="shop.html">Sản phẩm</a></li>
+                        <li><a href="blog.html">Blog & Tin tức</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h5>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle" target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Giờ làm việc:</strong></p>
+                        <p class="mb-0">Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+                        <p class="mb-0">Thứ Bảy: 8:00 - 12:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4 pt-4 border-top">
+                <div class="col-md-12 text-center">
+                    <p class="footer-copyright mb-0">
+                        Copyright © 2025 GOOJODOQ. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Sample blog data
+        const blogPosts = [
+            {
+                id: 1,
+                title: "Top 5 tai nghe Bluetooth tốt nhất năm 2025",
+                excerpt: "Khám phá những mẫu tai nghe Bluetooth chất lượng cao với âm thanh tuyệt vời và pin bền bỉ...",
+                category: "Đánh giá sản phẩm",
+                date: "20/11/2025",
+                image: "images/blog/blog1.jpg",
+                author: "Admin"
+            },
+            {
+                id: 2,
+                title: "Hướng dẫn chọn quạt mini phù hợp cho mùa hè",
+                excerpt: "Mùa hè đang đến, cùng tìm hiểu cách chọn quạt mini phù hợp với nhu cầu của bạn...",
+                category: "Hướng dẫn",
+                date: "18/11/2025",
+                image: "images/blog/blog2.jpg",
+                author: "Admin"
+            },
+            {
+                id: 3,
+                title: "GOOJODOQ ra mắt bộ sưu tập phụ kiện mới",
+                excerpt: "Chúng tôi vui mừng giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với nhiều tính năng ưu việt...",
+                category: "Tin tức",
+                date: "15/11/2025",
+                image: "images/blog/blog3.jpg",
+                author: "Admin"
+            },
+            {
+                id: 4,
+                title: "So sánh loa Bluetooth: Chọn loại nào phù hợp?",
+                excerpt: "Phân tích chi tiết các loại loa Bluetooth trên thị trường để giúp bạn đưa ra lựa chọn đúng đắn...",
+                category: "Đánh giá sản phẩm",
+                date: "12/11/2025",
+                image: "images/blog/blog4.jpg",
+                author: "Admin"
+            },
+            {
+                id: 5,
+                title: "Bí quyết bảo quản phụ kiện điện tử bền lâu",
+                excerpt: "Những mẹo đơn giản giúp kéo dài tuổi thọ cho các thiết bị điện tử của bạn...",
+                category: "Hướng dẫn",
+                date: "10/11/2025",
+                image: "images/blog/blog5.jpg",
+                author: "Admin"
+            },
+            {
+                id: 6,
+                title: "Khuyến mãi lớn cuối năm - Giảm giá đến 50%",
+                excerpt: "Đừng bỏ lỡ chương trình khuyến mãi lớn nhất trong năm với hàng trăm sản phẩm giảm giá sâu...",
+                category: "Khuyến mãi",
+                date: "08/11/2025",
+                image: "images/blog/blog6.jpg",
+                author: "Admin"
+            }
+        ];
+
+        // Load blog posts
+        function loadBlogPosts() {
+            const blogPostsContainer = document.getElementById('blogPosts');
+            let html = '';
+
+            blogPosts.forEach(post => {
+                html += `
+                    <div class="col-md-6">
+                        <div class="blog-card">
+                            <img src="${post.image}" alt="${post.title}" onerror="this.src='images/placeholder.jpg'">
+                            <div class="blog-card-body">
+                                <span class="blog-category">${post.category}</span>
+                                <h3 class="blog-title">${post.title}</h3>
+                                <p class="blog-excerpt">${post.excerpt}</p>
+                                <div class="blog-meta">
+                                    <div class="blog-date">
+                                        <i class="far fa-calendar"></i>
+                                        <span>${post.date}</span>
+                                    </div>
+                                    <a href="blog-detail.html?id=${post.id}" class="blog-read-more">
+                                        Đọc thêm <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            blogPostsContainer.innerHTML = html;
+        }
+
+        // Load recent posts
+        function loadRecentPosts() {
+            const recentPostsContainer = document.getElementById('recentPosts');
+            let html = '';
+
+            blogPosts.slice(0, 3).forEach(post => {
+                html += `
+                    <div class="recent-post">
+                        <img src="${post.image}" alt="${post.title}" onerror="this.src='images/placeholder.jpg'">
+                        <div class="recent-post-content">
+                            <h6><a href="blog-detail.html?id=${post.id}">${post.title}</a></h6>
+                            <div class="recent-post-date">
+                                <i class="far fa-calendar me-1"></i>${post.date}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            recentPostsContainer.innerHTML = html;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlogPosts();
+            loadRecentPosts();
+        });
+    </script>
+</body>
+
+</html>

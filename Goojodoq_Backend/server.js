@@ -14,7 +14,206 @@ app.use(express.json());
 // Serve static files (images)
 app.use('/images', express.static('../Goojodoq_Frontend/images'));
 
-// ✅ Test route kiểm tra kết nối DB
+
+// Get cart by user ID
+app.get("/api/cart/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log("🛒 GET cart for user:", userId);
+
+    // Get or create cart
+    let [carts] = await pool.query(
+      'SELECT id_giohang FROM giohang WHERE id_nguoidung = ?',
+      [userId]
+    );
+
+    if (carts.length === 0) {
+      const [result] = await pool.query(
+        'INSERT INTO giohang (id_nguoidung) VALUES (?)',
+        [userId]
+      );
+      return res.json({ cart_id: result.insertId, items: [], total: 0 });
+    }
+
+    const cartId = carts[0].id_giohang;
+
+    // Get cart items
+    const [items] = await pool.query(`
+      SELECT 
+        ct.id_chitiet,
+        ct.id_sanpham,
+        ct.soluong,
+        ct.gia_donvi,
+        sp.ten_sanpham as product_name,
+        sp.ma_sku as sku,
+        sp.tonkho as stock,
+        (SELECT duongdan_anh FROM anh_sanpham WHERE id_sanpham = sp.id_sanpham ORDER BY thu_tu LIMIT 1) AS image
+      FROM chitiet_giohang ct
+      JOIN sanpham sp ON ct.id_sanpham = sp.id_sanpham
+      WHERE ct.id_giohang = ?
+      ORDER BY ct.ngay_them DESC
+    `, [cartId]);
+
+    const total = items.reduce((sum, item) => sum + (item.soluong * parseFloat(item.gia_donvi)), 0);
+
+    res.json({ cart_id: cartId, items, total });
+  } catch (err) {
+    console.error("❌ Error in getCart:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add product to cart
+app.post("/api/cart/add", async (req, res) => {
+  try {
+    const { userId, productId, quantity = 1, price } = req.body;
+    console.log("🛒 ADD to cart:", { userId, productId, quantity, price });
+
+    if (!userId || !productId || !price) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Get or create cart
+    let [carts] = await pool.query(
+      'SELECT id_giohang FROM giohang WHERE id_nguoidung = ?',
+      [userId]
+    );
+
+    let cartId;
+    if (carts.length === 0) {
+      const [result] = await pool.query(
+        'INSERT INTO giohang (id_nguoidung) VALUES (?)',
+        [userId]
+      );
+      cartId = result.insertId;
+    } else {
+      cartId = carts[0].id_giohang;
+    }
+
+    // Check if product already in cart
+    const [existing] = await pool.query(
+      'SELECT id_chitiet, soluong FROM chitiet_giohang WHERE id_giohang = ? AND id_sanpham = ?',
+      [cartId, productId]
+    );
+
+    if (existing.length > 0) {
+      // Update quantity
+      await pool.query(
+        'UPDATE chitiet_giohang SET soluong = soluong + ? WHERE id_chitiet = ?',
+        [quantity, existing[0].id_chitiet]
+      );
+    } else {
+      // Insert new item
+      await pool.query(
+        'INSERT INTO chitiet_giohang (id_giohang, id_sanpham, soluong, gia_donvi) VALUES (?, ?, ?, ?)',
+        [cartId, productId, quantity, price]
+      );
+    }
+
+    // Update cart timestamp
+    await pool.query(
+      'UPDATE giohang SET ngay_capnhat = CURRENT_TIMESTAMP WHERE id_giohang = ?',
+      [cartId]
+    );
+
+    res.json({ success: true, message: 'Đã thêm vào giỏ hàng' });
+  } catch (err) {
+    console.error("❌ Error in addToCart:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get cart count
+app.get("/api/cart/count/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const [carts] = await pool.query(
+      'SELECT id_giohang FROM giohang WHERE id_nguoidung = ?',
+      [userId]
+    );
+
+    if (carts.length === 0) {
+      return res.json({ count: 0 });
+    }
+
+    const [result] = await pool.query(
+      'SELECT SUM(soluong) as total FROM chitiet_giohang WHERE id_giohang = ?',
+      [carts[0].id_giohang]
+    );
+
+    res.json({ count: result[0].total || 0 });
+  } catch (err) {
+    console.error("❌ Error in getCartCount:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update cart item quantity
+app.put("/api/cart/item/:itemId", async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const { quantity } = req.body;
+
+    if (quantity < 1) {
+      return res.status(400).json({ error: 'Số lượng phải lớn hơn 0' });
+    }
+
+    await pool.query(
+      'UPDATE chitiet_giohang SET soluong = ? WHERE id_chitiet = ?',
+      [quantity, itemId]
+    );
+
+    res.json({ success: true, message: 'Đã cập nhật số lượng' });
+  } catch (err) {
+    console.error("❌ Error in updateCartItem:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Remove item from cart
+app.delete("/api/cart/item/:itemId", async (req, res) => {
+  try {
+    const { itemId } = req.params;
+
+    await pool.query('DELETE FROM chitiet_giohang WHERE id_chitiet = ?', [itemId]);
+
+    res.json({ success: true, message: 'Đã xóa sản phẩm khỏi giỏ hàng' });
+  } catch (err) {
+    console.error("❌ Error in removeFromCart:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Clear entire cart
+app.delete("/api/cart/clear/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const [carts] = await pool.query(
+      'SELECT id_giohang FROM giohang WHERE id_nguoidung = ?',
+      [userId]
+    );
+
+    if (carts.length > 0) {
+      await pool.query(
+        'DELETE FROM chitiet_giohang WHERE id_giohang = ?',
+        [carts[0].id_giohang]
+      );
+    }
+
+    res.json({ success: true, message: 'Đã xóa toàn bộ giỏ hàng' });
+  } catch (err) {
+    console.error("❌ Error in clearCart:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =============================================
+// OTHER ROUTES
+// =============================================
+
+// Test route
 app.get("/test-db", async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT COUNT(*) AS total FROM nguoidung");
@@ -24,12 +223,60 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-// 🛍️ Route sản phẩm
+// Product routes
 app.use("/api/products", productRoutes);
 
-// 🔐 Route xác thực
+// Auth routes
 app.use("/api/auth", authRoutes);
 
-// 🔥 Chạy server
+// =============================================
+// PROFILE API ROUTES
+// =============================================
+import { getProfile, updateProfile, updateAddress, checkAddress } from "./controllers/profileController.js";
+
+app.get("/api/profile/:userId", getProfile);
+app.put("/api/profile/:userId", updateProfile);
+app.put("/api/profile/:userId/address", updateAddress);
+app.get("/api/profile/:userId/check-address", checkAddress);
+
+// =============================================
+// ORDER API ROUTES
+// =============================================
+import { createOrder, getOrders, getOrderDetail, cancelOrder, confirmReceived, confirmOrder } from "./controllers/orderController.js";
+
+app.post("/api/orders", createOrder);
+app.get("/api/orders/:userId", getOrders);
+app.get("/api/orders/detail/:orderId", getOrderDetail);
+app.put("/api/orders/:orderId/cancel", cancelOrder);
+app.put("/api/orders/:orderId/received", confirmReceived);
+app.put("/api/orders/:orderId/confirm", confirmOrder);
+
+// =============================================
+// WISHLIST API ROUTES
+// =============================================
+import { getWishlist, addToWishlist, removeFromWishlist, checkWishlist } from "./controllers/wishlistController.js";
+
+app.get("/api/wishlist/:userId", getWishlist);
+app.post("/api/wishlist", addToWishlist);
+app.delete("/api/wishlist/:userId/:productId", removeFromWishlist);
+app.get("/api/wishlist/:userId/:productId/check", checkWishlist);
+
+// =============================================
+// VOUCHER API ROUTES
+// =============================================
+import { checkVoucher, getAvailableVouchers, useVoucher } from "./controllers/voucherController.js";
+
+app.post("/api/vouchers/check", checkVoucher);
+app.get("/api/vouchers/available", getAvailableVouchers);
+app.post("/api/vouchers/use", useVoucher);
+
+// =============================================
+// START SERVER
+// =============================================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📦 Products API: http://localhost:${PORT}/api/products`);
+  console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
+  console.log(`🛒 Cart API: http://localhost:${PORT}/api/cart`);
+});

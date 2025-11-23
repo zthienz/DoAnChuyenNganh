@@ -941,3 +941,113 @@ body {
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
     color: white;
 }
+
+/* =============================================
+   SALE PRODUCTS CAROUSEL SECTION
+   ============================================= */
+.sale-products {
+    background: #fff;
+    padding: 60px 0;
+}
+
+.sale-carousel-wrapper {
+    position: relative;
+    overflow: hidden;
+    padding: 20px 0;
+}
+
+.sale-carousel {
+    display: flex;
+    gap: 20px;
+    width: fit-content;
+    transition: transform 0.5s ease;
+}
+
+.sale-product-card {
+    flex: 0 0 280px;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.sale-product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.sale-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
+}
+
+.sale-product-card .product-image {
+    height: 220px;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.sale-product-card .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.sale-product-card:hover .product-image img {
+    transform: scale(1.1);
+}
+
+.sale-product-card .product-info {
+    padding: 20px;
+}
+
+.sale-product-card .product-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+    line-height: 1.4;
+    height: 45px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.sale-product-card .product-price {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.sale-product-card .original-price {
+    font-size: 0.9rem;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.sale-product-card .sale-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ff6b6b;
+}
+
+/* Duplicate items for seamless loop */
+.sale-carousel::after {
+    content: '';
+    display: block;
+    width: 20px;
+}

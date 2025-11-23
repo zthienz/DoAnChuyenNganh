@@ -7,7 +7,6 @@ const API_BASE_URL = 'http://localhost:3000/api';
 window.API_BASE_URL = API_BASE_URL; // Make it globally accessible
 
 // Global Variables
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
 let isAdminMode = JSON.parse(localStorage.getItem('isAdminMode')) || false;
 
@@ -238,7 +237,7 @@ function goToAddProduct() {
 // =============================================
 // CART FUNCTIONS
 // =============================================
-function addToCart(productId, productName, price, image) {
+async function addToCart(productId, productName, price, image) {
     // Kiểm tra đăng nhập
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'warning');
@@ -248,38 +247,60 @@ function addToCart(productId, productName, price, image) {
         return;
     }
     
-    const existingItem = cart.find(item => item.id === productId);
-    
-    if (existingItem) {
-        existingItem.quantity += 1;
-        showNotification('Đã tăng số lượng sản phẩm trong giỏ hàng!', 'success');
-    } else {
-        cart.push({
-            id: productId,
-            name: productName,
-            price: price,
-            image: image,
-            quantity: 1
+    try {
+        const response = await fetch(`${API_BASE_URL}/cart/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: currentUser.id_nguoidung,
+                productId: productId,
+                quantity: 1,
+                price: price
+            })
         });
+
+        if (!response.ok) {
+            throw new Error('Failed to add to cart');
+        }
+
+        const result = await response.json();
         showNotification('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+        
+        // Update cart count
+        updateCartCount();
+        
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        showNotification('Không thể thêm vào giỏ hàng!', 'error');
+    }
+}
+
+// removeFromCart is now handled in cart.js
+
+async function updateCartCount() {
+    const cartCount = document.getElementById('cartCount');
+    if (!cartCount) return;
+    
+    // Nếu chưa đăng nhập, hiển thị 0
+    if (!currentUser) {
+        cartCount.textContent = '0';
+        return;
     }
     
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-}
-
-function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    showNotification('Đã xóa sản phẩm khỏi giỏ hàng!', 'info');
-}
-
-function updateCartCount() {
-    const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        cartCount.textContent = totalItems;
+    try {
+        const response = await fetch(`${API_BASE_URL}/cart/count/${currentUser.id_nguoidung}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch cart count');
+        }
+        
+        const data = await response.json();
+        cartCount.textContent = data.count || 0;
+        
+    } catch (error) {
+        console.error('Error updating cart count:', error);
+        cartCount.textContent = '0';
     }
 }
 
@@ -959,4 +980,221 @@ function stopAutoLogout() {
     ACTIVITY_EVENTS.forEach(event => {
         document.removeEventListener(event, resetInactivityTimer, true);
     });
+}
+
+// =============================================
+// SALE PRODUCTS CAROUSEL
+// =============================================
+async function loadSaleProducts() {
+    try {
+        console.log('🔍 Loading sale products...');
+        const response = await fetch(`${API_BASE_URL}/products`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch products');
+        }
+        
+        const products = await response.json();
+        console.log('📦 Total products:', products.length);
+        
+        // Lọc sản phẩm đang giảm giá (có gia_goc > gia)
+        const saleProducts = products.filter(product => {
+            const hasDiscount = product.sale_price && product.price && product.sale_price > product.price;
+            if (hasDiscount) {
+                console.log('💰 Sale product found:', product.product_name, 'Original:', product.sale_price, 'Sale:', product.price);
+            }
+            return hasDiscount;
+        });
+        
+        console.log('🎉 Sale products count:', saleProducts.length);
+        
+        if (saleProducts.length === 0) {
+            console.log('⚠️ No sale products found, hiding section');
+            document.getElementById('sale-products').style.display = 'none';
+            return;
+        }
+        
+        displaySaleProducts(saleProducts);
+        initSaleCarousel(saleProducts.length);
+        
+    } catch (error) {
+        console.error('❌ Error loading sale products:', error);
+        document.getElementById('sale-products').style.display = 'none';
+    }
+}
+
+function displaySaleProducts(products) {
+    const carousel = document.getElementById('saleCarousel');
+    if (!carousel) return;
+    
+    let productsHTML = products.map(product => {
+        // Tính phần trăm giảm giá
+        const discountPercent = Math.round(((product.sale_price - product.price) / product.sale_price) * 100);
+        
+        // Xử lý đường dẫn ảnh
+        let imageUrl = product.image || '/images/products/default.jpg';
+        if (imageUrl.startsWith('/images')) {
+            imageUrl = `http://localhost:3000${imageUrl}`;
+        }
+        
+        return `
+            <div class="sale-product-card" onclick="window.location.href='product-detail.html?id=${product.product_id}'">
+                <div class="sale-badge">-${discountPercent}%</div>
+                <div class="product-image">
+                    <img src="${imageUrl}" 
+                         alt="${product.product_name}" 
+                         onerror="this.src='images/products/default.jpg'">
+                </div>
+                <div class="product-info">
+                    <h5 class="product-name">${product.product_name}</h5>
+                    <div class="product-price">
+                        <span class="original-price">${formatPrice(product.sale_price)}</span>
+                        <span class="sale-price">${formatPrice(product.price)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    carousel.innerHTML = productsHTML;
+}
+
+function initSaleCarousel(productCount) {
+    const carousel = document.getElementById('saleCarousel');
+    if (!carousel || productCount === 0) return;
+    
+    // Clone all products to create seamless loop
+    const originalHTML = carousel.innerHTML;
+    carousel.innerHTML = originalHTML + originalHTML; // Duplicate for seamless loop
+    
+    const products = carousel.querySelectorAll('.sale-product-card');
+    if (products.length === 0) return;
+    
+    // Auto scroll every 5 seconds
+    let currentPosition = 0;
+    const cardWidth = 300; // 280px width + 20px gap
+    
+    setInterval(() => {
+        currentPosition -= cardWidth;
+        
+        // Check if we've scrolled past half (original products)
+        const totalWidth = productCount * cardWidth;
+        if (Math.abs(currentPosition) >= totalWidth) {
+            // Reset to start without animation
+            carousel.style.transition = 'none';
+            currentPosition = 0;
+            carousel.style.transform = `translateX(${currentPosition}px)`;
+            
+            // Re-enable animation after a brief moment
+            setTimeout(() => {
+                carousel.style.transition = 'transform 0.5s ease';
+                currentPosition -= cardWidth;
+                carousel.style.transform = `translateX(${currentPosition}px)`;
+            }, 50);
+        } else {
+            carousel.style.transition = 'transform 0.5s ease';
+            carousel.style.transform = `translateX(${currentPosition}px)`;
+        }
+    }, 5000);
+}
+
+// Initialize sale carousel when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    loadSaleProducts();
+});
+
+// =============================================
+// WISHLIST FUNCTIONS
+// =============================================
+async function toggleWishlist(productId, productName, price, image) {
+    // Kiểm tra đăng nhập
+    if (!currentUser) {
+        showNotification('Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!', 'warning');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return;
+    }
+    
+    try {
+        // Kiểm tra xem đã có trong wishlist chưa
+        const checkResponse = await fetch(`${API_BASE_URL}/wishlist/${currentUser.id_nguoidung}/${productId}/check`);
+        const checkResult = await checkResponse.json();
+        
+        if (checkResult.inWishlist) {
+            // Xóa khỏi wishlist
+            const response = await fetch(`${API_BASE_URL}/wishlist/${currentUser.id_nguoidung}/${productId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to remove from wishlist');
+            }
+            
+            const result = await response.json();
+            showNotification('Đã xóa khỏi danh sách yêu thích!', 'info');
+            
+            // Update button icon if on product page
+            updateWishlistButton(productId, false);
+            
+        } else {
+            // Thêm vào wishlist
+            const response = await fetch(`${API_BASE_URL}/wishlist`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: currentUser.id_nguoidung,
+                    productId: productId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to add to wishlist');
+            }
+            
+            const result = await response.json();
+            showNotification('Đã thêm vào danh sách yêu thích!', 'success');
+            
+            // Update button icon if on product page
+            updateWishlistButton(productId, true);
+        }
+        
+    } catch (error) {
+        console.error('Error toggling wishlist:', error);
+        showNotification('Không thể cập nhật danh sách yêu thích!', 'error');
+    }
+}
+
+// Update wishlist button icon
+function updateWishlistButton(productId, inWishlist) {
+    const buttons = document.querySelectorAll(`[onclick*="toggleWishlist(${productId}"]`);
+    buttons.forEach(button => {
+        const icon = button.querySelector('i');
+        if (icon) {
+            if (inWishlist) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                button.style.color = '#dc3545';
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                button.style.color = '#666';
+            }
+        }
+    });
+}
+
+// Check if product is in wishlist (for product detail page)
+async function checkProductInWishlist(productId) {
+    if (!currentUser) return false;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/wishlist/${currentUser.id_nguoidung}/${productId}/check`);
+        const result = await response.json();
+        return result.inWishlist;
+    } catch (error) {
+        console.error('Error checking wishlist:', error);
+        return false;
+    }
 }
