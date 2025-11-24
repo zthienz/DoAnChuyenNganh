@@ -29,19 +29,37 @@
                                         <th>Họ tên</th>
                                         <th>Email</th>
                                         <th>Số điện thoại</th>
-                                        <th>Địa chỉ</th>
                                         <th>Ngày đăng ký</th>
                                         <th>Trạng thái</th>
+                                        <th>Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="7" class="text-center">Đang tải dữ liệu...</td>
+                                        <td colspan="8" class="text-center">Đang tải dữ liệu...</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal xem thông tin người dùng -->
+    <div class="modal fade" id="userDetailModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thông tin người dùng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="userDetailContent">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
@@ -60,31 +78,117 @@
         // Load customers
         async function loadCustomers() {
             try {
-                const response = await fetch(`${window.API_BASE_URL}/users`);
-                const users = await response.json();
+                const response = await fetch(`${window.API_BASE_URL}/auth/users`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
                 
                 const tbody = document.querySelector('#customersTable tbody');
                 tbody.innerHTML = '';
                 
-                users.forEach(user => {
-                    if (user.quyen !== 'admin') {
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>${user.id_nguoidung}</td>
-                                <td>${user.hoten || 'N/A'}</td>
-                                <td>${user.email}</td>
-                                <td>${user.sodienthoai || 'N/A'}</td>
-                                <td>${user.diachi || 'N/A'}</td>
-                                <td>${new Date(user.ngay_tao).toLocaleDateString('vi-VN')}</td>
-                                <td><span class="badge bg-success">Hoạt động</span></td>
-                            </tr>
-                        `;
-                    }
+                if (data.users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center">Chưa có khách hàng nào</td></tr>';
+                    return;
+                }
+                
+                data.users.forEach(user => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.id_nguoidung}</td>
+                            <td>${user.hoten || 'N/A'}</td>
+                            <td>${user.email}</td>
+                            <td>${user.sdt || 'N/A'}</td>
+                            <td>${new Date(user.ngay_tao).toLocaleDateString('vi-VN')}</td>
+                            <td>
+                                ${user.trangthai === 1 ? 
+                                    '<span class="badge bg-success">Hoạt động</span>' : 
+                                    '<span class="badge bg-danger">Đã khóa</span>'}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="viewUserDetail(${user.id_nguoidung})">
+                                    <i class="fas fa-eye"></i> Xem
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id_nguoidung}, '${user.email}')">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </td>
+                        </tr>
+                    `;
                 });
             } catch (error) {
                 console.error('Error loading customers:', error);
                 document.querySelector('#customersTable tbody').innerHTML = 
-                    '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+                    '<tr><td colspan="8" class="text-center text-danger">Lỗi tải dữ liệu: ' + error.message + '</td></tr>';
+            }
+        }
+
+        // View user detail
+        async function viewUserDetail(userId) {
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/auth/user/${userId}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+                
+                const user = data.user;
+                const content = `
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <strong>ID:</strong> ${user.id_nguoidung}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <strong>Họ tên:</strong> ${user.hoten || 'Chưa cập nhật'}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <strong>Email:</strong> ${user.email}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <strong>Số điện thoại:</strong> ${user.sdt || 'Chưa cập nhật'}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <strong>Quyền:</strong> ${user.quyen === 'admin' ? 'Quản trị viên' : 'Người dùng'}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <strong>Ngày đăng ký:</strong> ${new Date(user.ngay_tao).toLocaleString('vi-VN')}
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('userDetailContent').innerHTML = content;
+                const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
+                modal.show();
+                
+            } catch (error) {
+                alert('Lỗi tải thông tin người dùng: ' + error.message);
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId, email) {
+            if (!confirm(`Bạn có chắc muốn xóa tài khoản "${email}"?\n\nSau khi xóa, người dùng này sẽ không thể đăng nhập và tất cả dữ liệu liên quan sẽ bị xóa.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/auth/user/${userId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+                
+                alert('Đã xóa tài khoản thành công!');
+                loadCustomers();
+                
+            } catch (error) {
+                alert('Lỗi xóa tài khoản: ' + error.message);
             }
         }
 

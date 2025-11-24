@@ -3,7 +3,9 @@ import { pool } from "../config/db.js";
 // Lấy tất cả sản phẩm
 export const getAllProducts = async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { includeHidden } = req.query;
+    
+    let query = `
       SELECT 
         sp.id_sanpham as product_id,
         sp.ten_sanpham as product_name,
@@ -16,9 +18,16 @@ export const getAllProducts = async (req, res) => {
         sp.hien_thi as is_active,
         (SELECT duongdan_anh FROM anh_sanpham WHERE id_sanpham = sp.id_sanpham ORDER BY thu_tu LIMIT 1) AS image
       FROM sanpham sp
-      WHERE sp.hien_thi = 1
-      ORDER BY sp.ngay_tao DESC
-    `);
+    `;
+    
+    // Nếu không phải admin, chỉ hiển thị sản phẩm đang hiển thị
+    if (includeHidden !== 'true') {
+      query += ' WHERE sp.hien_thi = 1';
+    }
+    
+    query += ' ORDER BY sp.ngay_tao DESC';
+    
+    const [rows] = await pool.query(query);
     
     // Add default values
     const products = rows.map(product => ({
@@ -169,5 +178,157 @@ export const getProductById = async (req, res) => {
   } catch (err) {
     console.error('Error in getProductById:', err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+// Xóa sản phẩm (Admin only)
+export const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Kiểm tra sản phẩm có tồn tại không
+    const [products] = await pool.query(
+      'SELECT id_sanpham FROM sanpham WHERE id_sanpham = ?',
+      [id]
+    );
+
+    if (products.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Không tìm thấy sản phẩm' 
+      });
+    }
+
+    // Xóa ảnh sản phẩm
+    await pool.query('DELETE FROM anh_sanpham WHERE id_sanpham = ?', [id]);
+
+    // Xóa đánh giá
+    await pool.query('DELETE FROM danhgia WHERE id_sanpham = ?', [id]);
+
+    // Xóa khỏi wishlist
+    await pool.query('DELETE FROM yeuthich WHERE id_sanpham = ?', [id]);
+
+    // Xóa khỏi giỏ hàng
+    await pool.query('DELETE FROM chitiet_giohang WHERE id_sanpham = ?', [id]);
+
+    // Xóa sản phẩm
+    await pool.query('DELETE FROM sanpham WHERE id_sanpham = ?', [id]);
+
+    res.json({
+      success: true,
+      message: 'Đã xóa sản phẩm thành công'
+    });
+
+  } catch (err) {
+    console.error('Error deleting product:', err);
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
+    });
+  }
+};
+
+// Cập nhật trạng thái hiển thị sản phẩm (Admin only)
+export const toggleProductVisibility = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    // Kiểm tra sản phẩm có tồn tại không
+    const [products] = await pool.query(
+      'SELECT id_sanpham, hien_thi FROM sanpham WHERE id_sanpham = ?',
+      [id]
+    );
+
+    if (products.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Không tìm thấy sản phẩm' 
+      });
+    }
+
+    // Cập nhật trạng thái
+    const newStatus = is_active !== undefined ? (is_active ? 1 : 0) : (products[0].hien_thi === 1 ? 0 : 1);
+    
+    await pool.query(
+      'UPDATE sanpham SET hien_thi = ? WHERE id_sanpham = ?',
+      [newStatus, id]
+    );
+
+    res.json({
+      success: true,
+      message: newStatus === 1 ? 'Đã hiển thị sản phẩm' : 'Đã ẩn sản phẩm',
+      is_active: newStatus === 1
+    });
+
+  } catch (err) {
+    console.error('Error toggling product visibility:', err);
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
+    });
+  }
+};
+
+// Cập nhật sản phẩm (Admin only)
+export const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      product_name,
+      product_slug,
+      category_id,
+      description,
+      short_description,
+      price,
+      sale_price,
+      stock_quantity,
+      sku
+    } = req.body;
+
+    // Kiểm tra sản phẩm có tồn tại không
+    const [products] = await pool.query(
+      'SELECT id_sanpham FROM sanpham WHERE id_sanpham = ?',
+      [id]
+    );
+
+    if (products.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Không tìm thấy sản phẩm' 
+      });
+    }
+
+    // Cập nhật sản phẩm
+    await pool.query(
+      `UPDATE sanpham 
+       SET ma_sku = ?, ten_sanpham = ?, duongdan = ?, mota_ngan = ?, 
+           mota_chitiet = ?, id_danhmuc = ?, gia = ?, gia_goc = ?, tonkho = ?
+       WHERE id_sanpham = ?`,
+      [
+        sku,
+        product_name,
+        product_slug,
+        short_description,
+        description,
+        category_id,
+        sale_price || price,
+        price,
+        stock_quantity,
+        id
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: 'Đã cập nhật sản phẩm thành công'
+    });
+
+  } catch (err) {
+    console.error('Error updating product:', err);
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
+    });
   }
 };

@@ -23,6 +23,9 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             margin-bottom: 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .blog-card:hover {
@@ -38,6 +41,9 @@
 
         .blog-card-body {
             padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .blog-category {
@@ -62,11 +68,12 @@
             font-size: 14px;
             line-height: 1.6;
             margin-bottom: 15px;
+            flex: 1;
         }
 
         .blog-meta {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             font-size: 13px;
             color: #999;
@@ -78,140 +85,6 @@
             display: flex;
             align-items: center;
             gap: 5px;
-        }
-
-        .blog-read-more {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
-
-        .blog-read-more:hover {
-            color: #764ba2;
-        }
-
-        .sidebar {
-            position: sticky;
-            top: 20px;
-        }
-
-        .sidebar-widget {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .sidebar-widget h5 {
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .category-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .category-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .category-list li:last-child {
-            border-bottom: none;
-        }
-
-        .category-list a {
-            color: #666;
-            text-decoration: none;
-            display: flex;
-            justify-content: space-between;
-            transition: color 0.3s ease;
-        }
-
-        .category-list a:hover {
-            color: #667eea;
-        }
-
-        .recent-post {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .recent-post:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .recent-post img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .recent-post-content h6 {
-            font-size: 14px;
-            margin-bottom: 5px;
-            line-height: 1.4;
-        }
-
-        .recent-post-content a {
-            color: #333;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .recent-post-content a:hover {
-            color: #667eea;
-        }
-
-        .recent-post-date {
-            font-size: 12px;
-            color: #999;
-        }
-
-        .search-box-blog {
-            position: relative;
-            margin-bottom: 30px;
-        }
-
-        .search-box-blog input {
-            width: 100%;
-            padding: 12px 45px 12px 15px;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-box-blog input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .search-box-blog button {
-            position: absolute;
-            right: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .search-box-blog button:hover {
-            background: #764ba2;
         }
     </style>
 </head>
@@ -278,77 +151,61 @@
     <!-- Blog Content -->
     <section class="py-5">
         <div class="container">
-            <div class="row">
-                <!-- Main Content -->
-                <div class="col-lg-8">
-                    <!-- Search Box -->
-                    <div class="search-box-blog">
-                        <input type="text" placeholder="Tìm kiếm bài viết...">
-                        <button><i class="fas fa-search"></i></button>
-                    </div>
+            <!-- Admin Add Button -->
+            <div class="text-end mb-4" id="adminControls" style="display: none;">
+                <button class="btn btn-primary" onclick="showAddBlogModal()">
+                    <i class="fas fa-plus me-2"></i>Thêm bài viết
+                </button>
+            </div>
 
-                    <!-- Blog Posts -->
-                    <div class="row" id="blogPosts">
-                        <!-- Blog posts will be loaded here -->
-                    </div>
-
-                    <!-- Pagination -->
-                    <nav aria-label="Blog pagination" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1">Trước</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Sau</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-
-                <!-- Sidebar -->
-                <div class="col-lg-4">
-                    <div class="sidebar">
-                        <!-- Categories Widget -->
-                        <div class="sidebar-widget">
-                            <h5>Danh mục</h5>
-                            <ul class="category-list">
-                                <li><a href="#"><span>Tin công nghệ</span> <span class="badge bg-secondary">12</span></a></li>
-                                <li><a href="#"><span>Đánh giá sản phẩm</span> <span class="badge bg-secondary">8</span></a></li>
-                                <li><a href="#"><span>Hướng dẫn sử dụng</span> <span class="badge bg-secondary">15</span></a></li>
-                                <li><a href="#"><span>Khuyến mãi</span> <span class="badge bg-secondary">6</span></a></li>
-                                <li><a href="#"><span>Tin tức GOOJODOQ</span> <span class="badge bg-secondary">10</span></a></li>
-                            </ul>
-                        </div>
-
-                        <!-- Recent Posts Widget -->
-                        <div class="sidebar-widget">
-                            <h5>Bài viết gần đây</h5>
-                            <div id="recentPosts">
-                                <!-- Recent posts will be loaded here -->
-                            </div>
-                        </div>
-
-                        <!-- Tags Widget -->
-                        <div class="sidebar-widget">
-                            <h5>Tags</h5>
-                            <div class="d-flex flex-wrap gap-2">
-                                <span class="badge bg-light text-dark">Công nghệ</span>
-                                <span class="badge bg-light text-dark">Phụ kiện</span>
-                                <span class="badge bg-light text-dark">Tai nghe</span>
-                                <span class="badge bg-light text-dark">Loa</span>
-                                <span class="badge bg-light text-dark">Quạt mini</span>
-                                <span class="badge bg-light text-dark">Bluetooth</span>
-                                <span class="badge bg-light text-dark">Review</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Blog Posts Grid -->
+            <div class="row" id="blogPosts">
+                <!-- Blog posts will be loaded here -->
             </div>
         </div>
     </section>
+
+    <!-- Add Blog Modal -->
+    <div class="modal fade" id="addBlogModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm bài viết mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addBlogForm">
+                        <div class="mb-3">
+                            <label class="form-label">Tiêu đề</label>
+                            <input type="text" class="form-control" id="blogTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Danh mục</label>
+                            <select class="form-select" id="blogCategory" required>
+                                <option value="Đánh giá sản phẩm">Đánh giá sản phẩm</option>
+                                <option value="Hướng dẫn">Hướng dẫn</option>
+                                <option value="Tin tức">Tin tức</option>
+                                <option value="Khuyến mãi">Khuyến mãi</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả ngắn</label>
+                            <textarea class="form-control" id="blogExcerpt" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hình ảnh</label>
+                            <input type="file" class="form-control" id="blogImage" accept="image/*" required>
+                            <div class="mt-2" id="imagePreview"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="addBlogPost()">Thêm bài viết</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer bg-dark text-light py-5">
@@ -413,15 +270,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Sample blog data
-        const blogPosts = [
+        // Sample blog data - Load from localStorage or use default
+        let blogPosts = JSON.parse(localStorage.getItem('blogPosts')) || [
             {
                 id: 1,
                 title: "Top 5 tai nghe Bluetooth tốt nhất năm 2025",
                 excerpt: "Khám phá những mẫu tai nghe Bluetooth chất lượng cao với âm thanh tuyệt vời và pin bền bỉ...",
                 category: "Đánh giá sản phẩm",
                 date: "20/11/2025",
-                image: "images/blog/blog1.jpg",
+                image: "images/products/TAINGHE001-1.webp",
                 author: "Admin"
             },
             {
@@ -430,7 +287,7 @@
                 excerpt: "Mùa hè đang đến, cùng tìm hiểu cách chọn quạt mini phù hợp với nhu cầu của bạn...",
                 category: "Hướng dẫn",
                 date: "18/11/2025",
-                image: "images/blog/blog2.jpg",
+                image: "images/products/QUAT001-1.webp",
                 author: "Admin"
             },
             {
@@ -439,7 +296,7 @@
                 excerpt: "Chúng tôi vui mừng giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với nhiều tính năng ưu việt...",
                 category: "Tin tức",
                 date: "15/11/2025",
-                image: "images/blog/blog3.jpg",
+                image: "images/products/HUB001_1.webp",
                 author: "Admin"
             },
             {
@@ -448,7 +305,7 @@
                 excerpt: "Phân tích chi tiết các loại loa Bluetooth trên thị trường để giúp bạn đưa ra lựa chọn đúng đắn...",
                 category: "Đánh giá sản phẩm",
                 date: "12/11/2025",
-                image: "images/blog/blog4.jpg",
+                image: "images/products/LOA001-1.webp",
                 author: "Admin"
             },
             {
@@ -457,7 +314,7 @@
                 excerpt: "Những mẹo đơn giản giúp kéo dài tuổi thọ cho các thiết bị điện tử của bạn...",
                 category: "Hướng dẫn",
                 date: "10/11/2025",
-                image: "images/blog/blog5.jpg",
+                image: "images/products/SACDUPHONG001-1.webp",
                 author: "Admin"
             },
             {
@@ -466,7 +323,34 @@
                 excerpt: "Đừng bỏ lỡ chương trình khuyến mãi lớn nhất trong năm với hàng trăm sản phẩm giảm giá sâu...",
                 category: "Khuyến mãi",
                 date: "08/11/2025",
-                image: "images/blog/blog6.jpg",
+                image: "images/products/DONGHO001_1.webp",
+                author: "Admin"
+            },
+            {
+                id: 7,
+                title: "Đánh giá chuột không dây cao cấp",
+                excerpt: "Trải nghiệm chuột không dây với độ chính xác cao và thiết kế ergonomic tuyệt vời...",
+                category: "Đánh giá sản phẩm",
+                date: "05/11/2025",
+                image: "images/products/CHUOT001_1.webp",
+                author: "Admin"
+            },
+            {
+                id: 8,
+                title: "Bàn phím cơ - Lựa chọn hoàn hảo cho game thủ",
+                excerpt: "Khám phá các loại bàn phím cơ với switch chất lượng và đèn LED RGB đẹp mắt...",
+                category: "Đánh giá sản phẩm",
+                date: "02/11/2025",
+                image: "images/products/BANPHIM001_1.webp",
+                author: "Admin"
+            },
+            {
+                id: 9,
+                title: "Giá đỡ điện thoại thông minh cho mọi nhu cầu",
+                excerpt: "Tìm hiểu về các loại giá đỡ điện thoại tiện lợi cho xe hơi, bàn làm việc và nhiều hơn nữa...",
+                category: "Hướng dẫn",
+                date: "30/10/2025",
+                image: "images/products/GIADO001_1.webp",
                 author: "Admin"
             }
         ];
@@ -478,9 +362,9 @@
 
             blogPosts.forEach(post => {
                 html += `
-                    <div class="col-md-6">
+                    <div class="col-lg-4 col-md-6 mb-4">
                         <div class="blog-card">
-                            <img src="${post.image}" alt="${post.title}" onerror="this.src='images/placeholder.jpg'">
+                            <img src="${post.image}" alt="${post.title}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22250%22%3E%3Crect width=%22400%22 height=%22250%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2220%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
                             <div class="blog-card-body">
                                 <span class="blog-category">${post.category}</span>
                                 <h3 class="blog-title">${post.title}</h3>
@@ -490,9 +374,6 @@
                                         <i class="far fa-calendar"></i>
                                         <span>${post.date}</span>
                                     </div>
-                                    <a href="blog-detail.html?id=${post.id}" class="blog-read-more">
-                                        Đọc thêm <i class="fas fa-arrow-right"></i>
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -503,32 +384,77 @@
             blogPostsContainer.innerHTML = html;
         }
 
-        // Load recent posts
-        function loadRecentPosts() {
-            const recentPostsContainer = document.getElementById('recentPosts');
-            let html = '';
+        // Show add blog modal
+        function showAddBlogModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addBlogModal'));
+            modal.show();
+        }
 
-            blogPosts.slice(0, 3).forEach(post => {
-                html += `
-                    <div class="recent-post">
-                        <img src="${post.image}" alt="${post.title}" onerror="this.src='images/placeholder.jpg'">
-                        <div class="recent-post-content">
-                            <h6><a href="blog-detail.html?id=${post.id}">${post.title}</a></h6>
-                            <div class="recent-post-date">
-                                <i class="far fa-calendar me-1"></i>${post.date}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
+        // Preview image
+        document.getElementById('blogImage')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').innerHTML = 
+                        `<img src="${e.target.result}" style="max-width: 200px; border-radius: 10px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
-            recentPostsContainer.innerHTML = html;
+        // Add new blog post
+        function addBlogPost() {
+            const title = document.getElementById('blogTitle').value;
+            const category = document.getElementById('blogCategory').value;
+            const excerpt = document.getElementById('blogExcerpt').value;
+            const imageFile = document.getElementById('blogImage').files[0];
+
+            if (!title || !category || !excerpt || !imageFile) {
+                alert('Vui lòng điền đầy đủ thông tin!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newPost = {
+                    id: blogPosts.length + 1,
+                    title: title,
+                    excerpt: excerpt,
+                    category: category,
+                    date: new Date().toLocaleDateString('vi-VN'),
+                    image: e.target.result,
+                    author: "Admin"
+                };
+
+                blogPosts.unshift(newPost);
+                localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                
+                loadBlogPosts();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addBlogModal'));
+                modal.hide();
+                
+                document.getElementById('addBlogForm').reset();
+                document.getElementById('imagePreview').innerHTML = '';
+                
+                alert('Đã thêm bài viết thành công!');
+            };
+            reader.readAsDataURL(imageFile);
+        }
+
+        // Check if user is admin
+        function checkAdminAccess() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.role === 'admin') {
+                document.getElementById('adminControls').style.display = 'block';
+            }
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadBlogPosts();
-            loadRecentPosts();
+            checkAdminAccess();
         });
     </script>
 </body>

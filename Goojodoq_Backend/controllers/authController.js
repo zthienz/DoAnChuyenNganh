@@ -161,3 +161,109 @@ export const getUserInfo = async (req, res) => {
     });
   }
 };
+
+// Lấy tất cả người dùng (Admin only)
+export const getAllUsers = async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      `SELECT id_nguoidung, email, hoten, sdt, quyen, trangthai, ngay_tao 
+       FROM nguoidung 
+       WHERE quyen = 'nguoidung'
+       ORDER BY ngay_tao DESC`
+    );
+
+    res.json({
+      success: true,
+      users: users
+    });
+
+  } catch (error) {
+    console.error("Error in getAllUsers:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Lỗi server: " + error.message 
+    });
+  }
+};
+
+// Xóa người dùng (Admin only)
+export const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Kiểm tra xem người dùng có tồn tại không
+    const [users] = await pool.query(
+      "SELECT id_nguoidung, quyen FROM nguoidung WHERE id_nguoidung = ?",
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Không tìm thấy người dùng" 
+      });
+    }
+
+    // Không cho phép xóa admin
+    if (users[0].quyen === 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Không thể xóa tài khoản admin" 
+      });
+    }
+
+    // Xóa các dữ liệu liên quan trước
+    // Xóa giỏ hàng
+    const [carts] = await pool.query(
+      "SELECT id_giohang FROM giohang WHERE id_nguoidung = ?",
+      [userId]
+    );
+    
+    if (carts.length > 0) {
+      await pool.query(
+        "DELETE FROM chitiet_giohang WHERE id_giohang = ?",
+        [carts[0].id_giohang]
+      );
+      await pool.query(
+        "DELETE FROM giohang WHERE id_nguoidung = ?",
+        [userId]
+      );
+    }
+
+    // Xóa wishlist
+    await pool.query(
+      "DELETE FROM yeuthich WHERE id_nguoidung = ?",
+      [userId]
+    );
+
+    // Xóa đánh giá
+    await pool.query(
+      "DELETE FROM danhgia WHERE id_nguoidung = ?",
+      [userId]
+    );
+
+    // Cập nhật đơn hàng (không xóa để giữ lịch sử)
+    await pool.query(
+      "UPDATE donhang SET ghi_chu = CONCAT(IFNULL(ghi_chu, ''), ' [Tài khoản đã bị xóa]') WHERE id_nguoidung = ?",
+      [userId]
+    );
+
+    // Xóa người dùng
+    await pool.query(
+      "DELETE FROM nguoidung WHERE id_nguoidung = ?",
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      message: "Đã xóa người dùng thành công"
+    });
+
+  } catch (error) {
+    console.error("Error in deleteUser:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Lỗi server: " + error.message 
+    });
+  }
+};

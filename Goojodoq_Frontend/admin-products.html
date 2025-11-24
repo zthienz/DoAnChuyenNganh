@@ -62,34 +62,45 @@
             window.location.href = 'index.html';
         }
 
-        // Load products
+        // Load products (bao gồm cả sản phẩm ẩn)
         async function loadProducts() {
             try {
-                const response = await fetch(`${window.API_BASE_URL}/products`);
+                const response = await fetch(`${window.API_BASE_URL}/products?includeHidden=true`);
                 const products = await response.json();
                 
                 const tbody = document.querySelector('#productsTable tbody');
                 tbody.innerHTML = '';
                 
+                if (products.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Chưa có sản phẩm nào</td></tr>';
+                    return;
+                }
+                
                 products.forEach(product => {
                     const imageUrl = product.image ? `http://localhost:3000${product.image}` : 'images/products/default.jpg';
+                    const statusBadge = product.is_active ? 
+                        '<span class="badge bg-success">Hiển thị</span>' : 
+                        '<span class="badge bg-secondary">Đã ẩn</span>';
+                    
+                    const toggleButton = product.is_active ?
+                        `<button class="btn btn-sm btn-warning" onclick="toggleProductVisibility(${product.product_id}, false, '${escapeHtml(product.product_name)}')" title="Ẩn sản phẩm">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>` :
+                        `<button class="btn btn-sm btn-success" onclick="toggleProductVisibility(${product.product_id}, true, '${escapeHtml(product.product_name)}')" title="Hiển thị sản phẩm">
+                            <i class="fas fa-eye"></i>
+                        </button>`;
+                    
                     tbody.innerHTML += `
-                        <tr>
+                        <tr ${!product.is_active ? 'style="opacity: 0.6;"' : ''}>
                             <td>${product.product_id}</td>
-                            <td><img src="${imageUrl}" alt="${product.product_name}" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                            <td><img src="${imageUrl}" alt="${product.product_name}" style="width: 50px; height: 50px; object-fit: cover;" onerror="this.src='images/products/default.jpg'"></td>
                             <td>${product.product_name}</td>
                             <td>${formatPrice(product.price)}</td>
                             <td>${product.stock_quantity}</td>
+                            <td>${statusBadge}</td>
                             <td>
-                                ${product.is_active ? 
-                                    '<span class="badge bg-success">Hiển thị</span>' : 
-                                    '<span class="badge bg-secondary">Ẩn</span>'}
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="editProduct(${product.product_id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.product_id})">
+                                ${toggleButton}
+                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.product_id}, '${escapeHtml(product.product_name)}')" title="Xóa sản phẩm">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -99,7 +110,7 @@
             } catch (error) {
                 console.error('Error loading products:', error);
                 document.querySelector('#productsTable tbody').innerHTML = 
-                    '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+                    '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu: ' + error.message + '</td></tr>';
             }
         }
 
@@ -110,25 +121,70 @@
             }).format(price);
         }
 
-        function editProduct(productId) {
-            window.location.href = `edit-product.html?id=${productId}`;
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        async function deleteProduct(productId) {
-            if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
-                try {
-                    const response = await fetch(`${window.API_BASE_URL}/products/${productId}`, {
-                        method: 'DELETE'
-                    });
-                    if (response.ok) {
-                        alert('Đã xóa sản phẩm!');
-                        loadProducts();
-                    } else {
-                        alert('Lỗi xóa sản phẩm!');
-                    }
-                } catch (error) {
-                    alert('Lỗi xóa sản phẩm!');
+        // Toggle product visibility (ẩn/hiện sản phẩm)
+        async function toggleProductVisibility(productId, isActive, productName) {
+            const action = isActive ? 'hiển thị' : 'ẩn';
+            
+            if (!confirm(`Bạn có chắc muốn ${action} sản phẩm "${productName}"?\n\n${isActive ? 'Sản phẩm sẽ xuất hiện trong trang mua sắm.' : 'Sản phẩm sẽ tạm thời biến mất khỏi trang mua sắm.'}`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/products/${productId}/visibility`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ is_active: isActive })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Lỗi cập nhật trạng thái');
                 }
+                
+                alert(data.message);
+                loadProducts();
+                
+            } catch (error) {
+                alert('Lỗi: ' + error.message);
+            }
+        }
+
+        // Delete product
+        async function deleteProduct(productId, productName) {
+            if (!confirm(`Bạn có chắc muốn XÓA VĨNH VIỄN sản phẩm "${productName}"?\n\nSản phẩm sẽ bị xóa hoàn toàn khỏi cơ sở dữ liệu và không thể khôi phục.\n\nNếu bạn chỉ muốn tạm ẩn sản phẩm, hãy sử dụng nút "Ẩn" thay vì xóa.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/products/${productId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Lỗi xóa sản phẩm');
+                }
+                
+                alert('Đã xóa sản phẩm thành công!');
+                loadProducts();
+                
+            } catch (error) {
+                alert('Lỗi xóa sản phẩm: ' + error.message);
             }
         }
 
