@@ -8,6 +8,7 @@ export const getAllProducts = async (req, res) => {
     let query = `
       SELECT 
         sp.id_sanpham as product_id,
+        sp.ma_sku as sku,
         sp.ten_sanpham as product_name,
         sp.duongdan as product_slug,
         sp.id_danhmuc as category_id,
@@ -16,6 +17,7 @@ export const getAllProducts = async (req, res) => {
         sp.tonkho as stock_quantity,
         sp.mota_ngan as short_description,
         sp.hien_thi as is_active,
+        sp.ngay_tao as created_at,
         (SELECT duongdan_anh FROM anh_sanpham WHERE id_sanpham = sp.id_sanpham ORDER BY thu_tu LIMIT 1) AS image
       FROM sanpham sp
     `;
@@ -25,7 +27,8 @@ export const getAllProducts = async (req, res) => {
       query += ' WHERE sp.hien_thi = 1';
     }
     
-    query += ' ORDER BY sp.ngay_tao DESC';
+    // Sắp xếp: sản phẩm mới nhất lên đầu
+    query += ' ORDER BY sp.ngay_tao DESC, sp.id_sanpham DESC';
     
     const [rows] = await pool.query(query);
     
@@ -63,11 +66,12 @@ export const createProduct = async (req, res) => {
     } = req.body;
 
     // Insert sản phẩm
+    // Lưu ý: gia_goc là giá gốc, gia là giá bán (sau giảm giá nếu có)
     const [result] = await pool.query(
       `INSERT INTO sanpham 
       (ma_sku, ten_sanpham, duongdan, mota_ngan, mota_chitiet, 
-       id_danhmuc, gia, gia_goc, tonkho, hien_thi) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+       id_danhmuc, gia, gia_goc, tonkho, hien_thi, ngay_tao) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())`,
       [
         sku,
         product_name,
@@ -75,7 +79,7 @@ export const createProduct = async (req, res) => {
         short_description,
         description,
         category_id,
-        sale_price || price, // gia là giá sau giảm
+        sale_price || price, // gia là giá bán (giá sau giảm nếu có)
         price, // gia_goc là giá gốc
         stock_quantity
       ]
@@ -300,6 +304,7 @@ export const updateProduct = async (req, res) => {
     }
 
     // Cập nhật sản phẩm
+    // Lưu ý: gia_goc là giá gốc, gia là giá bán (sau giảm giá nếu có)
     await pool.query(
       `UPDATE sanpham 
        SET ma_sku = ?, ten_sanpham = ?, duongdan = ?, mota_ngan = ?, 
@@ -312,8 +317,8 @@ export const updateProduct = async (req, res) => {
         short_description,
         description,
         category_id,
-        sale_price || price,
-        price,
+        sale_price || price, // gia là giá bán
+        price, // gia_goc là giá gốc
         stock_quantity,
         id
       ]

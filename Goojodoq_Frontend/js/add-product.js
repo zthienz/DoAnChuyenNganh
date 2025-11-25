@@ -125,7 +125,9 @@ function submitProduct(event) {
 // =============================================
 async function saveProductToDatabase(productData) {
     try {
-        const API_BASE_URL = 'http://localhost:3000/api';
+        const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api';
+        
+        console.log('💾 Saving product to database:', productData);
         
         const response = await fetch(`${API_BASE_URL}/products`, {
             method: 'POST',
@@ -135,11 +137,12 @@ async function saveProductToDatabase(productData) {
             body: JSON.stringify(productData)
         });
         
-        if (!response.ok) {
-            throw new Error('Failed to save product');
-        }
-        
         const result = await response.json();
+        console.log('📦 Server response:', result);
+        
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'Failed to save product');
+        }
         
         // Hide loading
         hideLoading();
@@ -148,14 +151,14 @@ async function saveProductToDatabase(productData) {
         showSuccessMessage(productData);
         
     } catch (error) {
-        console.error('Error saving product:', error);
+        console.error('❌ Error saving product:', error);
         hideLoading();
-        alert('Lỗi khi thêm sản phẩm: ' + error.message + '\n\nSản phẩm sẽ được lưu tạm thời vào localStorage.');
         
-        // Fallback to localStorage if API fails
-        saveProductToLocalStorage(productData);
-        hideLoading();
-        showSuccessMessage(productData);
+        if (confirm(`Lỗi khi thêm sản phẩm: ${error.message}\n\nBạn có muốn lưu tạm thời vào localStorage không?`)) {
+            // Fallback to localStorage if API fails
+            saveProductToLocalStorage(productData);
+            showSuccessMessage(productData);
+        }
     }
 }
 

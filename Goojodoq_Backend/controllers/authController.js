@@ -188,71 +188,101 @@ export const getAllUsers = async (req, res) => {
 
 // Xóa người dùng (Admin only)
 export const deleteUser = async (req, res) => {
+  const connection = await pool.getConnection();
+  
   try {
     const { userId } = req.params;
 
+    console.log("🗑️ Attempting to delete user:", userId);
+
+    // Bắt đầu transaction
+    await connection.beginTransaction();
+
     // Kiểm tra xem người dùng có tồn tại không
-    const [users] = await pool.query(
-      "SELECT id_nguoidung, quyen FROM nguoidung WHERE id_nguoidung = ?",
+    const [users] = await connection.query(
+      "SELECT id_nguoidung, quyen, email FROM nguoidung WHERE id_nguoidung = ?",
       [userId]
     );
 
     if (users.length === 0) {
+      await connection.rollback();
       return res.status(404).json({ 
         success: false, 
         message: "Không tìm thấy người dùng" 
       });
     }
 
+    const user = users[0];
+    console.log("👤 User to delete:", user.email);
+
     // Không cho phép xóa admin
-    if (users[0].quyen === 'admin') {
+    if (user.quyen === 'admin') {
+      await connection.rollback();
       return res.status(403).json({ 
         success: false, 
         message: "Không thể xóa tài khoản admin" 
       });
     }
 
-    // Xóa các dữ liệu liên quan trước
-    // Xóa giỏ hàng
-    const [carts] = await pool.query(
+    // 1. Xóa chi tiết giỏ hàng
+    const [carts] = await connection.query(
       "SELECT id_giohang FROM giohang WHERE id_nguoidung = ?",
       [userId]
     );
     
     if (carts.length > 0) {
-      await pool.query(
+      const cartId = carts[0].id_giohang;
+      console.log("🛒 Deleting cart items for cart:", cartId);
+      
+      await connection.query(
         "DELETE FROM chitiet_giohang WHERE id_giohang = ?",
-        [carts[0].id_giohang]
+        [cartId]
       );
-      await pool.query(
-        "DELETE FROM giohang WHERE id_nguoidung = ?",
-        [userId]
+      
+      await connection.query(
+        "DELETE FROM giohang WHERE id_giohang = ?",
+        [cartId]
       );
     }
 
-    // Xóa wishlist
-    await pool.query(
+    // 2. Xóa danh sách yêu thích
+    console.log("❤️ Deleting wishlist items");
+    await connection.query(
       "DELETE FROM yeuthich WHERE id_nguoidung = ?",
       [userId]
     );
 
-    // Xóa đánh giá
-    await pool.query(
+    // 3. Xóa đánh giá
+    console.log("⭐ Deleting reviews");
+    await connection.query(
       "DELETE FROM danhgia WHERE id_nguoidung = ?",
       [userId]
     );
 
-    // Cập nhật đơn hàng (không xóa để giữ lịch sử)
-    await pool.query(
+    // 4. Xóa địa chỉ
+    console.log("📍 Deleting addresses");
+    await connection.query(
+      "DELETE FROM diachi WHERE id_nguoidung = ?",
+      [userId]
+    );
+
+    // 5. Cập nhật đơn hàng (không xóa để giữ lịch sử)
+    console.log("📦 Updating orders");
+    await connection.query(
       "UPDATE donhang SET ghi_chu = CONCAT(IFNULL(ghi_chu, ''), ' [Tài khoản đã bị xóa]') WHERE id_nguoidung = ?",
       [userId]
     );
 
-    // Xóa người dùng
-    await pool.query(
+    // 6. Xóa người dùng
+    console.log("👤 Deleting user account");
+    await connection.query(
       "DELETE FROM nguoidung WHERE id_nguoidung = ?",
       [userId]
     );
+
+    // Commit transaction
+    await connection.commit();
+    console.log("✅ User deleted successfully");
 
     res.json({
       success: true,
@@ -260,10 +290,14 @@ export const deleteUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error in deleteUser:", error);
+    // Rollback nếu có lỗi
+    await connection.rollback();
+    console.error("❌ Error in deleteUser:", error);
     res.status(500).json({ 
       success: false, 
       message: "Lỗi server: " + error.message 
     });
+  } finally {
+    connection.release();
   }
 };

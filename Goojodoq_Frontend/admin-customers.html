@@ -68,8 +68,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Check if user is admin
-        const currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+        // Check if user is admin (currentUser đã được khai báo trong main.js)
         if (!currentUser || currentUser.quyen !== 'admin') {
             alert('Bạn không có quyền truy cập trang này!');
             window.location.href = 'index.html';
@@ -78,120 +77,236 @@
         // Load customers
         async function loadCustomers() {
             try {
+                console.log('🔄 Loading customers...');
                 const response = await fetch(`${window.API_BASE_URL}/auth/users`);
+                console.log('📡 Response status:', response.status);
+                
                 const data = await response.json();
+                console.log('📦 Data received:', data);
                 
                 if (!data.success) {
-                    throw new Error(data.message);
+                    throw new Error(data.message || 'Không thể tải danh sách khách hàng');
                 }
                 
                 const tbody = document.querySelector('#customersTable tbody');
                 tbody.innerHTML = '';
                 
-                if (data.users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="text-center">Chưa có khách hàng nào</td></tr>';
+                if (!data.users || data.users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Chưa có khách hàng nào</td></tr>';
                     return;
                 }
                 
+                console.log('👥 Total users:', data.users.length);
+                
                 data.users.forEach(user => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${user.id_nguoidung}</td>
-                            <td>${user.hoten || 'N/A'}</td>
-                            <td>${user.email}</td>
-                            <td>${user.sdt || 'N/A'}</td>
-                            <td>${new Date(user.ngay_tao).toLocaleDateString('vi-VN')}</td>
-                            <td>
-                                ${user.trangthai === 1 ? 
-                                    '<span class="badge bg-success">Hoạt động</span>' : 
-                                    '<span class="badge bg-danger">Đã khóa</span>'}
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-info" onclick="viewUserDetail(${user.id_nguoidung})">
-                                    <i class="fas fa-eye"></i> Xem
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id_nguoidung}, '${user.email}')">
-                                    <i class="fas fa-trash"></i> Xóa
-                                </button>
-                            </td>
-                        </tr>
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.id_nguoidung}</td>
+                        <td>${user.hoten || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                        <td>${user.email}</td>
+                        <td>${user.sdt || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                        <td>${new Date(user.ngay_tao).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</td>
+                        <td>
+                            ${user.trangthai === 1 ? 
+                                '<span class="badge bg-success">Hoạt động</span>' : 
+                                '<span class="badge bg-danger">Đã khóa</span>'}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info me-1" onclick="viewUserDetail(${user.id_nguoidung})" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary me-1" onclick="viewUserProfile(${user.id_nguoidung})" title="Xem trang cá nhân">
+                                <i class="fas fa-user"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id_nguoidung}, '${escapeHtml(user.email)}')" title="Xóa người dùng">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
                     `;
+                    tbody.appendChild(row);
                 });
+                
+                console.log('✅ Customers loaded successfully');
+                
             } catch (error) {
-                console.error('Error loading customers:', error);
+                console.error('❌ Error loading customers:', error);
                 document.querySelector('#customersTable tbody').innerHTML = 
-                    '<tr><td colspan="8" class="text-center text-danger">Lỗi tải dữ liệu: ' + error.message + '</td></tr>';
+                    `<tr><td colspan="7" class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Lỗi tải dữ liệu: ${error.message}
+                    </td></tr>`;
             }
         }
 
-        // View user detail
+        // View user detail in modal
         async function viewUserDetail(userId) {
             try {
-                const response = await fetch(`${window.API_BASE_URL}/auth/user/${userId}`);
-                const data = await response.json();
+                console.log('🔍 Loading user detail:', userId);
+                const response = await fetch(`${window.API_BASE_URL}/profile/${userId}`);
                 
-                if (!data.success) {
-                    throw new Error(data.message);
+                if (!response.ok) {
+                    throw new Error('Không thể tải thông tin người dùng');
                 }
                 
+                const data = await response.json();
+                console.log('📦 User data:', data);
+                
                 const user = data.user;
-                const content = `
-                    <div class="row">
-                        <div class="col-12 mb-3">
-                            <strong>ID:</strong> ${user.id_nguoidung}
+                const address = data.address;
+                
+                let content = `
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Thông tin cơ bản</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-borderless mb-0">
+                                        <tr>
+                                            <td width="40%"><strong>ID:</strong></td>
+                                            <td>${user.id_nguoidung}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Họ tên:</strong></td>
+                                            <td>${user.hoten || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Email:</strong></td>
+                                            <td>${user.email}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Số điện thoại:</strong></td>
+                                            <td>${user.sdt || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Ngày đăng ký:</strong></td>
+                                            <td>${new Date(user.ngay_tao).toLocaleString('vi-VN')}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-12 mb-3">
-                            <strong>Họ tên:</strong> ${user.hoten || 'Chưa cập nhật'}
-                        </div>
-                        <div class="col-12 mb-3">
-                            <strong>Email:</strong> ${user.email}
-                        </div>
-                        <div class="col-12 mb-3">
-                            <strong>Số điện thoại:</strong> ${user.sdt || 'Chưa cập nhật'}
-                        </div>
-                        <div class="col-12 mb-3">
-                            <strong>Quyền:</strong> ${user.quyen === 'admin' ? 'Quản trị viên' : 'Người dùng'}
-                        </div>
-                        <div class="col-12 mb-3">
-                            <strong>Ngày đăng ký:</strong> ${new Date(user.ngay_tao).toLocaleString('vi-VN')}
-                        </div>
-                    </div>
                 `;
+                
+                if (address) {
+                    content += `
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Địa chỉ</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-borderless mb-0">
+                                        <tr>
+                                            <td width="40%"><strong>Người nhận:</strong></td>
+                                            <td>${address.ten_nguoinhan || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Số điện thoại:</strong></td>
+                                            <td>${address.sdt || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Địa chỉ:</strong></td>
+                                            <td>${address.diachi_chitiet || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Quận/Huyện:</strong></td>
+                                            <td>${address.quanhuyen || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Thành phố:</strong></td>
+                                            <td>${address.thanhpho || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Mã bưu điện:</strong></td>
+                                            <td>${address.ma_buudien || '<em class="text-muted">Chưa cập nhật</em>'}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    content += `
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Người dùng chưa cập nhật địa chỉ
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                content += `</div>`;
                 
                 document.getElementById('userDetailContent').innerHTML = content;
                 const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
                 modal.show();
                 
             } catch (error) {
+                console.error('❌ Error loading user detail:', error);
                 alert('Lỗi tải thông tin người dùng: ' + error.message);
             }
         }
 
+        // View user profile page
+        function viewUserProfile(userId) {
+            window.open(`profile.html?userId=${userId}`, '_blank');
+        }
+
         // Delete user
         async function deleteUser(userId, email) {
-            if (!confirm(`Bạn có chắc muốn xóa tài khoản "${email}"?\n\nSau khi xóa, người dùng này sẽ không thể đăng nhập và tất cả dữ liệu liên quan sẽ bị xóa.`)) {
+            if (!confirm(`⚠️ BẠN CÓ CHẮC MUỐN XÓA TÀI KHOẢN NÀY?\n\nEmail: ${email}\n\n❌ Sau khi xóa:\n• Người dùng không thể đăng nhập\n• Giỏ hàng sẽ bị xóa\n• Danh sách yêu thích sẽ bị xóa\n• Đánh giá sẽ bị xóa\n• Đơn hàng sẽ được đánh dấu [Tài khoản đã bị xóa]\n\nHành động này KHÔNG THỂ HOÀN TÁC!`)) {
+                return;
+            }
+            
+            // Double confirm
+            if (!confirm(`Xác nhận lần cuối: Xóa tài khoản "${email}"?`)) {
                 return;
             }
             
             try {
+                console.log('🗑️ Deleting user:', userId);
                 const response = await fetch(`${window.API_BASE_URL}/auth/user/${userId}`, {
                     method: 'DELETE'
                 });
                 
                 const data = await response.json();
+                console.log('📦 Delete response:', data);
                 
                 if (!data.success) {
-                    throw new Error(data.message);
+                    throw new Error(data.message || 'Không thể xóa người dùng');
                 }
                 
-                alert('Đã xóa tài khoản thành công!');
+                alert('✅ Đã xóa tài khoản thành công!');
                 loadCustomers();
                 
             } catch (error) {
-                alert('Lỗi xóa tài khoản: ' + error.message);
+                console.error('❌ Error deleting user:', error);
+                alert('❌ Lỗi xóa tài khoản: ' + error.message);
             }
         }
 
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Load customers on page load
         loadCustomers();
     </script>
 </body>

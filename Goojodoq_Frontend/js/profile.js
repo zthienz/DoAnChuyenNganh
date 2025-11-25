@@ -3,6 +3,8 @@
 // =============================================
 
 let profileData = null;
+let viewingUserId = null; // ID của người dùng đang được xem
+let isViewingOtherUser = false; // Có đang xem người dùng khác không
 
 // Load profile when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,15 +17,43 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    // Check if viewing another user's profile (admin only)
+    const urlParams = new URLSearchParams(window.location.search);
+    const userIdParam = urlParams.get('userId');
+    
+    if (userIdParam) {
+        // Admin đang xem thông tin người dùng khác
+        if (currentUser.quyen !== 'admin') {
+            showNotification('Bạn không có quyền xem thông tin người dùng khác!', 'error');
+            setTimeout(() => {
+                window.location.href = 'profile.html';
+            }, 1500);
+            return;
+        }
+        
+        viewingUserId = parseInt(userIdParam);
+        isViewingOtherUser = true;
+        
+        // Disable forms for admin viewing
+        disableFormsForAdmin();
+        
+        // Add back button
+        addBackButton();
+    } else {
+        // Xem profile của chính mình
+        viewingUserId = currentUser.id_nguoidung;
+        isViewingOtherUser = false;
+    }
+
     loadProfile();
 });
 
 // Load profile data
 async function loadProfile() {
     try {
-        console.log('👤 Loading profile for user:', currentUser.id_nguoidung);
+        console.log('👤 Loading profile for user:', viewingUserId);
 
-        const response = await fetch(`${API_BASE_URL}/profile/${currentUser.id_nguoidung}`);
+        const response = await fetch(`${API_BASE_URL}/profile/${viewingUserId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch profile');
         }
@@ -47,7 +77,17 @@ function displayProfile() {
     // Update profile header
     const firstLetter = user.hoten ? user.hoten.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
     document.getElementById('profileAvatar').textContent = firstLetter;
-    document.getElementById('profileName').textContent = user.hoten || 'Chưa cập nhật';
+    
+    // If admin is viewing another user, add indicator
+    if (isViewingOtherUser) {
+        document.getElementById('profileName').innerHTML = `
+            ${user.hoten || 'Chưa cập nhật'}
+            <span class="badge bg-info ms-2">Đang xem với quyền Admin</span>
+        `;
+    } else {
+        document.getElementById('profileName').textContent = user.hoten || 'Chưa cập nhật';
+    }
+    
     document.getElementById('profileEmail').textContent = user.email;
 
     // Fill personal info form
@@ -72,6 +112,50 @@ function displayProfile() {
 
     // Check if address is complete
     checkAddressComplete();
+}
+
+// Disable forms when admin is viewing another user
+function disableFormsForAdmin() {
+    // Disable all form inputs
+    const forms = document.querySelectorAll('#personalInfoForm, #addressForm');
+    forms.forEach(form => {
+        const inputs = form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            if (input.id !== 'email' && input.id !== 'ngay_tao') {
+                input.setAttribute('readonly', 'readonly');
+            }
+        });
+        
+        // Hide submit buttons
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.style.display = 'none';
+        }
+    });
+    
+    // Update alert message
+    const alertDiv = document.getElementById('addressAlert');
+    if (alertDiv) {
+        alertDiv.innerHTML = `
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Chế độ xem:</strong> Bạn đang xem thông tin người dùng với quyền Admin. Không thể chỉnh sửa.
+        `;
+        alertDiv.className = 'alert alert-info';
+    }
+}
+
+// Add back button for admin
+function addBackButton() {
+    const profileHeader = document.querySelector('.profile-header');
+    if (profileHeader) {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-secondary ms-auto';
+        backBtn.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Quay lại';
+        backBtn.onclick = () => {
+            window.location.href = 'admin-customers.html';
+        };
+        profileHeader.appendChild(backBtn);
+    }
 }
 
 // Check if address is complete
@@ -102,6 +186,12 @@ function checkAddressComplete() {
 document.getElementById('personalInfoForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
+    // Prevent admin from editing other user's profile
+    if (isViewingOtherUser) {
+        showNotification('Bạn không thể chỉnh sửa thông tin người dùng khác!', 'error');
+        return;
+    }
+
     try {
         const hoten = document.getElementById('hoten').value.trim();
         const sdt = document.getElementById('sdt').value.trim();
@@ -127,7 +217,7 @@ document.getElementById('personalInfoForm').addEventListener('submit', async fun
         
         // Update current user in localStorage
         currentUser.hoten = hoten;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('user', JSON.stringify(currentUser));
 
         // Reload profile
         await loadProfile();
@@ -143,6 +233,12 @@ document.getElementById('personalInfoForm').addEventListener('submit', async fun
 // Handle address form submission
 document.getElementById('addressForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    // Prevent admin from editing other user's profile
+    if (isViewingOtherUser) {
+        showNotification('Bạn không thể chỉnh sửa thông tin người dùng khác!', 'error');
+        return;
+    }
 
     try {
         const ten_nguoinhan = document.getElementById('ten_nguoinhan').value.trim();
