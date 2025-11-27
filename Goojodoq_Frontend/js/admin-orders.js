@@ -1,36 +1,33 @@
-// =============================================
-// ORDERS PAGE JAVASCRIPT
-// =============================================
-
 let allOrders = [];
 let currentFilter = 'all';
 
+// Check if user is admin (use global currentUser from main.js)
+if (!currentUser || currentUser.quyen !== 'admin') {
+    alert('Bạn không có quyền truy cập trang này!');
+    window.location.href = 'index.html';
+}
+
 // Load orders when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    if (!currentUser) {
-        showNotification('Vui lòng đăng nhập để xem đơn hàng!', 'warning');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
-        return;
-    }
-
     loadOrders();
 });
 
-// Load orders from API
+// Load all orders from API
 async function loadOrders() {
     try {
-        console.log('📦 Loading orders for user:', currentUser.id_nguoidung);
-
-        const response = await fetch(`${API_BASE_URL}/orders/user/${currentUser.id_nguoidung}`);
+        console.log('📦 Loading all orders for admin...');
+        console.log('API URL:', `${API_BASE_URL}/orders`);
+        
+        const response = await fetch(`${API_BASE_URL}/orders`);
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-            throw new Error('Failed to fetch orders');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-
+        
         allOrders = await response.json();
         console.log('✅ Orders loaded:', allOrders);
-
+        
         displayOrders(allOrders);
 
     } catch (error) {
@@ -53,10 +50,6 @@ function displayOrders(orders) {
             <div class="text-center py-5">
                 <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
                 <h4>Chưa có đơn hàng nào</h4>
-                <p class="text-muted">Hãy mua sắm ngay!</p>
-                <a href="shop.html" class="btn btn-primary">
-                    <i class="fas fa-shopping-cart me-2"></i>Mua sắm ngay
-                </a>
             </div>
         `;
         return;
@@ -65,8 +58,8 @@ function displayOrders(orders) {
     let html = '';
     orders.forEach(order => {
         const statusBadge = getStatusBadge(order.trangthai);
+        const canConfirm = order.trangthai === 'cho_xacnhan';
         const canCancel = order.trangthai === 'cho_xacnhan';
-        const canConfirmReceived = order.trangthai === 'dang_giao';
         
         // Build address string
         let addressStr = '';
@@ -93,27 +86,47 @@ function displayOrders(orders) {
                     <div>${statusBadge}</div>
                 </div>
                 <div class="card-body">
-                    ${order.ten_nguoinhan ? `
-                        <p class="mb-2">
-                            <i class="fas fa-user me-2"></i>
-                            <strong>Người nhận:</strong> ${order.ten_nguoinhan}
-                        </p>
-                    ` : ''}
-                    ${order.sdt ? `
-                        <p class="mb-2">
-                            <i class="fas fa-phone me-2"></i>
-                            <strong>Số điện thoại:</strong> ${order.sdt}
-                        </p>
-                    ` : ''}
-                    ${addressStr ? `
-                        <p class="mb-2">
-                            <i class="fas fa-map-marker-alt me-2"></i>
-                            <strong>Địa chỉ:</strong> ${addressStr}
-                        </p>
-                    ` : ''}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-user me-2"></i>Thông tin khách hàng
+                            </h6>
+                            ${order.ten_nguoinhan ? `
+                                <p class="mb-1">
+                                    <strong>Người nhận:</strong> ${order.ten_nguoinhan}
+                                </p>
+                            ` : ''}
+                            ${order.ten_nguoidung ? `
+                                <p class="mb-1">
+                                    <strong>Tài khoản:</strong> ${order.ten_nguoidung}
+                                </p>
+                            ` : ''}
+                            ${order.email ? `
+                                <p class="mb-1">
+                                    <strong>Email:</strong> ${order.email}
+                                </p>
+                            ` : ''}
+                            ${order.sdt ? `
+                                <p class="mb-1">
+                                    <strong>Số điện thoại:</strong> ${order.sdt}
+                                </p>
+                            ` : ''}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ giao hàng
+                            </h6>
+                            ${addressStr ? `
+                                <p class="mb-1">${addressStr}</p>
+                            ` : '<p class="text-muted">Chưa có địa chỉ</p>'}
+                        </div>
+                    </div>
                     
                     <!-- Products -->
-                    <div class="order-products mt-3">
+                    <h6 class="text-primary mb-2">
+                        <i class="fas fa-box me-2"></i>Sản phẩm
+                    </h6>
+                    <div class="order-products">
                         ${order.items ? order.items.map(item => {
                             let imageUrl = item.image || '/images/products/default.jpg';
                             if (imageUrl.startsWith('/images')) {
@@ -124,10 +137,12 @@ function displayOrders(orders) {
                                     <img src="${imageUrl}" alt="${item.ten_sanpham}" onerror="this.src='images/products/default.jpg'">
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1">${item.ten_sanpham}</h6>
-                                        <p class="text-muted mb-0">x${item.soluong}</p>
+                                        <p class="text-muted mb-0">SKU: ${item.ma_sku || 'N/A'}</p>
+                                        <p class="text-muted mb-0">Số lượng: x${item.soluong}</p>
                                     </div>
                                     <div class="text-end">
-                                        <p class="mb-0 text-primary">${formatPrice(item.gia_donvi)}</p>
+                                        <p class="mb-0 text-primary fw-bold">${formatPrice(item.gia_donvi)}</p>
+                                        <p class="mb-0 text-muted small">Tổng: ${formatPrice(item.thanh_tien)}</p>
                                     </div>
                                 </div>
                             `;
@@ -141,17 +156,17 @@ function displayOrders(orders) {
                             <span class="text-danger fs-5 fw-bold">${formatPrice(order.tong_tien)}</span>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-primary" onclick="viewOrderDetail(${order.id_donhang})">
+                            <button class="btn btn-sm btn-info text-white" onclick="viewOrderDetail(${order.id_donhang})">
                                 <i class="fas fa-eye me-1"></i>Chi tiết
                             </button>
+                            ${canConfirm ? `
+                                <button class="btn btn-sm btn-success" onclick="confirmOrder(${order.id_donhang})">
+                                    <i class="fas fa-check me-1"></i>Xác nhận
+                                </button>
+                            ` : ''}
                             ${canCancel ? `
                                 <button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id_donhang})">
                                     <i class="fas fa-times me-1"></i>Hủy đơn
-                                </button>
-                            ` : ''}
-                            ${canConfirmReceived ? `
-                                <button class="btn btn-sm btn-success" onclick="confirmReceived(${order.id_donhang})">
-                                    <i class="fas fa-check me-1"></i>Đã nhận hàng
                                 </button>
                             ` : ''}
                         </div>
@@ -188,7 +203,7 @@ function getStatusBadge(status) {
     const badges = {
         'cho_xacnhan': '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Chờ xác nhận</span>',
         'dang_giao': '<span class="badge bg-info"><i class="fas fa-shipping-fast me-1"></i>Đang giao</span>',
-        'hoanthanh': '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Đã giao</span>',
+        'hoanthanh': '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Hoàn thành</span>',
         'huy': '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Đã hủy</span>'
     };
     return badges[status] || '<span class="badge bg-secondary">Không xác định</span>';
@@ -199,7 +214,32 @@ function viewOrderDetail(orderId) {
     window.location.href = `order-detail.html?id=${orderId}`;
 }
 
-// Cancel order
+// Confirm order (Admin)
+async function confirmOrder(orderId) {
+    if (!confirm('Xác nhận đơn hàng này?\n\nĐơn hàng sẽ chuyển sang trạng thái "Đang giao".')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/orders/${orderId}/confirm`, {
+            method: 'PUT'
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Không thể xác nhận đơn hàng');
+        }
+
+        showNotification('Đã xác nhận đơn hàng thành công!', 'success');
+        await loadOrders();
+
+    } catch (error) {
+        console.error('Error confirming order:', error);
+        showNotification(error.message || 'Không thể xác nhận đơn hàng!', 'error');
+    }
+}
+
+// Cancel order (Admin)
 async function cancelOrder(orderId) {
     if (!confirm('Bạn có chắc muốn hủy đơn hàng này?\n\nSản phẩm sẽ được hoàn lại vào kho.')) {
         return;
@@ -221,31 +261,6 @@ async function cancelOrder(orderId) {
     } catch (error) {
         console.error('Error canceling order:', error);
         showNotification(error.message || 'Không thể hủy đơn hàng!', 'error');
-    }
-}
-
-// Confirm received
-async function confirmReceived(orderId) {
-    if (!confirm('Xác nhận bạn đã nhận được hàng?')) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/orders/${orderId}/received`, {
-            method: 'PUT'
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Không thể xác nhận');
-        }
-
-        showNotification('Cảm ơn bạn đã xác nhận nhận hàng!', 'success');
-        await loadOrders();
-
-    } catch (error) {
-        console.error('Error confirming received:', error);
-        showNotification(error.message || 'Không thể xác nhận!', 'error');
     }
 }
 

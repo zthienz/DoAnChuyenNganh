@@ -4,6 +4,10 @@ import cors from "cors";
 import { pool } from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import { getProfile, updateProfile, updateAddress, checkAddress } from "./controllers/profileController.js";
+import { createOrder, getAllOrders, getOrders, getOrderDetail, cancelOrder, confirmReceived, confirmOrder, getRevenueStats } from "./controllers/orderController.js";
+import { getWishlist, addToWishlist, removeFromWishlist, checkWishlist } from "./controllers/wishlistController.js";
+import { checkVoucher, getAvailableVouchers, useVoucher } from "./controllers/voucherController.js";
 
 dotenv.config();
 
@@ -232,8 +236,6 @@ app.use("/api/auth", authRoutes);
 // =============================================
 // PROFILE API ROUTES
 // =============================================
-import { getProfile, updateProfile, updateAddress, checkAddress } from "./controllers/profileController.js";
-
 app.get("/api/profile/:userId", getProfile);
 app.put("/api/profile/:userId", updateProfile);
 app.put("/api/profile/:userId/address", updateAddress);
@@ -242,11 +244,11 @@ app.get("/api/profile/:userId/check-address", checkAddress);
 // =============================================
 // ORDER API ROUTES
 // =============================================
-import { createOrder, getOrders, getOrderDetail, cancelOrder, confirmReceived, confirmOrder } from "./controllers/orderController.js";
-
-app.post("/api/orders", createOrder);
-app.get("/api/orders/:userId", getOrders);
+app.get("/api/orders/user/:userId", getOrders); // User: Get orders by userId
 app.get("/api/orders/detail/:orderId", getOrderDetail);
+app.get("/api/orders/revenue", getRevenueStats); // Admin: Get revenue statistics
+app.get("/api/orders", getAllOrders); // Admin: Get all orders
+app.post("/api/orders", createOrder);
 app.put("/api/orders/:orderId/cancel", cancelOrder);
 app.put("/api/orders/:orderId/received", confirmReceived);
 app.put("/api/orders/:orderId/confirm", confirmOrder);
@@ -254,8 +256,6 @@ app.put("/api/orders/:orderId/confirm", confirmOrder);
 // =============================================
 // WISHLIST API ROUTES
 // =============================================
-import { getWishlist, addToWishlist, removeFromWishlist, checkWishlist } from "./controllers/wishlistController.js";
-
 app.get("/api/wishlist/:userId", getWishlist);
 app.post("/api/wishlist", addToWishlist);
 app.delete("/api/wishlist/:userId/:productId", removeFromWishlist);
@@ -264,8 +264,6 @@ app.get("/api/wishlist/:userId/:productId/check", checkWishlist);
 // =============================================
 // VOUCHER API ROUTES
 // =============================================
-import { checkVoucher, getAvailableVouchers, useVoucher } from "./controllers/voucherController.js";
-
 app.post("/api/vouchers/check", checkVoucher);
 app.get("/api/vouchers/available", getAvailableVouchers);
 app.post("/api/vouchers/use", useVoucher);

@@ -18,9 +18,9 @@ export const createOrder = async (req, res) => {
     // Tạo đơn hàng
     const [orderResult] = await pool.query(
       `INSERT INTO donhang 
-      (id_nguoidung, ma_donhang, trangthai, tong_tien, tien_giam, id_diachi, phuongthuc_thanhtoan, ghichu) 
-      VALUES (?, ?, 'cho_xacnhan', ?, ?, ?, ?, ?)`,
-      [userId, orderCode, totalAmount, discount || 0, addressId, paymentMethod, note]
+      (id_nguoidung, ma_donhang, trangthai, tong_tien, id_diachi, phuongthuc_thanhtoan, ghichu) 
+      VALUES (?, ?, 'cho_xacnhan', ?, ?, ?, ?)`,
+      [userId, orderCode, totalAmount, addressId, paymentMethod, note]
     );
 
     const orderId = orderResult.insertId;
@@ -30,12 +30,13 @@ export const createOrder = async (req, res) => {
       const productId = item.id_sanpham || item.product_id;
       const quantity = item.soluong || item.quantity;
       const price = item.gia_donvi || item.price;
+      const itemTotal = quantity * price;
       
       await pool.query(
         `INSERT INTO chitiet_donhang 
-        (id_donhang, id_sanpham, soluong, gia_donvi, thanhtien) 
+        (id_donhang, id_sanpham, soluong, gia_donvi, thanh_tien) 
         VALUES (?, ?, ?, ?, ?)`,
-        [orderId, productId, quantity, price, quantity * price]
+        [orderId, productId, quantity, price, itemTotal]
       );
 
       // Giảm tồn kho
@@ -95,6 +96,62 @@ export const createOrder = async (req, res) => {
 
   } catch (err) {
     console.error('Error in createOrder:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Lấy tất cả đơn hàng (Admin)
+export const getAllOrders = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    let query = `
+      SELECT 
+        dh.*,
+        dc.ten_nguoinhan,
+        dc.sdt,
+        dc.diachi_chitiet,
+        dc.thanhpho,
+        dc.quanhuyen,
+        nd.hoten as ten_nguoidung,
+        nd.email
+      FROM donhang dh
+      LEFT JOIN diachi dc ON dh.id_diachi = dc.id_diachi
+      LEFT JOIN nguoidung nd ON dh.id_nguoidung = nd.id_nguoidung
+      WHERE 1=1
+    `;
+
+    const params = [];
+
+    if (status && status !== 'all') {
+      query += ' AND dh.trangthai = ?';
+      params.push(status);
+    }
+
+    query += ' ORDER BY dh.ngay_tao DESC';
+
+    const [orders] = await pool.query(query, params);
+
+    // Lấy chi tiết từng đơn hàng
+    for (let order of orders) {
+      const [items] = await pool.query(`
+        SELECT 
+          ct.*,
+          sp.ten_sanpham,
+          sp.ma_sku,
+          (SELECT duongdan_anh FROM anh_sanpham WHERE id_sanpham = sp.id_sanpham ORDER BY thu_tu LIMIT 1) AS image
+        FROM chitiet_donhang ct
+        JOIN sanpham sp ON ct.id_sanpham = sp.id_sanpham
+        WHERE ct.id_donhang = ?
+      `, [order.id_donhang]);
+
+      order.items = items;
+    }
+
+    res.json(orders);
+
+  } catch (err) {
+    console.error('Error in getAllOrders:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -293,6 +350,72 @@ export const confirmOrder = async (req, res) => {
 
   } catch (err) {
     console.error('Error in confirmOrder:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Lấy thống kê doanh thu
+export const getRevenueStats = async (req, res) => {
+  try {
+    const { fromDate, toDate, groupBy = 'day' } = req.query;
+
+    let dateCondition = '';
+    const params = [];
+
+    if (fromDate && toDate) {
+      dateCondition = 'AND DATE(dh.ngay_tao) BETWEEN ? AND ?';
+      params.push(fromDate, toDate);
+    }
+
+    // Thống kê tổng quan
+    const [summary] = await pool.query(`
+      SELECT 
+        COUNT(*) as total_orders,
+        SUM(CASE WHEN trangthai = 'hoanthanh' THEN 1 ELSE 0 END) as success_orders,
+        SUM(CASE WHEN trangthai = 'huy' THEN 1 ELSE 0 END) as canceled_orders,
+        SUM(CASE WHEN trangthai = 'hoanthanh' THEN tong_tien ELSE 0 END) as total_revenue
+      FROM donhang dh
+      WHERE 1=1 ${dateCondition}
+    `, params);
+
+    // Chi tiết doanh thu theo thời gian
+    let groupByClause;
+    let dateFormat;
+    
+    switch (groupBy) {
+      case 'month':
+        groupByClause = 'DATE_FORMAT(dh.ngay_tao, "%Y-%m")';
+        dateFormat = '%Y-%m';
+        break;
+      case 'year':
+        groupByClause = 'YEAR(dh.ngay_tao)';
+        dateFormat = '%Y';
+        break;
+      default: // day
+        groupByClause = 'DATE(dh.ngay_tao)';
+        dateFormat = '%Y-%m-%d';
+    }
+
+    const [details] = await pool.query(`
+      SELECT 
+        ${groupByClause} as period,
+        COUNT(*) as order_count,
+        SUM(CASE WHEN trangthai = 'hoanthanh' THEN 1 ELSE 0 END) as success_count,
+        SUM(CASE WHEN trangthai = 'huy' THEN 1 ELSE 0 END) as canceled_count,
+        SUM(CASE WHEN trangthai = 'hoanthanh' THEN tong_tien ELSE 0 END) as revenue
+      FROM donhang dh
+      WHERE 1=1 ${dateCondition}
+      GROUP BY ${groupByClause}
+      ORDER BY period DESC
+    `, params);
+
+    res.json({
+      summary: summary[0],
+      details: details
+    });
+
+  } catch (err) {
+    console.error('Error in getRevenueStats:', err);
     res.status(500).json({ error: err.message });
   }
 };
