@@ -40,15 +40,19 @@ function selectContactType(type) {
 // =============================================
 // SUBMIT CONTACT FORM
 // =============================================
-function submitContactForm(event) {
+async function submitContactForm(event) {
     event.preventDefault();
+    
+    // Get current user
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     
     // Get form data
     const formData = {
-        contactType: document.getElementById('contactType').value,
+        userId: currentUser ? currentUser.id : null,
         fullName: document.getElementById('fullName').value,
         email: document.getElementById('email').value,
         phone: document.getElementById('phone').value,
+        contactType: document.getElementById('contactType').value,
         subject: document.getElementById('subject').value,
         message: document.getElementById('message').value
     };
@@ -64,22 +68,38 @@ function submitContactForm(event) {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang gửi...';
     submitBtn.disabled = true;
     
-    // Simulate API call (replace with actual API call later)
-    setTimeout(() => {
-        // Show success message
-        showSuccessMessage();
+    try {
+        // Send to API
+        const response = await fetch('http://localhost:3000/api/support', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
         
-        // Reset form
-        document.getElementById('contactForm').reset();
+        const result = await response.json();
         
+        if (response.ok) {
+            // Show success message
+            showSuccessMessage();
+            
+            // Reset form
+            document.getElementById('contactForm').reset();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            showNotification(result.error || 'Có lỗi xảy ra, vui lòng thử lại', 'error');
+        }
+    } catch (error) {
+        console.error('Error submitting contact form:', error);
+        showNotification('Không thể kết nối đến máy chủ', 'error');
+    } finally {
         // Reset button
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
-        
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-    }, 2000);
+    }
 }
 
 // =============================================

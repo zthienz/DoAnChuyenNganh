@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị hệ thống - GOOJODOQ Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <a href="index.html" class="admin-logo" style="text-decoration: none; color: inherit; cursor: pointer;">
+                <img src="images/logo.png" alt="GOOJODOQ">
+                <h4>Administrator</h4>
+            </a>
+
+            <nav class="admin-nav">
+                <a href="admin-dashboard.html" class="nav-item">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Thông tin cá nhân</span>
+                </a>
+                <a href="admin-dashboard.html" class="nav-item active">
+                    <i class="fas fa-cog"></i>
+                    <span>Quản trị hệ thống</span>
+                </a>
+                <a href="admin-customers.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Quản lý khách hàng</span>
+                </a>
+                <a href="admin-orders.html" class="nav-item">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Quản lý đơn hàng</span>
+                </a>
+                <a href="admin-products.html" class="nav-item">
+                    <i class="fas fa-box"></i>
+                    <span>Quản lý sản phẩm</span>
+                </a>
+                <a href="admin-revenue.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Tổng doanh thu</span>
+                </a>
+                <a href="admin-support.html" class="nav-item">
+                    <i class="fas fa-headset"></i>
+                    <span>Yêu cầu hỗ trợ</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout(); return false;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <h1>Quản trị hệ thống</h1>
+                <div class="admin-user">
+                    <span id="adminName">Administrator</span>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </header>
+
+            <!-- Overview Stats -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalUsers">0</h3>
+                            <p>Tổng người dùng</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalOrders">0</h3>
+                            <p>Tổng đơn hàng</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalProducts">0</h3>
+                            <p>Tổng sản phẩm</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalRevenue">0₫</h3>
+                            <p>Tổng doanh thu</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Hoạt động gần đây</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="activity-list" id="recentActivity">
+                                <div class="text-center py-3">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Thống kê đơn hàng</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="orderStats">
+                                <div class="text-center py-3">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Requests Summary -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-headset me-2"></i>Yêu cầu hỗ trợ</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="support-stat">
+                                        <div class="support-icon bg-warning">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <div class="support-info">
+                                            <h4 id="pendingSupport">0</h4>
+                                            <p>Chờ xử lý</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="support-stat">
+                                        <div class="support-icon bg-info">
+                                            <i class="fas fa-spinner"></i>
+                                        </div>
+                                        <div class="support-info">
+                                            <h4 id="processingSupport">0</h4>
+                                            <p>Đang xử lý</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="support-stat">
+                                        <div class="support-icon bg-success">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div class="support-info">
+                                            <h4 id="resolvedSupport">0</h4>
+                                            <p>Đã giải quyết</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="support-stat">
+                                        <div class="support-icon bg-secondary">
+                                            <i class="fas fa-archive"></i>
+                                        </div>
+                                        <div class="support-info">
+                                            <h4 id="closedSupport">0</h4>
+                                            <p>Đã đóng</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Truy cập nhanh</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <a href="admin-customers.html" class="quick-action-btn">
+                                        <i class="fas fa-users fa-2x mb-2"></i>
+                                        <p>Quản lý khách hàng</p>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="admin-orders.html" class="quick-action-btn">
+                                        <i class="fas fa-shopping-bag fa-2x mb-2"></i>
+                                        <p>Quản lý đơn hàng</p>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="admin-products.html" class="quick-action-btn">
+                                        <i class="fas fa-box fa-2x mb-2"></i>
+                                        <p>Quản lý sản phẩm</p>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="admin-support.html" class="quick-action-btn">
+                                        <i class="fas fa-headset fa-2x mb-2"></i>
+                                        <p>Yêu cầu hỗ trợ</p>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+
+</html>

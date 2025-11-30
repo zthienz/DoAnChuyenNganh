@@ -4,6 +4,7 @@ import cors from "cors";
 import { pool } from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import supportRoutes from "./routes/supportRoutes.js";
 import { getProfile, updateProfile, updateAddress, checkAddress } from "./controllers/profileController.js";
 import { createOrder, getAllOrders, getOrders, getOrderDetail, cancelOrder, confirmReceived, confirmOrder, getRevenueStats } from "./controllers/orderController.js";
 import { getWishlist, addToWishlist, removeFromWishlist, checkWishlist } from "./controllers/wishlistController.js";
@@ -232,6 +233,9 @@ app.use("/api/products", productRoutes);
 
 // Auth routes
 app.use("/api/auth", authRoutes);
+
+// Support routes
+app.use("/api/support", supportRoutes);
 
 // =============================================
 // PROFILE API ROUTES

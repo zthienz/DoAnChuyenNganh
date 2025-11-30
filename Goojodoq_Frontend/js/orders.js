@@ -7,6 +7,16 @@ let currentFilter = 'all';
 
 // Load orders when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    // Refresh currentUser from storage
+    const localUser = localStorage.getItem('user');
+    const sessionUser = sessionStorage.getItem('user');
+    
+    if (localUser) {
+        currentUser = JSON.parse(localUser);
+    } else if (sessionUser) {
+        currentUser = JSON.parse(sessionUser);
+    }
+    
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để xem đơn hàng!', 'warning');
         setTimeout(() => {
@@ -15,21 +25,157 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    // Redirect admin to admin orders page
+    if (currentUser.quyen === 'admin') {
+        console.log('⚠️ Admin detected, redirecting to admin-orders.html');
+        showNotification('Đang chuyển đến trang quản lý đơn hàng...', 'info');
+        setTimeout(() => {
+            window.location.href = 'admin-orders.html';
+        }, 1000);
+        return;
+    }
+    
+    // Display current user info for debugging
+    displayCurrentUserInfo();
+
     loadOrders();
 });
+
+// Display current user info
+function displayCurrentUserInfo() {
+    const container = document.querySelector('.orders-page .container h2');
+    if (container) {
+        const userInfo = document.createElement('div');
+        userInfo.className = 'alert alert-info mb-3';
+        userInfo.innerHTML = `
+            <i class="fas fa-user me-2"></i>
+            <strong>Tài khoản đăng nhập:</strong> ${currentUser.email} 
+            ${currentUser.hoten ? `(${currentUser.hoten})` : ''}
+            <span class="ms-3"><strong>ID:</strong> ${currentUser.id_nguoidung}</span>
+            <div class="mt-2 small">
+                <i class="fas fa-info-circle me-1"></i>
+                <em>Lưu ý: Người nhận hàng có thể khác với người đặt hàng (đặt hàng tặng người khác)</em>
+            </div>
+        `;
+        container.after(userInfo);
+    }
+}
 
 // Load orders from API
 async function loadOrders() {
     try {
-        console.log('📦 Loading orders for user:', currentUser.id_nguoidung);
+        // Refresh currentUser from storage to ensure we have the latest data
+        const localUser = localStorage.getItem('user');
+        const sessionUser = sessionStorage.getItem('user');
+        
+        console.log('🔍 LocalStorage user:', localUser);
+        console.log('🔍 SessionStorage user:', sessionUser);
+        
+        if (localUser) {
+            currentUser = JSON.parse(localUser);
+        } else if (sessionUser) {
+            currentUser = JSON.parse(sessionUser);
+        }
+        
+        // Ensure we have current user
+        if (!currentUser || !currentUser.id_nguoidung) {
+            throw new Error('User not found');
+        }
 
-        const response = await fetch(`${API_BASE_URL}/orders/user/${currentUser.id_nguoidung}`);
+        console.log('📦 Loading orders for user:', currentUser.id_nguoidung);
+        console.log('📦 User email:', currentUser.email);
+        console.log('📦 User name:', currentUser.hoten);
+        console.log('📦 Full user info:', currentUser);
+
+        const url = `${API_BASE_URL}/orders/user/${currentUser.id_nguoidung}`;
+        console.log('📦 API URL:', url);
+
+        const response = await fetch(url);
+        
+        console.log('📦 Response status:', response.status);
+        
         if (!response.ok) {
             throw new Error('Failed to fetch orders');
         }
 
         allOrders = await response.json();
-        console.log('✅ Orders loaded:', allOrders);
+        console.log('✅ Orders loaded:', allOrders.length, 'orders');
+        console.log('✅ Orders data:', allOrders);
+        
+        // Verify orders belong to current user
+        const wrongOrders = allOrders.filter(order => order.id_nguoidung !== currentUser.id_nguoidung);
+        if (wrongOrders.length > 0) {
+            console.error('⚠️ CRITICAL ERROR: Found orders that do not belong to current user!');
+            console.error('⚠️ Current user ID:', currentUser.id_nguoidung);
+            console.error('⚠️ Current user email:', currentUser.email);
+            console.error('⚠️ Wrong orders:', wrongOrders);
+            console.error('⚠️ Wrong order IDs:', wrongOrders.map(o => `${o.ma_donhang} (User ID: ${o.id_nguoidung})`));
+            
+            // This should NEVER happen - it means backend is returning wrong data
+            // Force logout and clear storage
+            alert('LỖI NGHIÊM TRỌNG: Phát hiện dữ liệu không hợp lệ!\n\nHệ thống sẽ tự động đăng xuất để bảo vệ dữ liệu của bạn.');
+            
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Show error message
+            document.getElementById('ordersList').innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>LỖI NGHIÊM TRỌNG!</h5>
+                    <p class="fw-bold">Phát hiện ${wrongOrders.length} đơn hàng không thuộc về tài khoản của bạn.</p>
+                    
+                    <div class="bg-light p-3 rounded mb-3">
+                        <p class="mb-2"><strong>Tài khoản hiện tại:</strong></p>
+                        <ul class="mb-0">
+                            <li>Email: ${currentUser.email}</li>
+                            <li>Tên: ${currentUser.hoten || 'N/A'}</li>
+                            <li>User ID: ${currentUser.id_nguoidung}</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-light p-3 rounded mb-3">
+                        <p class="mb-2"><strong>Đơn hàng lỗi:</strong></p>
+                        <ul class="mb-0">
+                            ${wrongOrders.map(o => `
+                                <li class="text-danger">
+                                    <strong>${o.ma_donhang}</strong> - 
+                                    Thuộc về User ID: ${o.id_nguoidung} 
+                                    (Người nhận: ${o.ten_nguoinhan || 'N/A'})
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-warning mb-3">
+                        <h6><i class="fas fa-info-circle me-2"></i>Nguyên nhân có thể:</h6>
+                        <ul class="mb-0">
+                            <li>LocalStorage bị lỗi hoặc ghi đè</li>
+                            <li>Nhiều người dùng cùng sử dụng một trình duyệt</li>
+                            <li>Không đăng xuất đúng cách</li>
+                        </ul>
+                    </div>
+                    
+                    <p class="mb-3">
+                        <strong>Hệ thống đã tự động xóa dữ liệu lỗi.</strong><br>
+                        Vui lòng đăng nhập lại để tiếp tục.
+                    </p>
+                    
+                    <a href="login.html" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập lại
+                    </a>
+                </div>
+            `;
+            
+            // Redirect to login after 5 seconds
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 5000);
+            
+            return;
+        }
 
         displayOrders(allOrders);
 
@@ -39,6 +185,7 @@ async function loadOrders() {
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 Không thể tải đơn hàng. Vui lòng thử lại sau.
+                <br><small>Lỗi: ${error.message}</small>
             </div>
         `;
     }
@@ -93,10 +240,16 @@ function displayOrders(orders) {
                     <div>${statusBadge}</div>
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-light mb-3 py-2">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>Thông tin giao hàng</strong>
+                        </small>
+                    </div>
                     ${order.ten_nguoinhan ? `
                         <p class="mb-2">
                             <i class="fas fa-user me-2"></i>
-                            <strong>Người nhận:</strong> ${order.ten_nguoinhan}
+                            <strong>Người nhận hàng:</strong> ${order.ten_nguoinhan}
                         </p>
                     ` : ''}
                     ${order.sdt ? `

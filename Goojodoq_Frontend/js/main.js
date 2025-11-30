@@ -53,8 +53,14 @@ function initializeApp() {
         initAutoLogout();
     }
     
-    // Only load featured products on index page
+    // Load products for index page sections
+    const saleCarousel = document.getElementById('saleCarousel');
     const productGrid = document.getElementById('productGrid');
+    
+    if (saleCarousel) {
+        loadSaleProducts();
+    }
+    
     if (productGrid && !document.getElementById('productsGrid')) {
         loadFeaturedProducts();
     }
@@ -120,22 +126,92 @@ function setupEventListeners() {
 // =============================================
 // PRODUCT FUNCTIONS
 // =============================================
+async function loadSaleProducts() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/products/sections/sale`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch sale products');
+        }
+        
+        const data = await response.json();
+        if (data.success && data.products) {
+            displaySaleCarousel(data.products);
+        }
+    } catch (error) {
+        console.error('Error loading sale products:', error);
+        const carousel = document.getElementById('saleCarousel');
+        if (carousel) {
+            carousel.innerHTML = '<p class="text-center text-muted">Không thể tải sản phẩm giảm giá</p>';
+        }
+    }
+}
+
 async function loadFeaturedProducts() {
     try {
         showLoading('productGrid');
         
-        const response = await fetch(`${API_BASE_URL}/products`);
+        const response = await fetch(`${API_BASE_URL}/products/sections/featured`);
         if (!response.ok) {
-            throw new Error('Failed to fetch products');
+            throw new Error('Failed to fetch featured products');
         }
         
-        const products = await response.json();
-        displayProducts(products.slice(0, 8)); // Show first 8 products
+        const data = await response.json();
+        if (data.success && data.products) {
+            displayProducts(data.products);
+        } else {
+            throw new Error('Invalid response format');
+        }
         
     } catch (error) {
         console.error('Error loading products:', error);
         showError('productGrid', 'Không thể tải sản phẩm. Vui lòng thử lại sau.');
     }
+}
+
+function displaySaleCarousel(products) {
+    const carousel = document.getElementById('saleCarousel');
+    if (!carousel) return;
+    
+    if (!products || products.length === 0) {
+        carousel.innerHTML = '<p class="text-center text-muted">Không có sản phẩm giảm giá</p>';
+        return;
+    }
+    
+    const carouselHTML = products.map(product => {
+        let imageUrl = product.image || '/images/products/default.jpg';
+        if (imageUrl.startsWith('/images')) {
+            imageUrl = `http://localhost:3000${imageUrl}`;
+        }
+        
+        const discount = product.sale_price && product.price < product.sale_price 
+            ? Math.round((1 - product.price / product.sale_price) * 100) 
+            : 0;
+        
+        return `
+            <div class="sale-card">
+                <div class="sale-badge">-${discount}%</div>
+                <div class="sale-image">
+                    <img src="${imageUrl}" 
+                         alt="${product.product_name}"
+                         onerror="this.src='images/products/default.jpg'">
+                </div>
+                <div class="sale-info">
+                    <h5 class="sale-title">
+                        <a href="product-detail.html?id=${product.product_id}">${product.product_name}</a>
+                    </h5>
+                    <div class="sale-price">
+                        <span class="price-new">${formatPrice(product.price)}</span>
+                        ${product.sale_price ? `<span class="price-old">${formatPrice(product.sale_price)}</span>` : ''}
+                    </div>
+                    <button class="btn-buy-now" onclick="addToCart(${product.product_id}, '${escapeHtml(product.product_name)}', ${product.price}, '${imageUrl}')">
+                        <i class="fas fa-shopping-cart me-2"></i>Mua ngay
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    carousel.innerHTML = carouselHTML;
 }
 
 function displayProducts(products) {
@@ -443,8 +519,15 @@ function showNotification(message, type = 'info') {
 // =============================================
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        
+        // Skip if href is just "#" or empty
+        if (!href || href === '#') {
+            return;
+        }
+        
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const target = document.querySelector(href);
         if (target) {
             target.scrollIntoView({
                 behavior: 'smooth',
@@ -820,12 +903,13 @@ function updateUserDisplay() {
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
+                    <li><a class="dropdown-item" href="admin-dashboard.html"><i class="fas fa-cog me-2"></i>Quản trị hệ thống</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><h6 class="dropdown-header"><i class="fas fa-user-shield me-2"></i>Quản trị hệ thống</h6></li>
                     <li><a class="dropdown-item" href="admin-customers.html"><i class="fas fa-users me-2"></i>Quản lý khách hàng</a></li>
                     <li><a class="dropdown-item" href="admin-orders.html"><i class="fas fa-shopping-bag me-2"></i>Quản lý đơn hàng</a></li>
                     <li><a class="dropdown-item" href="admin-products.html"><i class="fas fa-box me-2"></i>Quản lý sản phẩm</a></li>
                     <li><a class="dropdown-item" href="admin-revenue.html"><i class="fas fa-chart-line me-2"></i>Tổng doanh thu</a></li>
+                    <li><a class="dropdown-item" href="admin-support.html"><i class="fas fa-headset me-2"></i>Yêu cầu hỗ trợ</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
                 </ul>
@@ -868,6 +952,9 @@ function updateUserDisplay() {
 
 function logout() {
     if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        // Log current user before logout
+        console.log('🚪 Logging out user:', currentUser);
+        
         // Stop auto logout timer
         stopAutoLogout();
         
@@ -876,16 +963,28 @@ function logout() {
         sessionStorage.removeItem('user');
         localStorage.removeItem('isAdminMode');
         
+        // Clear all storage to be safe
+        console.log('🧹 Clearing all user data from storage');
+        
         // Cập nhật biến global
         currentUser = null;
         isAdminMode = false;
         
+        // Verify storage is cleared
+        const checkLocal = localStorage.getItem('user');
+        const checkSession = sessionStorage.getItem('user');
+        if (checkLocal || checkSession) {
+            console.error('⚠️ WARNING: User data still exists in storage after logout!');
+        } else {
+            console.log('✅ User data cleared successfully');
+        }
+        
         // Hiển thị thông báo
         showNotification('Đã đăng xuất thành công!', 'success');
         
-        // Reload trang để cập nhật UI
+        // Redirect to login page instead of reload
         setTimeout(() => {
-            window.location.reload();
+            window.location.href = 'login.html';
         }, 1000);
     }
     return false;
@@ -1198,3 +1297,51 @@ async function checkProductInWishlist(productId) {
         return false;
     }
 }
+
+
+// =============================================
+// FIX: Allow space in all text inputs
+// =============================================
+(function() {
+    'use strict';
+    
+    console.log('🔧 Space input fix module loaded');
+    
+    // Wait for DOM to be ready
+    function initSpaceFix() {
+        console.log('🔧 Initializing space input fix...');
+        
+        // Get all text inputs and textareas (excluding password, email, number, etc.)
+        const inputs = document.querySelectorAll('input[type="text"], textarea, input:not([type])');
+        
+        console.log(`✅ Found ${inputs.length} text inputs to fix`);
+        
+        // No need to add listeners - just ensure no one is blocking space
+        // The issue might be from browser extensions or other scripts
+        
+        // Add a global listener to catch and allow space
+        document.addEventListener('keydown', function(e) {
+            // If space key is pressed on a text input or textarea
+            if ((e.key === ' ' || e.keyCode === 32) && 
+                (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                
+                // Check if it's a text input (not password, email, etc.)
+                const inputType = e.target.type || 'text';
+                if (inputType === 'text' || inputType === 'search' || e.target.tagName === 'TEXTAREA') {
+                    // Allow space - stop any other handlers from preventing it
+                    e.stopImmediatePropagation();
+                    console.log('✅ Space allowed on:', e.target.id || e.target.name || 'unnamed input');
+                }
+            }
+        }, true); // Use capture phase to run before other handlers
+        
+        console.log('✅ Space input fix applied successfully');
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSpaceFix);
+    } else {
+        initSpaceFix();
+    }
+})();

@@ -215,15 +215,9 @@ function filterProducts() {
         selectedCategories.push(parseInt(checkbox.value));
     });
     
-    // Get status filters
-    const filterSale = document.getElementById('filterSale').checked;
-    const filterNew = document.getElementById('filterNew').checked;
-    const filterBestseller = document.getElementById('filterBestseller').checked;
-    
     // Filter products
     filteredProducts = allProducts.filter(product => {
         const price = parseFloat(product.price);
-        const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
         
         // Search filter
         if (searchTerm && !product.product_name.toLowerCase().includes(searchTerm)) {
@@ -237,17 +231,6 @@ function filterProducts() {
         
         // Category filter
         if (selectedCategories.length > 0 && !selectedCategories.includes(product.category_id)) {
-            return false;
-        }
-        
-        // Status filters
-        if (filterSale && (!salePrice || salePrice >= price)) {
-            return false;
-        }
-        if (filterNew && !product.is_new) {
-            return false;
-        }
-        if (filterBestseller && !product.is_bestseller) {
             return false;
         }
         
@@ -271,11 +254,6 @@ function resetFilters() {
         checkbox.checked = false;
     });
     document.getElementById('catAll').checked = true;
-    
-    // Reset status
-    document.getElementById('filterSale').checked = false;
-    document.getElementById('filterNew').checked = false;
-    document.getElementById('filterBestseller').checked = false;
     
     // Reset sort
     document.getElementById('sortSelect').value = 'default';

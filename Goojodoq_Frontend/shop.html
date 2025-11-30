@@ -153,6 +153,42 @@
                                         Giá Đỡ
                                     </label>
                                 </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="6" id="cat6">
+                                    <label class="form-check-label" for="cat6">
+                                        Hub
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="7" id="cat7">
+                                    <label class="form-check-label" for="cat7">
+                                        Loa
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="8" id="cat8">
+                                    <label class="form-check-label" for="cat8">
+                                        Máy Chiếu
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="9" id="cat9">
+                                    <label class="form-check-label" for="cat9">
+                                        Quạt Mini
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="10" id="cat10">
+                                    <label class="form-check-label" for="cat10">
+                                        Sạc Dự Phòng
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input category-filter" type="checkbox" value="11" id="cat11">
+                                    <label class="form-check-label" for="cat11">
+                                        Tai Nghe
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -175,31 +211,6 @@
                             </div>
                         </div>
 
-                        <!-- Filter by Status -->
-                        <div class="sidebar-widget">
-                            <h5 class="widget-title">Trạng thái</h5>
-                            <div class="status-filter">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="filterSale">
-                                    <label class="form-check-label" for="filterSale">
-                                        Đang giảm giá
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="filterNew">
-                                    <label class="form-check-label" for="filterNew">
-                                        Sản phẩm mới
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="filterBestseller">
-                                    <label class="form-check-label" for="filterBestseller">
-                                        Bán chạy
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Reset Filters -->
                         <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
                             <i class="fas fa-redo me-2"></i>Đặt lại bộ lọc
@@ -219,6 +230,12 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="d-flex justify-content-md-end align-items-center">
+                                    <!-- Admin Edit Button -->
+                                    <button id="editAllProductsBtn" class="btn btn-warning btn-sm me-3" style="display: none;" 
+                                            onclick="openSectionManager('all', 'Tất cả sản phẩm')" 
+                                            title="Chỉnh sửa danh sách sản phẩm">
+                                        <i class="fas fa-edit me-1"></i>Quản lý hiển thị
+                                    </button>
                                     <label class="me-2 mb-0">Sắp xếp:</label>
                                     <select class="form-select" id="sortSelect" onchange="sortProducts()"
                                         style="width: auto;">
@@ -315,6 +332,16 @@
         <!-- Custom JS -->
         <script src="js/main.js?v=2"></script>
         <script src="js/shop.js?v=2"></script>
+        <script src="js/product-section-manager.js"></script>
+        <script>
+            // Show edit button for admin
+            document.addEventListener('DOMContentLoaded', function() {
+                const currentUser = getCurrentUser();
+                if (currentUser && currentUser.quyen === 'admin') {
+                    document.getElementById('editAllProductsBtn').style.display = 'inline-block';
+                }
+            });
+        </script>
 </body>
 
 </html>

@@ -1,11 +1,39 @@
-// Load revenue on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is admin (use global currentUser from main.js)
+// Check admin authentication
+function checkAdminAuth() {
+    const localUser = localStorage.getItem('user');
+    const sessionUser = sessionStorage.getItem('user');
+    
+    let currentUser = null;
+    if (localUser) {
+        currentUser = JSON.parse(localUser);
+    } else if (sessionUser) {
+        currentUser = JSON.parse(sessionUser);
+    }
+    
     if (!currentUser || currentUser.quyen !== 'admin') {
         alert('Bạn không có quyền truy cập trang này!');
-        window.location.href = 'index.html';
-        return;
+        window.location.href = 'admin-login.html';
+        return false;
     }
+    
+    const adminName = currentUser.hoten || currentUser.email?.split('@')[0] || 'Admin';
+    document.getElementById('adminName').textContent = adminName;
+    return true;
+}
+
+// Logout function
+function logout() {
+    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
+        window.location.href = 'admin-login.html';
+    }
+}
+
+// Load revenue on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check admin auth
+    if (!checkAdminAuth()) return;
 
     // Set default dates
     const today = new Date();

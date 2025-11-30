@@ -162,6 +162,10 @@ export const getOrders = async (req, res) => {
     const { userId } = req.params;
     const { status } = req.query;
 
+    console.log('📦 getOrders called with userId:', userId);
+    console.log('📦 userId type:', typeof userId);
+    console.log('📦 Status filter:', status);
+
     let query = `
       SELECT 
         dh.*,
@@ -184,7 +188,19 @@ export const getOrders = async (req, res) => {
 
     query += ' ORDER BY dh.ngay_tao DESC';
 
+    console.log('📦 Query:', query);
+    console.log('📦 Params:', params);
+
     const [orders] = await pool.query(query, params);
+
+    console.log('📦 Found orders:', orders.length);
+    
+    // Log order details for debugging
+    if (orders.length > 0) {
+      console.log('📦 First order id_nguoidung:', orders[0].id_nguoidung);
+      console.log('📦 First order ma_donhang:', orders[0].ma_donhang);
+      console.log('📦 All order user IDs:', orders.map(o => o.id_nguoidung));
+    }
 
     // Lấy chi tiết từng đơn hàng
     for (let order of orders) {
@@ -202,10 +218,12 @@ export const getOrders = async (req, res) => {
       order.items = items;
     }
 
+    console.log('✅ Returning', orders.length, 'orders for user', userId);
+
     res.json(orders);
 
   } catch (err) {
-    console.error('Error in getOrders:', err);
+    console.error('❌ Error in getOrders:', err);
     res.status(500).json({ error: err.message });
   }
 };

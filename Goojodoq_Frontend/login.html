@@ -235,18 +235,55 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    // CRITICAL: Clear ALL storage first to prevent data contamination
+                    console.log('🧹 Clearing all storage before login...');
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Verify storage is empty
+                    if (localStorage.length > 0 || sessionStorage.length > 0) {
+                        console.error('⚠️ WARNING: Storage not empty after clear!');
+                    }
+                    
+                    // Log user info for debugging
+                    console.log('✅ Login successful for user:', data.user);
+                    console.log('📧 Email:', data.user.email);
+                    console.log('🆔 User ID:', data.user.id_nguoidung);
+                    console.log('👤 Name:', data.user.hoten);
+                    console.log('🔑 Role:', data.user.quyen);
+                    
                     // Lưu thông tin người dùng
                     if (rememberMe) {
                         localStorage.setItem('user', JSON.stringify(data.user));
+                        console.log('💾 User saved to localStorage');
+                        
+                        // Verify saved correctly
+                        const saved = localStorage.getItem('user');
+                        const parsed = JSON.parse(saved);
+                        if (parsed.id_nguoidung !== data.user.id_nguoidung) {
+                            console.error('❌ ERROR: User ID mismatch after save!');
+                            alert('Lỗi lưu thông tin đăng nhập. Vui lòng thử lại!');
+                            return;
+                        }
                     } else {
                         sessionStorage.setItem('user', JSON.stringify(data.user));
+                        console.log('💾 User saved to sessionStorage');
+                        
+                        // Verify saved correctly
+                        const saved = sessionStorage.getItem('user');
+                        const parsed = JSON.parse(saved);
+                        if (parsed.id_nguoidung !== data.user.id_nguoidung) {
+                            console.error('❌ ERROR: User ID mismatch after save!');
+                            alert('Lỗi lưu thông tin đăng nhập. Vui lòng thử lại!');
+                            return;
+                        }
                     }
 
                     // Hiển thị thông báo dựa trên role
                     if (data.user.quyen === 'admin') {
                         showAlert('Đăng nhập Admin thành công! Đang chuyển hướng...', 'success');
                     } else {
-                        showAlert('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+                        showAlert(`Đăng nhập thành công! Xin chào ${data.user.hoten || data.user.email}`, 'success');
                     }
                     
                     // Redirect về trang chủ (header sẽ tự động cập nhật dựa trên role)

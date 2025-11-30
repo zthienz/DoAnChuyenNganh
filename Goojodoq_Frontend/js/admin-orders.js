@@ -1,14 +1,43 @@
 let allOrders = [];
 let currentFilter = 'all';
 
-// Check if user is admin (use global currentUser from main.js)
-if (!currentUser || currentUser.quyen !== 'admin') {
-    alert('Bạn không có quyền truy cập trang này!');
-    window.location.href = 'index.html';
+// Check admin authentication
+function checkAdminAuth() {
+    const localUser = localStorage.getItem('user');
+    const sessionUser = sessionStorage.getItem('user');
+    
+    let currentUser = null;
+    if (localUser) {
+        currentUser = JSON.parse(localUser);
+    } else if (sessionUser) {
+        currentUser = JSON.parse(sessionUser);
+    }
+    
+    if (!currentUser || currentUser.quyen !== 'admin') {
+        alert('Bạn không có quyền truy cập trang này!');
+        window.location.href = 'admin-login.html';
+        return false;
+    }
+    
+    const adminName = currentUser.hoten || currentUser.email?.split('@')[0] || 'Admin';
+    if (document.getElementById('adminName')) {
+        document.getElementById('adminName').textContent = adminName;
+    }
+    return true;
+}
+
+// Logout function
+function logout() {
+    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
+        window.location.href = 'admin-login.html';
+    }
 }
 
 // Load orders when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    if (!checkAdminAuth()) return;
     loadOrders();
 });
 
