@@ -337,3 +337,118 @@ export const updateProduct = async (req, res) => {
     });
   }
 };
+
+// Lấy top 10 sản phẩm bán chạy
+export const getBestSellingProducts = async (req, res) => {
+  try {
+    const [products] = await pool.query(`
+      SELECT 
+        sp.id_sanpham as product_id,
+        sp.ma_sku as sku,
+        sp.ten_sanpham as product_name,
+        sp.gia as price,
+        sp.gia_goc as sale_price,
+        sp.tonkho as stock_quantity,
+        sp.hien_thi as is_active,
+        COALESCE(SUM(ct.soluong), 0) as total_sold,
+        COALESCE(SUM(ct.thanh_tien), 0) as total_revenue,
+        (SELECT duongdan_anh FROM anh_sanpham WHERE id_sanpham = sp.id_sanpham ORDER BY thu_tu LIMIT 1) AS image
+      FROM sanpham sp
+      LEFT JOIN chitiet_donhang ct ON sp.id_sanpham = ct.id_sanpham
+      LEFT JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
+        AND dh.trangthai IN ('cho_xacnhan', 'dang_giao', 'hoanthanh')
+      GROUP BY sp.id_sanpham
+      ORDER BY total_sold DESC, total_revenue DESC
+      LIMIT 10
+    `);
+
+    res.json({
+      success: true,
+      products: products
+    });
+
+  } catch (err) {
+    console.error('Error getting best selling products:', err);
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
+    });
+  }
+};
+
+// Lấy top 10 sản phẩm bán ế
+export const getSlowSellingProducts = async (req, res) => {
+  try {
+    const [products] = await pool.query(`
+      SELECT 
+        sp.id_sanpham as product_id,
+        sp.ma_sku as sku,
+        sp.ten_sanpham as product_name,
+        sp.gia as price,
+        sp.gia_goc as sale_price,
+        sp.tonkho as stock_quantity,
+        sp.hien_thi as is_active,
+        sp.ngay_tao as created_at,
+        COALESCE(SUM(ct.soluong), 0) as total_sold,
+        COALESCE(SUM(ct.thanh_tien), 0) as total_revenue,
+        (SELECT duongdan_anh FROM anh_sanpham WHERE id_sanpham = sp.id_sanpham ORDER BY thu_tu LIMIT 1) AS image
+      FROM sanpham sp
+      LEFT JOIN chitiet_donhang ct ON sp.id_sanpham = ct.id_sanpham
+      LEFT JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
+        AND dh.trangthai IN ('cho_xacnhan', 'dang_giao', 'hoanthanh')
+      GROUP BY sp.id_sanpham
+      ORDER BY total_sold ASC, sp.ngay_tao ASC
+      LIMIT 10
+    `);
+
+    res.json({
+      success: true,
+      products: products
+    });
+
+  } catch (err) {
+    console.error('Error getting slow selling products:', err);
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
+    });
+  }
+};
+
+// Lấy sản phẩm nổi bật (top 12 sản phẩm bán chạy và đang hiển thị)
+export const getFeaturedProducts = async (req, res) => {
+  try {
+    const [products] = await pool.query(`
+      SELECT 
+        sp.id_sanpham as product_id,
+        sp.ma_sku as sku,
+        sp.ten_sanpham as product_name,
+        sp.gia as price,
+        sp.gia_goc as sale_price,
+        sp.tonkho as stock_quantity,
+        sp.hien_thi as is_active,
+        COALESCE(SUM(ct.soluong), 0) as total_sold,
+        (SELECT duongdan_anh FROM anh_sanpham WHERE id_sanpham = sp.id_sanpham ORDER BY thu_tu LIMIT 1) AS image
+      FROM sanpham sp
+      LEFT JOIN chitiet_donhang ct ON sp.id_sanpham = ct.id_sanpham
+      LEFT JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
+        AND dh.trangthai IN ('cho_xacnhan', 'dang_giao', 'hoanthanh')
+      WHERE sp.hien_thi = 1
+      GROUP BY sp.id_sanpham
+      ORDER BY total_sold DESC
+      LIMIT 12
+    `);
+
+    res.json({
+      success: true,
+      products: products
+    });
+
+  } catch (err) {
+    console.error('Error getting featured products:', err);
+    res.status(500).json({ 
+      success: false,
+      error: err.message 
+    });
+  }
+};

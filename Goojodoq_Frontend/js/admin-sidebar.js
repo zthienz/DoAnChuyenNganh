@@ -5,7 +5,9 @@
 // Load admin sidebar into page
 async function loadAdminSidebar() {
     try {
-        const response = await fetch('components/admin-sidebar.html');
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const response = await fetch(`components/admin-sidebar.html?v=${timestamp}`);
         const html = await response.text();
         
         // Insert sidebar at the beginning of body

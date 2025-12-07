@@ -235,6 +235,21 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    // Kiểm tra xem có phải admin không
+                    if (data.user.quyen === 'admin') {
+                        showAlert('Tài khoản Admin không thể đăng nhập ở đây! Vui lòng sử dụng trang đăng nhập Admin.', 'danger');
+                        btnLogin.disabled = false;
+                        btnLogin.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Đăng nhập';
+                        
+                        // Hiển thị link đến trang admin login
+                        setTimeout(() => {
+                            if (confirm('Bạn có muốn chuyển đến trang đăng nhập Admin?')) {
+                                window.location.href = 'admin-login.html';
+                            }
+                        }, 1000);
+                        return;
+                    }
+                    
                     // CRITICAL: Clear ALL storage first to prevent data contamination
                     console.log('🧹 Clearing all storage before login...');
                     localStorage.clear();
@@ -279,14 +294,9 @@
                         }
                     }
 
-                    // Hiển thị thông báo dựa trên role
-                    if (data.user.quyen === 'admin') {
-                        showAlert('Đăng nhập Admin thành công! Đang chuyển hướng...', 'success');
-                    } else {
-                        showAlert(`Đăng nhập thành công! Xin chào ${data.user.hoten || data.user.email}`, 'success');
-                    }
+                    showAlert(`Đăng nhập thành công! Xin chào ${data.user.hoten || data.user.email}`, 'success');
                     
-                    // Redirect về trang chủ (header sẽ tự động cập nhật dựa trên role)
+                    // Redirect về trang chủ
                     setTimeout(() => {
                         window.location.href = 'index.html';
                     }, 1500);

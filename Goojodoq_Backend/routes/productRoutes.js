@@ -5,7 +5,10 @@ import {
   getProductById, 
   deleteProduct, 
   toggleProductVisibility,
-  updateProduct 
+  updateProduct,
+  getBestSellingProducts,
+  getSlowSellingProducts,
+  getFeaturedProducts
 } from "../controllers/productController.js";
 import {
   getProductsBySection,
@@ -20,15 +23,12 @@ import {
 
 const router = express.Router();
 
-// Original product routes
-router.get("/", getAllProducts);
-router.get("/:id", getProductById);
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
-router.patch("/:id/visibility", toggleProductVisibility);
+// Statistics routes - PHẢI ĐẶT TRƯỚC các routes có tham số động
+router.get("/stats/best-selling", getBestSellingProducts); // Top 10 sản phẩm bán chạy
+router.get("/stats/slow-selling", getSlowSellingProducts); // Top 10 sản phẩm bán ế
+router.get("/stats/featured", getFeaturedProducts); // Top 12 sản phẩm nổi bật
 
-// Product section routes
+// Product section routes - PHẢI ĐẶT TRƯỚC /:id
 router.get("/sections/:sectionCode", getProductsBySection); // Public: Get visible products in section
 router.get("/sections/:sectionCode/all", getAllProductsInSection); // Admin: Get all products (including hidden)
 router.get("/sections/:sectionCode/available", getAvailableProducts); // Admin: Get products not in section
@@ -37,5 +37,13 @@ router.delete("/sections/:sectionCode/products/:productId", removeProductFromSec
 router.patch("/sections/:sectionCode/products/:productId/toggle", toggleProductInSection); // Admin: Hide/show in section
 router.put("/sections/:sectionCode/products/:productId", updateProductInSection); // Admin: Update custom info
 router.put("/sections/:sectionCode/order", updateProductOrder); // Admin: Update product order
+
+// Original product routes - Đặt sau để tránh conflict
+router.get("/", getAllProducts);
+router.post("/", createProduct);
+router.get("/:id", getProductById); // Route này phải đặt cuối cùng
+router.put("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
+router.patch("/:id/visibility", toggleProductVisibility)
 
 export default router;

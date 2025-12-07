@@ -150,7 +150,8 @@ async function loadFeaturedProducts() {
     try {
         showLoading('productGrid');
         
-        const response = await fetch(`${API_BASE_URL}/products/sections/featured`);
+        // Sử dụng API mới để lấy top 12 sản phẩm bán chạy
+        const response = await fetch(`${API_BASE_URL}/products/stats/featured`);
         if (!response.ok) {
             throw new Error('Failed to fetch featured products');
         }
@@ -313,7 +314,7 @@ function goToAddProduct() {
 // =============================================
 // CART FUNCTIONS
 // =============================================
-async function addToCart(productId, productName, price, image) {
+async function addToCart(productId, productName, price, image, quantity = 1) {
     // Kiểm tra đăng nhập
     if (!currentUser) {
         showNotification('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'warning');
@@ -332,7 +333,7 @@ async function addToCart(productId, productName, price, image) {
             body: JSON.stringify({
                 userId: currentUser.id_nguoidung,
                 productId: productId,
-                quantity: 1,
+                quantity: quantity,
                 price: price
             })
         });
@@ -342,7 +343,7 @@ async function addToCart(productId, productName, price, image) {
         }
 
         const result = await response.json();
-        showNotification('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+        showNotification(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`, 'success');
         
         // Update cart count
         updateCartCount();
@@ -869,6 +870,17 @@ function updateUserDisplay() {
             `;
         }
         
+        // Hiện nút đăng nhập Admin
+        const adminLoginButton = document.getElementById('adminLoginButton');
+        if (adminLoginButton) {
+            adminLoginButton.style.display = 'block';
+            adminLoginButton.innerHTML = `
+                <a href="admin-login.html" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-user-shield me-1"></i>Admin
+                </a>
+            `;
+        }
+        
         // Ẩn giỏ hàng
         if (cartIcon) {
             cartIcon.style.display = 'none';
@@ -889,6 +901,12 @@ function updateUserDisplay() {
             authButtons.style.display = 'none';
         }
         
+        // Ẩn nút đăng nhập Admin
+        const adminLoginButton = document.getElementById('adminLoginButton');
+        if (adminLoginButton) {
+            adminLoginButton.style.display = 'none';
+        }
+        
         // Ẩn giỏ hàng
         if (cartIcon) {
             cartIcon.style.display = 'none';
@@ -902,12 +920,12 @@ function updateUserDisplay() {
                     <i class="fas fa-user-shield"></i> ${userName}
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="profile.html"><i class="fas fa-user-circle me-2"></i>Thông tin cá nhân</a></li>
                     <li><a class="dropdown-item" href="admin-dashboard.html"><i class="fas fa-cog me-2"></i>Quản trị hệ thống</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="admin-customers.html"><i class="fas fa-users me-2"></i>Quản lý khách hàng</a></li>
                     <li><a class="dropdown-item" href="admin-orders.html"><i class="fas fa-shopping-bag me-2"></i>Quản lý đơn hàng</a></li>
                     <li><a class="dropdown-item" href="admin-products.html"><i class="fas fa-box me-2"></i>Quản lý sản phẩm</a></li>
+                    <li><a class="dropdown-item" href="admin-statistics.html"><i class="fas fa-chart-bar me-2"></i>Thống kê sản phẩm</a></li>
                     <li><a class="dropdown-item" href="admin-revenue.html"><i class="fas fa-chart-line me-2"></i>Tổng doanh thu</a></li>
                     <li><a class="dropdown-item" href="admin-support.html"><i class="fas fa-headset me-2"></i>Yêu cầu hỗ trợ</a></li>
                     <li><hr class="dropdown-divider"></li>
@@ -924,6 +942,12 @@ function updateUserDisplay() {
         // Ẩn nút đăng nhập/đăng ký
         if (authButtons) {
             authButtons.style.display = 'none';
+        }
+        
+        // Ẩn nút đăng nhập Admin
+        const adminLoginButton = document.getElementById('adminLoginButton');
+        if (adminLoginButton) {
+            adminLoginButton.style.display = 'none';
         }
         
         // Hiện giỏ hàng

@@ -563,6 +563,182 @@ let sectionManager = null;
 
 // Function to open section manager
 function openSectionManager(sectionCode, sectionName) {
-    sectionManager = new ProductSectionManager(sectionCode, sectionName);
-    sectionManager.openManager();
+    // Nếu là featured section, sử dụng manager đặc biệt
+    if (sectionCode === 'featured') {
+        openFeaturedProductsManager();
+    } else {
+        sectionManager = new ProductSectionManager(sectionCode, sectionName);
+        sectionManager.openManager();
+    }
+}
+
+// Featured Products Manager - Chỉ xem và ẩn/hiện
+async function openFeaturedProductsManager() {
+    try {
+        // Load top 12 sản phẩm bán chạy
+        const response = await fetch(`${window.API_BASE_URL}/products/stats/featured`);
+        const data = await response.json();
+        
+        if (!data.success || !data.products) {
+            throw new Error('Không thể tải danh sách sản phẩm');
+        }
+        
+        const products = data.products;
+        
+        // Tạo modal
+        const modalHTML = `
+            <div class="modal fade" id="featuredManagerModal" tabindex="-1" data-bs-backdrop="static">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-star me-2"></i>Quản lý: Sản phẩm nổi bật
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Lưu ý:</strong> Sản phẩm nổi bật được tự động chọn dựa trên lượt bán. 
+                                Bạn chỉ có thể ẩn/hiện sản phẩm. Khi ẩn 1 sản phẩm, sản phẩm bán chạy tiếp theo sẽ tự động thay thế.
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="text-muted">
+                                    <i class="fas fa-chart-line me-1"></i>
+                                    Hiển thị top <strong>12</strong> sản phẩm bán chạy nhất
+                                </div>
+                                <button class="btn btn-info btn-sm" onclick="location.reload()">
+                                    <i class="fas fa-sync me-1"></i>Làm mới
+                                </button>
+                            </div>
+
+                            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                <table class="table table-hover table-bordered">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th width="5%">Hạng</th>
+                                            <th width="8%">Ảnh</th>
+                                            <th width="30%">Tên sản phẩm</th>
+                                            <th width="12%">Giá</th>
+                                            <th width="10%">Đã bán</th>
+                                            <th width="10%">Tồn kho</th>
+                                            <th width="10%">Trạng thái</th>
+                                            <th width="15%">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${products.map((product, index) => {
+                                            const imageUrl = product.image ? 
+                                                (product.image.startsWith('/images') ? `http://localhost:3000${product.image}` : product.image) :
+                                                'images/products/default.jpg';
+                                            
+                                            const rankBadge = index < 3 ? 
+                                                `<span class="badge fs-6 ${index === 0 ? 'bg-warning' : index === 1 ? 'bg-secondary' : 'bg-danger'}">
+                                                    ${index + 1}
+                                                </span>` :
+                                                `<span class="badge fs-6 bg-light text-dark">${index + 1}</span>`;
+                                            
+                                            return `
+                                                <tr class="${!product.is_active ? 'table-secondary' : ''}">
+                                                    <td class="text-center">${rankBadge}</td>
+                                                    <td>
+                                                        <img src="${imageUrl}" alt="${product.product_name}" 
+                                                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;"
+                                                             onerror="this.src='images/products/default.jpg'">
+                                                    </td>
+                                                    <td>
+                                                        <strong>${product.product_name}</strong>
+                                                        <br>
+                                                        <small class="text-muted">SKU: ${product.sku || 'N/A'}</small>
+                                                    </td>
+                                                    <td>
+                                                        <strong class="text-success">${formatPrice(product.price)}</strong>
+                                                        ${product.sale_price && product.sale_price > product.price ? 
+                                                            `<br><small class="text-muted"><del>${formatPrice(product.sale_price)}</del></small>` : ''}
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge bg-success fs-6">${product.total_sold || 0}</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge ${product.stock_quantity > 0 ? 'bg-success' : 'bg-danger'}">
+                                                            ${product.stock_quantity}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        ${product.is_active ? 
+                                                            '<span class="badge bg-success">Hiển thị</span>' : 
+                                                            '<span class="badge bg-secondary">Đã ẩn</span>'}
+                                                    </td>
+                                                    <td class="text-center">
+                                                        ${product.is_active ?
+                                                            `<button class="btn btn-warning btn-sm" onclick="toggleFeaturedProduct(${product.product_id}, false)" title="Ẩn sản phẩm">
+                                                                <i class="fas fa-eye-slash me-1"></i>Ẩn
+                                                            </button>` :
+                                                            `<button class="btn btn-success btn-sm" onclick="toggleFeaturedProduct(${product.product_id}, true)" title="Hiện sản phẩm">
+                                                                <i class="fas fa-eye me-1"></i>Hiện
+                                                            </button>`
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('featuredManagerModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = new bootstrap.Modal(document.getElementById('featuredManagerModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error opening featured manager:', error);
+        showNotification('Không thể mở quản lý sản phẩm nổi bật: ' + error.message, 'error');
+    }
+}
+
+// Toggle featured product visibility
+async function toggleFeaturedProduct(productId, isActive) {
+    try {
+        const response = await fetch(`${window.API_BASE_URL}/products/${productId}/visibility`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: isActive })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Đóng modal và reload trang để cập nhật
+            const modal = bootstrap.Modal.getInstance(document.getElementById('featuredManagerModal'));
+            if (modal) modal.hide();
+            
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            throw new Error(data.error || 'Không thể cập nhật trạng thái');
+        }
+        
+    } catch (error) {
+        console.error('Error toggling product:', error);
+        showNotification('Không thể cập nhật trạng thái: ' + error.message, 'error');
+    }
 }
