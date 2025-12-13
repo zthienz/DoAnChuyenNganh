@@ -61,10 +61,15 @@
                         <div class="navbar-nav ms-auto d-flex align-items-center">
                             <!-- Search -->
                             <div class="search-box me-3">
-                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." 
+                                    id="searchInput" autocomplete="off">
                                 <button class="btn-search" onclick="searchProducts()">
                                     <i class="fas fa-search"></i>
                                 </button>
+                                <!-- Search Suggestions Dropdown -->
+                                <div class="search-suggestions" id="searchSuggestions" style="display: none;">
+                                    <!-- Suggestions will be populated here -->
+                                </div>
                             </div>
 
                             <!-- Auth Buttons (Login/Register) - Hiện khi chưa đăng nhập -->
@@ -209,6 +214,10 @@
                                 <span class="meta-label">Danh mục:</span>
                                 <span class="meta-value" id="productCategory">N/A</span>
                             </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Đã bán:</span>
+                                <span class="meta-value text-success" id="totalSold">0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -337,35 +346,6 @@
                         <!-- Reviews List -->
                         <div class="reviews-list" id="reviewsList">
                             <p class="text-muted">Chưa có đánh giá nào.</p>
-                        </div>
-
-                        <!-- Write Review -->
-                        <div class="write-review mt-5">
-                            <h4>Viết đánh giá của bạn</h4>
-                            <form id="reviewForm" onsubmit="submitReview(event)">
-                                <div class="mb-3">
-                                    <label class="form-label">Đánh giá của bạn:</label>
-                                    <div class="rating-input">
-                                        <i class="far fa-star" data-rating="1"></i>
-                                        <i class="far fa-star" data-rating="2"></i>
-                                        <i class="far fa-star" data-rating="3"></i>
-                                        <i class="far fa-star" data-rating="4"></i>
-                                        <i class="far fa-star" data-rating="5"></i>
-                                    </div>
-                                    <input type="hidden" id="ratingValue" value="5">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Tiêu đề:</label>
-                                    <input type="text" class="form-control" id="reviewTitle" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Nội dung:</label>
-                                    <textarea class="form-control" id="reviewContent" rows="4" required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
-                                </button>
-                            </form>
                         </div>
                     </div>
                 </div>

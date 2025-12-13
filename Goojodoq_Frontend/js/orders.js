@@ -214,6 +214,7 @@ function displayOrders(orders) {
         const statusBadge = getStatusBadge(order.trangthai);
         const canCancel = order.trangthai === 'cho_xacnhan';
         const canConfirmReceived = order.trangthai === 'dang_giao';
+        const canReview = order.trangthai === 'hoanthanh';
         
         // Build address string
         let addressStr = '';
@@ -297,6 +298,11 @@ function displayOrders(orders) {
                             <button class="btn btn-sm btn-primary" onclick="viewOrderDetail(${order.id_donhang})">
                                 <i class="fas fa-eye me-1"></i>Chi tiết
                             </button>
+                            ${canReview ? `
+                                <button class="btn btn-sm btn-warning" onclick="reviewOrder(${order.id_donhang})">
+                                    <i class="fas fa-star me-1"></i>Đánh giá
+                                </button>
+                            ` : ''}
                             ${canCancel ? `
                                 <button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id_donhang})">
                                     <i class="fas fa-times me-1"></i>Hủy đơn
@@ -350,6 +356,11 @@ function getStatusBadge(status) {
 // View order detail
 function viewOrderDetail(orderId) {
     window.location.href = `order-detail.html?id=${orderId}`;
+}
+
+// Review order
+function reviewOrder(orderId) {
+    window.location.href = `review-order.html?orderId=${orderId}`;
 }
 
 // Cancel order

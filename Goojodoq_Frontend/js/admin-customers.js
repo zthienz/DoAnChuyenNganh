@@ -73,6 +73,14 @@ async function loadCustomers() {
                     <button class="btn btn-sm btn-info me-1" onclick="viewUserDetail(${user.id_nguoidung})" title="Xem chi tiết">
                         <i class="fas fa-eye"></i>
                     </button>
+                    ${user.trangthai === 1 ? 
+                        `<button class="btn btn-sm btn-warning me-1" onclick="toggleUserStatus(${user.id_nguoidung}, 0, '${escapeHtml(user.email)}')" title="Khóa tài khoản">
+                            <i class="fas fa-lock"></i>
+                        </button>` :
+                        `<button class="btn btn-sm btn-success me-1" onclick="toggleUserStatus(${user.id_nguoidung}, 1, '${escapeHtml(user.email)}')" title="Mở khóa tài khoản">
+                            <i class="fas fa-unlock"></i>
+                        </button>`
+                    }
                     <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id_nguoidung}, '${escapeHtml(user.email)}')" title="Xóa người dùng">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -190,6 +198,74 @@ async function viewUserDetail(userId) {
 }
 
 // =============================================
+// TOGGLE USER STATUS (LOCK/UNLOCK)
+// =============================================
+function toggleUserStatus(userId, newStatus, email) {
+    const action = newStatus === 1 ? 'mở khóa' : 'khóa';
+    const actionText = newStatus === 1 ? 'Mở khóa' : 'Khóa';
+    const iconClass = newStatus === 1 ? 'fa-unlock text-success' : 'fa-lock text-warning';
+    const btnClass = newStatus === 1 ? 'btn-success' : 'btn-warning';
+    
+    // Cập nhật modal
+    document.getElementById('confirmStatusTitle').textContent = `${actionText} tài khoản`;
+    document.getElementById('confirmStatusIcon').className = `fas ${iconClass} fa-3x`;
+    document.getElementById('confirmStatusMessage').innerHTML = 
+        `Bạn có chắc muốn <strong>${action}</strong> tài khoản:<br><strong>"${email}"</strong>?`;
+    
+    const confirmBtn = document.getElementById('confirmStatusBtn');
+    confirmBtn.className = `btn ${btnClass}`;
+    confirmBtn.textContent = actionText;
+    
+    // Xóa event listener cũ và thêm mới
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    
+    newConfirmBtn.addEventListener('click', async function() {
+        try {
+            // Disable button và hiển thị loading
+            newConfirmBtn.disabled = true;
+            newConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+            
+            const response = await fetch(`${API_URL}/auth/user/${userId}/toggle-status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || `Không thể ${action} tài khoản`);
+            }
+            
+            // Đóng modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmStatusModal'));
+            modal.hide();
+            
+            // Hiển thị thông báo thành công
+            showSuccessToast(`Đã ${action} tài khoản "${email}" thành công!`);
+            
+            // Reload table
+            loadCustomers();
+            
+        } catch (error) {
+            console.error(`Error ${action} user:`, error);
+            showErrorToast(`Lỗi ${action} tài khoản: ` + error.message);
+            
+            // Reset button
+            newConfirmBtn.disabled = false;
+            newConfirmBtn.textContent = actionText;
+        }
+    });
+    
+    // Hiển thị modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmStatusModal'));
+    modal.show();
+}
+
+// =============================================
 // DELETE USER
 // =============================================
 async function deleteUser(userId, email) {
@@ -208,12 +284,12 @@ async function deleteUser(userId, email) {
             throw new Error(data.message || 'Không thể xóa người dùng');
         }
         
-        alert('Đã xóa tài khoản thành công!');
+        showSuccessToast('Đã xóa tài khoản thành công!');
         loadCustomers();
         
     } catch (error) {
         console.error('Error deleting user:', error);
-        alert('Lỗi xóa tài khoản: ' + error.message);
+        showErrorToast('Lỗi xóa tài khoản: ' + error.message);
     }
 }
 
@@ -234,6 +310,58 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// =============================================
+// TOAST NOTIFICATIONS
+// =============================================
+function showSuccessToast(message) {
+    showToast(message, 'success');
+}
+
+function showErrorToast(message) {
+    showToast(message, 'danger');
+}
+
+function showToast(message, type) {
+    // Tạo toast container nếu chưa có
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Tạo toast element
+    const toastId = 'toast_' + Date.now();
+    const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    // Hiển thị toast
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, {
+        autohide: true,
+        delay: 5000
+    });
+    toast.show();
+    
+    // Xóa toast sau khi ẩn
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        toastElement.remove();
+    });
 }
 
 // =============================================

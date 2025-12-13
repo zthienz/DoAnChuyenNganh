@@ -199,6 +199,12 @@ function displayProductDetail() {
         categoryEl.textContent = product.category_name || 'N/A';
     }
     
+    // Update total sold
+    const totalSoldEl = document.getElementById('totalSold');
+    if (totalSoldEl) {
+        totalSoldEl.textContent = product.total_sold || 0;
+    }
+    
     // Update description
     const descriptionHTML = `
         <p>${product.description || product.short_description || 'Sản phẩm chất lượng cao từ GOOJODOQ.'}</p>
@@ -249,41 +255,313 @@ function displayProductDetail() {
     }
     
     // Load reviews
-    if (product.reviews && product.reviews.length > 0) {
-        displayReviews(product.reviews);
-    }
+    loadProductReviews(product.product_id);
 }
 
 // =============================================
-// DISPLAY REVIEWS
+// LOAD AND DISPLAY REVIEWS
 // =============================================
-function displayReviews(reviews) {
+async function loadProductReviews(productId) {
+    try {
+        // Load reviews
+        const reviewsResponse = await fetch(`${window.API_BASE_URL}/reviews/product/${productId}`);
+        const reviews = await reviewsResponse.json();
+        
+        // Load stats
+        const statsResponse = await fetch(`${window.API_BASE_URL}/reviews/product/${productId}/stats`);
+        const stats = await statsResponse.json();
+        
+        displayReviews(reviews, stats);
+        
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+    }
+}
+
+function displayReviews(reviews, stats) {
     const reviewsList = document.getElementById('reviewsList');
-    let html = '';
     
+    // Update stats
+    if (stats) {
+        const avgRating = parseFloat(stats.avg_rating) || 0;
+        const totalReviews = parseInt(stats.total_reviews) || 0;
+        
+        // Update average rating display
+        const avgRatingEl = document.querySelector('.average-rating .rating-number');
+        if (avgRatingEl) avgRatingEl.textContent = avgRating.toFixed(1);
+        
+        const avgStarsEl = document.querySelector('.average-rating .stars');
+        if (avgStarsEl) {
+            avgStarsEl.innerHTML = generateStarHTML(avgRating);
+        }
+        
+        const totalReviewsEl = document.getElementById('totalReviews');
+        if (totalReviewsEl) totalReviewsEl.textContent = totalReviews;
+        
+        // Update review count in tab
+        const reviewCountTabEl = document.getElementById('reviewCountTab');
+        if (reviewCountTabEl) reviewCountTabEl.textContent = totalReviews;
+        
+        // Update rating bars
+        updateRatingBars(stats);
+    }
+    
+    // Display reviews
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = '<p class="text-muted">Chưa có đánh giá nào.</p>';
+        return;
+    }
+    
+    let html = '';
     reviews.forEach(review => {
+        const isAdmin = currentUser && currentUser.quyen === 'admin';
+        const hasReply = review.id_traloi !== null;
+        
         html += `
-            <div class="review-item">
+            <div class="review-item" data-review-id="${review.id_danhgia}">
                 <div class="review-header">
                     <div class="reviewer-info">
-                        <strong>${review.user_name || 'Khách hàng'}</strong>
+                        <strong>${review.ten_nguoidung || 'Khách hàng'}</strong>
                         <div class="review-stars">
-                            ${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                            ${generateStarHTML(review.so_sao)}
                         </div>
                     </div>
                     <div class="review-date">
-                        ${new Date(review.created_at).toLocaleDateString('vi-VN')}
+                        ${new Date(review.ngay_tao).toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
                     </div>
                 </div>
                 <div class="review-body">
-                    <h6>${review.title}</h6>
-                    <p>${review.comment}</p>
+                    <p>${review.noidung || 'Không có nội dung'}</p>
                 </div>
+                
+                ${hasReply ? `
+                    <div class="review-reply">
+                        <div class="review-reply-header">
+                            <span class="review-reply-author">
+                                <i class="fas fa-shield-alt me-1"></i>${review.admin_ten || 'Admin'}
+                            </span>
+                            <span class="review-reply-date">
+                                ${new Date(review.traloi_ngay_tao).toLocaleDateString('vi-VN', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </span>
+                        </div>
+                        <div class="review-reply-content">
+                            ${review.traloi_noidung}
+                        </div>
+                        ${isAdmin ? `
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editReply(${review.id_danhgia}, '${escapeHtml(review.traloi_noidung)}')">
+                                    <i class="fas fa-edit me-1"></i>Sửa
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteReply(${review.id_traloi})">
+                                    <i class="fas fa-trash me-1"></i>Xóa
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                ${isAdmin && !hasReply ? `
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-primary" onclick="showReplyForm(${review.id_danhgia})">
+                            <i class="fas fa-reply me-1"></i>Trả lời đánh giá
+                        </button>
+                    </div>
+                    <div id="reply-form-${review.id_danhgia}" style="display: none;" class="admin-reply-form">
+                        <label class="form-label"><strong>Trả lời của bạn:</strong></label>
+                        <textarea class="form-control mb-2" id="reply-content-${review.id_danhgia}" rows="3" placeholder="Nhập nội dung trả lời..."></textarea>
+                        <button class="btn-reply-admin me-2" onclick="submitReply(${review.id_danhgia})">
+                            <i class="fas fa-paper-plane me-1"></i>Gửi
+                        </button>
+                        <button class="btn-cancel-reply" onclick="hideReplyForm(${review.id_danhgia})">
+                            <i class="fas fa-times me-1"></i>Hủy
+                        </button>
+                    </div>
+                ` : ''}
             </div>
         `;
     });
     
     reviewsList.innerHTML = html;
+}
+
+function generateStarHTML(rating) {
+    let html = '';
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    for (let i = 0; i < fullStars; i++) {
+        html += '<i class="fas fa-star"></i> ';
+    }
+    if (hasHalfStar) {
+        html += '<i class="fas fa-star-half-alt"></i> ';
+    }
+    for (let i = Math.ceil(rating); i < 5; i++) {
+        html += '<i class="far fa-star"></i> ';
+    }
+    
+    return html;
+}
+
+function updateRatingBars(stats) {
+    const total = parseInt(stats.total_reviews) || 0;
+    if (total === 0) return;
+    
+    for (let i = 5; i >= 0; i--) {
+        const count = parseInt(stats[`star_${i}`]) || 0;
+        const percentage = (count / total) * 100;
+        
+        const barItems = document.querySelectorAll('.rating-bar-item');
+        if (barItems[5 - i]) {
+            const progressBar = barItems[5 - i].querySelector('.progress-bar');
+            const countSpan = barItems[5 - i].querySelector('.rating-count');
+            
+            if (progressBar) progressBar.style.width = `${percentage}%`;
+            if (countSpan) countSpan.textContent = count;
+        }
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
+// Admin reply functions
+function showReplyForm(reviewId) {
+    const form = document.getElementById(`reply-form-${reviewId}`);
+    if (form) {
+        form.style.display = 'block';
+    }
+}
+
+function hideReplyForm(reviewId) {
+    const form = document.getElementById(`reply-form-${reviewId}`);
+    if (form) {
+        form.style.display = 'none';
+        document.getElementById(`reply-content-${reviewId}`).value = '';
+    }
+}
+
+async function submitReply(reviewId) {
+    try {
+        const content = document.getElementById(`reply-content-${reviewId}`).value.trim();
+        
+        if (!content) {
+            showNotification('Vui lòng nhập nội dung trả lời!', 'warning');
+            return;
+        }
+        
+        if (!currentUser || currentUser.quyen !== 'admin') {
+            showNotification('Bạn không có quyền trả lời đánh giá!', 'error');
+            return;
+        }
+        
+        const response = await fetch(`${window.API_BASE_URL}/reviews/${reviewId}/reply`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                adminId: currentUser.id_nguoidung,
+                content: content
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Không thể gửi trả lời');
+        }
+        
+        showNotification('Đã gửi trả lời thành công!', 'success');
+        
+        // Reload reviews
+        if (currentProduct) {
+            loadProductReviews(currentProduct.product_id);
+        }
+        
+    } catch (error) {
+        console.error('Error submitting reply:', error);
+        showNotification(error.message || 'Có lỗi xảy ra!', 'error');
+    }
+}
+
+function editReply(reviewId, currentContent) {
+    // Show form with current content
+    const form = document.getElementById(`reply-form-${reviewId}`);
+    if (!form) {
+        // Create form if not exists
+        const reviewItem = document.querySelector(`[data-review-id="${reviewId}"]`);
+        if (reviewItem) {
+            const replyDiv = reviewItem.querySelector('.review-reply');
+            const formHTML = `
+                <div id="reply-form-${reviewId}" class="admin-reply-form mt-3">
+                    <label class="form-label"><strong>Sửa trả lời:</strong></label>
+                    <textarea class="form-control mb-2" id="reply-content-${reviewId}" rows="3">${currentContent}</textarea>
+                    <button class="btn-reply-admin me-2" onclick="submitReply(${reviewId})">
+                        <i class="fas fa-paper-plane me-1"></i>Cập nhật
+                    </button>
+                    <button class="btn-cancel-reply" onclick="hideReplyForm(${reviewId})">
+                        <i class="fas fa-times me-1"></i>Hủy
+                    </button>
+                </div>
+            `;
+            replyDiv.insertAdjacentHTML('afterend', formHTML);
+        }
+    } else {
+        form.style.display = 'block';
+        document.getElementById(`reply-content-${reviewId}`).value = currentContent;
+    }
+}
+
+async function deleteReply(replyId) {
+    if (!confirm('Bạn có chắc muốn xóa trả lời này?')) {
+        return;
+    }
+    
+    try {
+        if (!currentUser || currentUser.quyen !== 'admin') {
+            showNotification('Bạn không có quyền xóa trả lời!', 'error');
+            return;
+        }
+        
+        const response = await fetch(`${window.API_BASE_URL}/reviews/reply/${replyId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                adminId: currentUser.id_nguoidung
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Không thể xóa trả lời');
+        }
+        
+        showNotification('Đã xóa trả lời thành công!', 'success');
+        
+        // Reload reviews
+        if (currentProduct) {
+            loadProductReviews(currentProduct.product_id);
+        }
+        
+    } catch (error) {
+        console.error('Error deleting reply:', error);
+        showNotification(error.message || 'Có lỗi xảy ra!', 'error');
+    }
 }
 
 // =============================================
@@ -518,46 +796,7 @@ function toggleWishlistDetail() {
     }
 }
 
-function setupRatingInput() {
-    const ratingStars = document.querySelectorAll('.rating-input i');
-    
-    ratingStars.forEach(star => {
-        star.addEventListener('click', function() {
-            const rating = parseInt(this.getAttribute('data-rating'));
-            document.getElementById('ratingValue').value = rating;
-            
-            ratingStars.forEach((s, index) => {
-                if (index < rating) {
-                    s.classList.remove('far');
-                    s.classList.add('fas');
-                } else {
-                    s.classList.remove('fas');
-                    s.classList.add('far');
-                }
-            });
-        });
-    });
-}
 
-function submitReview(event) {
-    event.preventDefault();
-    
-    const rating = document.getElementById('ratingValue').value;
-    const title = document.getElementById('reviewTitle').value;
-    const content = document.getElementById('reviewContent').value;
-    
-    // TODO: Send review to API
-    console.log('Submit review:', { rating, title, content });
-    
-    if (typeof showNotification === 'function') {
-        showNotification('Cảm ơn bạn đã đánh giá sản phẩm!', 'success');
-    } else {
-        alert('Cảm ơn bạn đã đánh giá sản phẩm!');
-    }
-    
-    // Reset form
-    document.getElementById('reviewForm').reset();
-}
 
 function showLoading() {
     // Instead of replacing entire container, just hide content and show loading

@@ -331,8 +331,10 @@
                 document.getElementById('edit_sku').value = product.sku;
                 document.getElementById('edit_category_id').value = product.category_id;
                 document.getElementById('edit_stock_quantity').value = product.stock_quantity;
-                document.getElementById('edit_price').value = product.sale_price || product.price;
-                document.getElementById('edit_sale_price').value = product.price !== product.sale_price ? product.price : '';
+                // Backend trả về: price = gia (giá bán hiện tại), sale_price = gia_goc (giá gốc)
+                // Form cần: edit_price = giá gốc, edit_sale_price = giá khuyến mãi
+                document.getElementById('edit_price').value = product.sale_price; // Giá gốc (từ gia_goc)
+                document.getElementById('edit_sale_price').value = product.price !== product.sale_price ? product.price : ''; // Giá khuyến mãi (từ gia)
                 document.getElementById('edit_short_description').value = product.short_description || '';
                 document.getElementById('edit_description').value = product.description || '';
                 
@@ -371,12 +373,26 @@
                     return;
                 }
                 
+                // Validate category
+                const categoryId = document.getElementById('edit_category_id').value;
+                if (!categoryId || categoryId === '') {
+                    alert('Vui lòng chọn danh mục sản phẩm');
+                    return;
+                }
+                
+                // Validate stock quantity
+                const stockQuantity = document.getElementById('edit_stock_quantity').value;
+                if (!stockQuantity || isNaN(stockQuantity) || parseInt(stockQuantity) < 0) {
+                    alert('Vui lòng nhập số lượng tồn kho hợp lệ');
+                    return;
+                }
+                
                 const productData = {
                     product_name: productName,
                     product_slug: generateSlug(productName),
                     sku: document.getElementById('edit_sku').value,
-                    category_id: document.getElementById('edit_category_id').value,
-                    stock_quantity: parseInt(document.getElementById('edit_stock_quantity').value),
+                    category_id: parseInt(categoryId),
+                    stock_quantity: parseInt(stockQuantity),
                     price: price,
                     sale_price: salePrice,
                     short_description: document.getElementById('edit_short_description').value,
@@ -491,9 +507,40 @@
             }
         }
 
-        // Load products on page load
+        // Load categories for dropdown
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/categories`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const categorySelect = document.getElementById('edit_category_id');
+                    const addCategorySelect = document.getElementById('add_category_id');
+                    
+                    // Clear existing options (keep the first "Chọn danh mục" option)
+                    categorySelect.innerHTML = '<option value="">Chọn danh mục</option>';
+                    if (addCategorySelect) {
+                        addCategorySelect.innerHTML = '<option value="">Chọn danh mục</option>';
+                    }
+                    
+                    // Add categories
+                    data.categories.forEach(category => {
+                        const option = `<option value="${category.category_id}">${category.category_name}</option>`;
+                        categorySelect.innerHTML += option;
+                        if (addCategorySelect) {
+                            addCategorySelect.innerHTML += option;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        // Load products and categories on page load
         if (checkAdminAuth()) {
             loadProducts();
+            loadCategories();
         }
     </script>
 </body>

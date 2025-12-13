@@ -92,7 +92,7 @@ export const login = async (req, res) => {
     if (user.trangthai === 0) {
       return res.status(403).json({ 
         success: false, 
-        message: "Tài khoản đã bị khóa" 
+        message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ." 
       });
     }
 
@@ -299,5 +299,66 @@ export const deleteUser = async (req, res) => {
     });
   } finally {
     connection.release();
+  }
+};
+
+// Khóa/Mở khóa người dùng (Admin only)
+export const toggleUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status } = req.body; // 1: Mở khóa, 0: Khóa
+
+    console.log("🔒 Toggle user status:", userId, "to", status);
+
+    // Kiểm tra người dùng có tồn tại không
+    const [users] = await pool.query(
+      "SELECT id_nguoidung, email, quyen, trangthai FROM nguoidung WHERE id_nguoidung = ?",
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Không tìm thấy người dùng" 
+      });
+    }
+
+    const user = users[0];
+
+    // Không cho phép khóa admin
+    if (user.quyen === 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Không thể khóa tài khoản admin" 
+      });
+    }
+
+    // Cập nhật trạng thái
+    const newStatus = status !== undefined ? status : (user.trangthai === 1 ? 0 : 1);
+    
+    await pool.query(
+      'UPDATE nguoidung SET trangthai = ? WHERE id_nguoidung = ?',
+      [newStatus, userId]
+    );
+
+    const statusText = newStatus === 1 ? 'mở khóa' : 'khóa';
+    console.log(`✅ User ${user.email} has been ${statusText}d`);
+
+    res.json({
+      success: true,
+      message: `Đã ${statusText} tài khoản ${user.email}`,
+      user: {
+        id_nguoidung: user.id_nguoidung,
+        email: user.email,
+        trangthai: newStatus
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error in toggleUserStatus:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Lỗi server: " + error.message 
+    });
   }
 };

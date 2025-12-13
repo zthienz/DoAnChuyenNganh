@@ -522,3 +522,102 @@
         margin-bottom: 15px;
     }
 }
+
+/* =============================================
+   MODAL ENHANCEMENTS
+   ============================================= */
+
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    border-bottom: 2px solid #f0f0f0;
+    padding: 20px 25px;
+}
+
+.modal-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    border-top: 2px solid #f0f0f0;
+    padding: 15px 25px;
+}
+
+/* =============================================
+   TOAST ENHANCEMENTS
+   ============================================= */
+
+.toast {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+}
+
+.toast-body {
+    padding: 15px;
+    font-weight: 500;
+}
+
+/* =============================================
+   STATUS BADGES
+   ============================================= */
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #dc3545, #fd7e14) !important;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14) !important;
+    color: #212529 !important;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1) !important;
+}
+
+/* =============================================
+   BUTTON ENHANCEMENTS
+   ============================================= */
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    border: none;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #e0a800, #e8590c);
+    color: #212529;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #218838, #1c7430);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+}

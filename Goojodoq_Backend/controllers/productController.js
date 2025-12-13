@@ -3,9 +3,11 @@ import { pool } from "../config/db.js";
 // Lấy tất cả sản phẩm
 export const getAllProducts = async (req, res) => {
   try {
+    console.log('🔍 getAllProducts called');
     const { includeHidden } = req.query;
     
-    let query = `
+    // Get basic product info
+    let baseQuery = `
       SELECT 
         sp.id_sanpham as product_id,
         sp.ma_sku as sku,
@@ -22,27 +24,67 @@ export const getAllProducts = async (req, res) => {
       FROM sanpham sp
     `;
     
-    // Nếu không phải admin, chỉ hiển thị sản phẩm đang hiển thị
+    // Add WHERE clause if needed
     if (includeHidden !== 'true') {
-      query += ' WHERE sp.hien_thi = 1';
+      baseQuery += ' WHERE sp.hien_thi = 1';
     }
     
-    // Sắp xếp: sản phẩm mới nhất lên đầu
-    query += ' ORDER BY sp.ngay_tao DESC, sp.id_sanpham DESC';
+    baseQuery += ' ORDER BY sp.ngay_tao DESC, sp.id_sanpham DESC';
     
-    const [rows] = await pool.query(query);
+    const [products] = await pool.query(baseQuery);
+    console.log('📦 Got', products.length, 'products from DB');
     
-    // Add default values
-    const products = rows.map(product => ({
+    // Get sales data separately
+    const [salesData] = await pool.query(`
+      SELECT 
+        ct.id_sanpham,
+        SUM(ct.soluong) as total_sold
+      FROM chitiet_donhang ct
+      JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
+      WHERE dh.trangthai = 'hoanthanh'
+      GROUP BY ct.id_sanpham
+    `);
+    console.log('📊 Got sales data for', salesData.length, 'products');
+    
+    // Get reviews data separately  
+    const [reviewsData] = await pool.query(`
+      SELECT 
+        dg.id_sanpham,
+        COUNT(*) as review_count,
+        AVG(dg.so_sao) as avg_rating
+      FROM danhgia_sanpham dg
+      GROUP BY dg.id_sanpham
+    `);
+    console.log('⭐ Got reviews data for', reviewsData.length, 'products');
+    
+    // Create lookup maps
+    const salesMap = {};
+    salesData.forEach(item => {
+      salesMap[item.id_sanpham] = parseInt(item.total_sold) || 0;
+    });
+    
+    const reviewsMap = {};
+    reviewsData.forEach(item => {
+      reviewsMap[item.id_sanpham] = {
+        review_count: parseInt(item.review_count) || 0,
+        avg_rating: parseFloat(item.avg_rating) || 0
+      };
+    });
+    
+    // Combine data and add default values
+    const finalProducts = products.map(product => ({
       ...product,
+      total_sold: salesMap[product.product_id] || 0,
+      review_count: reviewsMap[product.product_id]?.review_count || 0,
+      avg_rating: reviewsMap[product.product_id]?.avg_rating || 0,
       is_featured: true,
       is_new: false,
-      is_bestseller: false,
-      review_count: 0,
-      avg_rating: 0
+      is_bestseller: (salesMap[product.product_id] || 0) > 10
     }));
     
-    res.json(products);
+    console.log('📊 First product:', finalProducts[0]?.product_name, 'sold:', finalProducts[0]?.total_sold);
+    
+    res.json(finalProducts);
   } catch (err) {
     console.error('Error in getAllProducts:', err);
     res.status(500).json({ error: err.message });
@@ -123,7 +165,7 @@ export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Lấy thông tin sản phẩm
+    // Lấy thông tin sản phẩm với số lượt bán và đánh giá
     const [products] = await pool.query(`
       SELECT 
         sp.id_sanpham as product_id,
@@ -136,9 +178,29 @@ export const getProductById = async (req, res) => {
         sp.gia as price,
         sp.gia_goc as sale_price,
         sp.tonkho as stock_quantity,
-        dm.ten_danhmuc as category_name
+        dm.ten_danhmuc as category_name,
+        COALESCE(sales.total_sold, 0) as total_sold,
+        COALESCE(reviews.review_count, 0) as review_count,
+        COALESCE(reviews.avg_rating, 0) as avg_rating
       FROM sanpham sp
       LEFT JOIN danhmuc dm ON sp.id_danhmuc = dm.id_danhmuc
+      LEFT JOIN (
+        SELECT 
+          ct.id_sanpham,
+          SUM(ct.soluong) as total_sold
+        FROM chitiet_donhang ct
+        JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
+        WHERE dh.trangthai = 'hoanthanh'
+        GROUP BY ct.id_sanpham
+      ) sales ON sp.id_sanpham = sales.id_sanpham
+      LEFT JOIN (
+        SELECT 
+          dg.id_sanpham,
+          COUNT(*) as review_count,
+          AVG(dg.so_sao) as avg_rating
+        FROM danhgia_sanpham dg
+        GROUP BY dg.id_sanpham
+      ) reviews ON sp.id_sanpham = reviews.id_sanpham
       WHERE sp.id_sanpham = ? AND sp.hien_thi = 1
     `, [id]);
     
@@ -162,21 +224,20 @@ export const getProductById = async (req, res) => {
     const [reviews] = await pool.query(`
       SELECT 
         dg.so_sao as rating,
-        dg.tieude as title,
         dg.noidung as comment,
         dg.ngay_tao as created_at,
         nd.hoten as user_name
-      FROM danhgia dg
+      FROM danhgia_sanpham dg
       LEFT JOIN nguoidung nd ON dg.id_nguoidung = nd.id_nguoidung
-      WHERE dg.id_sanpham = ? AND dg.hien_thi = 1
+      WHERE dg.id_sanpham = ?
       ORDER BY dg.ngay_tao DESC
     `, [id]);
     
     product.reviews = reviews;
-    product.review_count = reviews.length;
-    product.avg_rating = reviews.length > 0 
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
-      : 0;
+    // Đã có review_count và avg_rating từ query, chỉ cần format
+    product.total_sold = parseInt(product.total_sold) || 0;
+    product.review_count = parseInt(product.review_count) || 0;
+    product.avg_rating = parseFloat(product.avg_rating) || 0;
     
     res.json(product);
   } catch (err) {
@@ -185,7 +246,7 @@ export const getProductById = async (req, res) => {
   }
 };
 
-// Xóa sản phẩm (Admin only)
+// Các hàm khác giữ nguyên...
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -232,7 +293,6 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// Cập nhật trạng thái hiển thị sản phẩm (Admin only)
 export const toggleProductVisibility = async (req, res) => {
   try {
     const { id } = req.params;
@@ -274,7 +334,6 @@ export const toggleProductVisibility = async (req, res) => {
   }
 };
 
-// Cập nhật sản phẩm (Admin only)
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -290,6 +349,37 @@ export const updateProduct = async (req, res) => {
       sku
     } = req.body;
 
+    console.log('📝 Updating product:', { id, category_id, product_name, price, sale_price });
+
+    // Validation
+    if (!product_name || product_name.trim() === '') {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Tên sản phẩm không được để trống' 
+      });
+    }
+
+    if (!category_id || category_id === '' || isNaN(category_id)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Vui lòng chọn danh mục sản phẩm' 
+      });
+    }
+
+    if (!price || isNaN(price) || parseFloat(price) <= 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Giá sản phẩm phải lớn hơn 0' 
+      });
+    }
+
+    if (stock_quantity === undefined || isNaN(stock_quantity) || parseInt(stock_quantity) < 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Số lượng tồn kho không hợp lệ' 
+      });
+    }
+
     // Kiểm tra sản phẩm có tồn tại không
     const [products] = await pool.query(
       'SELECT id_sanpham FROM sanpham WHERE id_sanpham = ?',
@@ -303,23 +393,40 @@ export const updateProduct = async (req, res) => {
       });
     }
 
+    // Kiểm tra danh mục có tồn tại không
+    const [categories] = await pool.query(
+      'SELECT id_danhmuc FROM danhmuc WHERE id_danhmuc = ?',
+      [category_id]
+    );
+
+    if (categories.length === 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Danh mục không tồn tại' 
+      });
+    }
+
     // Cập nhật sản phẩm
-    // Lưu ý: gia_goc là giá gốc, gia là giá bán (sau giảm giá nếu có)
+    // Frontend gửi: price = giá gốc, sale_price = giá khuyến mãi
+    // Database: gia_goc = giá gốc, gia = giá bán hiện tại
+    const originalPrice = parseFloat(price); // Giá gốc
+    const currentPrice = sale_price && parseFloat(sale_price) > 0 ? parseFloat(sale_price) : originalPrice; // Giá bán hiện tại
+    
     await pool.query(
       `UPDATE sanpham 
        SET ma_sku = ?, ten_sanpham = ?, duongdan = ?, mota_ngan = ?, 
            mota_chitiet = ?, id_danhmuc = ?, gia = ?, gia_goc = ?, tonkho = ?
        WHERE id_sanpham = ?`,
       [
-        sku,
-        product_name,
-        product_slug,
-        short_description,
-        description,
-        category_id,
-        sale_price || price, // gia là giá bán
-        price, // gia_goc là giá gốc
-        stock_quantity,
+        sku || '',
+        product_name.trim(),
+        product_slug || product_name.toLowerCase().replace(/\s+/g, '-'),
+        short_description || '',
+        description || '',
+        parseInt(category_id),
+        currentPrice, // gia là giá bán hiện tại
+        originalPrice, // gia_goc là giá gốc
+        parseInt(stock_quantity),
         id
       ]
     );
@@ -356,7 +463,7 @@ export const getBestSellingProducts = async (req, res) => {
       FROM sanpham sp
       LEFT JOIN chitiet_donhang ct ON sp.id_sanpham = ct.id_sanpham
       LEFT JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
-        AND dh.trangthai IN ('cho_xacnhan', 'dang_giao', 'hoanthanh')
+        AND dh.trangthai = 'hoanthanh'
       GROUP BY sp.id_sanpham
       ORDER BY total_sold DESC, total_revenue DESC
       LIMIT 10
@@ -395,7 +502,7 @@ export const getSlowSellingProducts = async (req, res) => {
       FROM sanpham sp
       LEFT JOIN chitiet_donhang ct ON sp.id_sanpham = ct.id_sanpham
       LEFT JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
-        AND dh.trangthai IN ('cho_xacnhan', 'dang_giao', 'hoanthanh')
+        AND dh.trangthai = 'hoanthanh'
       GROUP BY sp.id_sanpham
       ORDER BY total_sold ASC, sp.ngay_tao ASC
       LIMIT 10
@@ -432,7 +539,7 @@ export const getFeaturedProducts = async (req, res) => {
       FROM sanpham sp
       LEFT JOIN chitiet_donhang ct ON sp.id_sanpham = ct.id_sanpham
       LEFT JOIN donhang dh ON ct.id_donhang = dh.id_donhang 
-        AND dh.trangthai IN ('cho_xacnhan', 'dang_giao', 'hoanthanh')
+        AND dh.trangthai = 'hoanthanh'
       WHERE sp.hien_thi = 1
       GROUP BY sp.id_sanpham
       ORDER BY total_sold DESC

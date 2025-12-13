@@ -483,3 +483,77 @@
         width: 100%;
     }
 }
+
+/* Review Reply Styles */
+.review-reply {
+    background: #f0f7ff;
+    border-left: 4px solid #667eea;
+    padding: 15px;
+    margin-top: 15px;
+    border-radius: 5px;
+}
+
+.review-reply-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.review-reply-author {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.review-reply-date {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.review-reply-content {
+    color: #555;
+    line-height: 1.6;
+}
+
+.admin-reply-form {
+    background: #fff9e6;
+    border: 2px solid #ffc107;
+    padding: 20px;
+    margin-top: 15px;
+    border-radius: 8px;
+}
+
+.admin-reply-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.btn-reply-admin {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-reply-admin:hover {
+    background: #5568d3;
+}
+
+.btn-cancel-reply {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-cancel-reply:hover {
+    background: #5a6268;
+}

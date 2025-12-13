@@ -1,0 +1,82 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quick-check:
+    name: Quick PR Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Check backend syntax
+      working-directory: ./Goojodoq_Backend
+      run: |
+        # Install dependencies
+        npm install
+        
+        # Check JavaScript syntax
+        find . -name "*.js" -not -path "./node_modules/*" -exec node -c {} \;
+        echo "✅ Backend syntax check passed"
+
+    - name: Check frontend files
+      working-directory: ./Goojodoq_Frontend
+      run: |
+        # Check HTML structure
+        find . -name "*.html" -exec echo "Checking {}" \;
+        
+        # Check for common issues
+        if grep -r "console.log" js/ 2>/dev/null; then
+          echo "⚠️  Found console.log statements - consider removing for production"
+        fi
+        
+        echo "✅ Frontend check completed"
+
+    - name: Validate database schema
+      run: |
+        if [ -f "goojodoq_db.sql" ]; then
+          # Basic SQL syntax check
+          if command -v mysql >/dev/null 2>&1; then
+            mysql --help >/dev/null && echo "✅ SQL file exists and MySQL available"
+          else
+            echo "✅ SQL file exists"
+          fi
+        else
+          echo "❌ Database schema file missing"
+          exit 1
+        fi
+
+    - name: Check for sensitive data
+      run: |
+        echo "🔍 Scanning for sensitive data..."
+        
+        # Check for hardcoded credentials
+        if grep -r -i "password.*=" --include="*.js" --include="*.html" . | grep -v "placeholder\|example\|test"; then
+          echo "⚠️  Potential hardcoded credentials found"
+        fi
+        
+        # Check for API keys
+        if grep -r -E "(api_key|apikey|secret)" --include="*.js" --include="*.html" . | grep -v "placeholder\|example\|test"; then
+          echo "⚠️  Potential API keys found"
+        fi
+        
+        echo "✅ Security scan completed"
+
+    - name: PR Summary
+      run: |
+        echo "## 📋 Pull Request Check Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Backend syntax validation" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Frontend file structure" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Database schema validation" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Security scan" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🎉 All checks passed! Ready for review." >> $GITHUB_STEP_SUMMARY

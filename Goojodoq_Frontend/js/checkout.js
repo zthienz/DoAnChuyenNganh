@@ -264,12 +264,70 @@ async function confirmOrder() {
         // Clear selected items from sessionStorage
         sessionStorage.removeItem('selectedCartItems');
         
-        showNotification('Đặt hàng thành công!', 'success');
-        
-        // Redirect to orders page
-        setTimeout(() => {
-            window.location.href = 'orders.html';
-        }, 1500);
+        // Nếu chọn chuyển khoản ngân hàng, chuyển hướng đến PayOS
+        if (paymentMethod === 'bank') {
+            showNotification('Đang tạo link thanh toán...', 'info');
+            
+            try {
+                // Tạo link thanh toán PayOS
+                console.log('🏦 Creating payment for order:', result.orderId, 'Amount:', finalTotal);
+                
+                const paymentResponse = await fetch(`${API_BASE_URL}/payment/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        orderId: result.orderId,
+                        amount: finalTotal,
+                        description: `DH${result.orderId}`,
+                        returnUrl: `${window.location.origin}/payment-success.html?orderId=${result.orderId}`,
+                        cancelUrl: `${window.location.origin}/payment-cancel.html?orderId=${result.orderId}`
+                    })
+                });
+
+                console.log('💳 Payment response status:', paymentResponse.status);
+
+                if (!paymentResponse.ok) {
+                    const errorText = await paymentResponse.text();
+                    console.error('❌ Payment response error:', errorText);
+                    throw new Error(`HTTP ${paymentResponse.status}: ${errorText}`);
+                }
+
+                const paymentResult = await paymentResponse.json();
+                console.log('✅ Payment result:', paymentResult);
+                
+                if (paymentResult.success) {
+                    showNotification('Chuyển hướng đến trang thanh toán...', 'success');
+                    
+                    // Lưu thông tin để tracking
+                    sessionStorage.setItem('paymentOrderId', result.orderId);
+                    sessionStorage.setItem('paymentOrderCode', paymentResult.orderCode);
+                    
+                    // Chuyển hướng đến PayOS
+                    setTimeout(() => {
+                        window.location.href = paymentResult.paymentUrl;
+                    }, 1000);
+                } else {
+                    throw new Error(paymentResult.error || 'Lỗi tạo link thanh toán');
+                }
+                
+            } catch (paymentError) {
+                console.error('Payment error:', paymentError);
+                showNotification('Lỗi tạo link thanh toán: ' + paymentError.message, 'error');
+                
+                // Vẫn chuyển đến trang orders nếu lỗi thanh toán
+                setTimeout(() => {
+                    window.location.href = 'orders.html';
+                }, 2000);
+            }
+        } else {
+            // COD - chuyển đến trang orders như bình thường
+            showNotification('Đặt hàng thành công!', 'success');
+            setTimeout(() => {
+                window.location.href = 'orders.html';
+            }, 1500);
+        }
 
     } catch (error) {
         console.error('Error confirming order:', error);

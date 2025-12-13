@@ -1,5 +1,5 @@
 import express from "express";
-import { register, login, getUserInfo, getAllUsers, deleteUser } from "../controllers/authController.js";
+import { register, login, getUserInfo, getAllUsers, deleteUser, toggleUserStatus } from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -17,5 +17,8 @@ router.get("/users", getAllUsers);
 
 // Admin: Xóa người dùng
 router.delete("/user/:userId", deleteUser);
+
+// Admin: Khóa/Mở khóa người dùng
+router.put("/user/:userId/toggle-status", toggleUserStatus);
 
 export default router;

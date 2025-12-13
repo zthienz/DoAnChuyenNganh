@@ -301,7 +301,20 @@
                         window.location.href = 'index.html';
                     }, 1500);
                 } else {
-                    showAlert(data.message || 'Email hoặc mật khẩu không đúng!', 'danger');
+                    // Kiểm tra nếu là lỗi tài khoản bị khóa
+                    if (response.status === 403 && data.message.includes('khóa')) {
+                        showAlert(
+                            `<strong>Tài khoản đã bị khóa!</strong><br>
+                            ${data.message}<br>
+                            <small class="mt-2 d-block">
+                                <i class="fas fa-phone me-1"></i>Hotline: 1900-xxxx<br>
+                                <i class="fas fa-envelope me-1"></i>Email: support@goojodoq.com
+                            </small>`, 
+                            'warning'
+                        );
+                    } else {
+                        showAlert(data.message || 'Email hoặc mật khẩu không đúng!', 'danger');
+                    }
                     btnLogin.disabled = false;
                     btnLogin.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Đăng nhập';
                 }

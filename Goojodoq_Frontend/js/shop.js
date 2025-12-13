@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAllProducts();
     setupEventListeners();
     
+    // Initialize search suggestions
+    if (typeof initializeSearchSuggestions === 'function') {
+        initializeSearchSuggestions();
+    }
+    
     // Update user display if function exists
     if (typeof updateUserDisplay === 'function') {
         updateUserDisplay();
@@ -116,9 +121,15 @@ function displayShopProducts(reset = true) {
                             </span>
                             <span class="rating-count">(${product.review_count || 0})</span>
                         </div>
+                        <div class="product-sales">
+                            <small class="text-muted">
+                                <i class="fas fa-shopping-cart me-1"></i>
+                                Đã bán: ${product.total_sold || 0}
+                            </small>
+                        </div>
                         <div class="product-price">
                             <span class="price-current">${formatPrice(price)}</span>
-                            ${salePrice && salePrice < price ? `<span class="price-original">${formatPrice(salePrice)}</span>` : ''}
+                            ${salePrice && salePrice > price ? `<span class="price-original">${formatPrice(salePrice)}</span>` : ''}
                         </div>
                         <div class="product-stock">
                             ${product.stock_quantity > 0 ? 

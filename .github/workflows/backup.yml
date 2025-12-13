@@ -1,0 +1,48 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Run backup every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  backup:
+    name: Backup Database Schema
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create backup
+      run: |
+        # Create backup directory
+        mkdir -p backups
+        
+        # Copy current schema with timestamp
+        TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+        cp goojodoq_db.sql "backups/goojodoq_db_backup_${TIMESTAMP}.sql"
+        
+        # Create latest backup
+        cp goojodoq_db.sql "backups/goojodoq_db_latest.sql"
+        
+        echo "✅ Database schema backup created: goojodoq_db_backup_${TIMESTAMP}.sql"
+
+    - name: Upload backup artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: database-backup-${{ github.run_number }}
+        path: backups/
+        retention-days: 90
+
+    - name: Commit backup (optional)
+      run: |
+        # Uncomment if you want to commit backups to repository
+        # git config --local user.email "action@github.com"
+        # git config --local user.name "GitHub Action"
+        # git add backups/
+        # git commit -m "Auto backup: $(date)" || exit 0
+        # git push
+        
+        echo "Backup completed successfully"

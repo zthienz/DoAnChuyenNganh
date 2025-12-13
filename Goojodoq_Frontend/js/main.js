@@ -179,10 +179,7 @@ function displaySaleCarousel(products) {
     }
     
     const carouselHTML = products.map(product => {
-        let imageUrl = product.image || '/images/products/default.jpg';
-        if (imageUrl.startsWith('/images')) {
-            imageUrl = `http://localhost:3000${imageUrl}`;
-        }
+        const imageUrl = getProductImageUrl(product.image);
         
         const discount = product.sale_price && product.price < product.sale_price 
             ? Math.round((1 - product.price / product.sale_price) * 100) 
@@ -229,12 +226,7 @@ function displayProducts(products) {
 
     let productsHTML = products.map(product => {
         // Xử lý đường dẫn ảnh từ backend
-        let imageUrl = product.image || '/images/products/default.jpg';
-        
-        // Nếu đường dẫn bắt đầu bằng /images, thêm API_BASE_URL
-        if (imageUrl.startsWith('/images')) {
-            imageUrl = `http://localhost:3000${imageUrl}`;
-        }
+        const imageUrl = getProductImageUrl(product.image);
         
         return `
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
@@ -243,7 +235,7 @@ function displayProducts(products) {
                     <img src="${imageUrl}" 
                          alt="${product.product_name}" 
                          onerror="this.src='images/products/default.jpg'">
-                    ${product.sale_price && product.price > product.sale_price ? '<div class="product-badge sale">SALE</div>' : ''}
+                    ${product.sale_price && product.price < product.sale_price ? '<div class="product-badge sale">SALE</div>' : ''}
                     ${product.is_new ? '<div class="product-badge new">MỚI</div>' : ''}
                 </div>
                 <div class="product-info">
@@ -256,9 +248,15 @@ function displayProducts(products) {
                         </span>
                         <span class="rating-count">(${product.review_count || 0})</span>
                     </div>
+                    <div class="product-sales">
+                        <small class="text-muted">
+                            <i class="fas fa-shopping-cart me-1"></i>
+                            Đã bán: ${product.total_sold || 0}
+                        </small>
+                    </div>
                     <div class="product-price">
                         <span class="price-current">${formatPrice(product.price)}</span>
-                        ${product.sale_price && product.sale_price < product.price ? `<span class="price-original">${formatPrice(product.sale_price)}</span>` : ''}
+                        ${product.sale_price && product.sale_price > product.price ? `<span class="price-original">${formatPrice(product.sale_price)}</span>` : ''}
                     </div>
                     <div class="product-actions">
                         <button class="btn-add-cart" onclick="addToCart(${product.product_id}, '${escapeHtml(product.product_name)}', ${product.price}, '${imageUrl}')">
@@ -431,6 +429,8 @@ function searchProducts() {
         window.location.href = `shop.html?search=${encodeURIComponent(query)}`;
     }
 }
+
+
 
 // =============================================
 // NEWSLETTER FUNCTIONS
@@ -1154,10 +1154,7 @@ function displaySaleProducts(products) {
         const discountPercent = Math.round(((product.sale_price - product.price) / product.sale_price) * 100);
         
         // Xử lý đường dẫn ảnh
-        let imageUrl = product.image || '/images/products/default.jpg';
-        if (imageUrl.startsWith('/images')) {
-            imageUrl = `http://localhost:3000${imageUrl}`;
-        }
+        const imageUrl = getProductImageUrl(product.image);
         
         return `
             <div class="sale-product-card" onclick="window.location.href='product-detail.html?id=${product.product_id}'">

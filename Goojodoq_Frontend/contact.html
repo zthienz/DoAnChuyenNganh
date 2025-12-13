@@ -64,10 +64,14 @@
                             <!-- Search -->
                             <div class="search-box me-3">
                                 <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..."
-                                    id="searchInput">
+                                    id="searchInput" autocomplete="off">
                                 <button class="btn-search" onclick="searchProducts()">
                                     <i class="fas fa-search"></i>
                                 </button>
+                                <!-- Search Suggestions Dropdown -->
+                                <div class="search-suggestions" id="searchSuggestions" style="display: none;">
+                                    <!-- Suggestions will be populated here -->
+                                </div>
                             </div>
 
                             <!-- Auth Buttons (Login/Register) - Hiện khi chưa đăng nhập -->

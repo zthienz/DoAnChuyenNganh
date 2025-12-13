@@ -28,6 +28,11 @@ router.get("/stats/best-selling", getBestSellingProducts); // Top 10 sản phẩ
 router.get("/stats/slow-selling", getSlowSellingProducts); // Top 10 sản phẩm bán ế
 router.get("/stats/featured", getFeaturedProducts); // Top 12 sản phẩm nổi bật
 
+// Alias routes for easier access
+router.get("/best-selling", getBestSellingProducts);
+router.get("/slow-selling", getSlowSellingProducts);
+router.get("/featured", getFeaturedProducts);
+
 // Product section routes - PHẢI ĐẶT TRƯỚC /:id
 router.get("/sections/:sectionCode", getProductsBySection); // Public: Get visible products in section
 router.get("/sections/:sectionCode/all", getAllProductsInSection); // Admin: Get all products (including hidden)
