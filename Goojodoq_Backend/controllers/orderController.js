@@ -437,3 +437,120 @@ export const getRevenueStats = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Lấy dữ liệu doanh thu theo thời gian
+export const getRevenueByPeriod = async (req, res) => {
+  try {
+    const { period = 'weekly' } = req.query;
+    let query = '';
+    let labels = [];
+    
+    if (period === 'weekly') {
+      // Doanh thu 7 ngày gần nhất
+      query = `
+        SELECT 
+          DATE(ngay_tao) as date,
+          SUM(tong_tien) as revenue
+        FROM donhang 
+        WHERE trangthai = 'hoanthanh' 
+          AND ngay_tao >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        GROUP BY DATE(ngay_tao)
+        ORDER BY date ASC
+      `;
+      
+      // Tạo labels cho 7 ngày
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        labels.push(date.toLocaleDateString('vi-VN', { weekday: 'short', day: 'numeric' }));
+      }
+      
+    } else if (period === 'monthly') {
+      // Doanh thu 12 tháng gần nhất
+      query = `
+        SELECT 
+          YEAR(ngay_tao) as year,
+          MONTH(ngay_tao) as month,
+          SUM(tong_tien) as revenue
+        FROM donhang 
+        WHERE trangthai = 'hoanthanh' 
+          AND ngay_tao >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        GROUP BY YEAR(ngay_tao), MONTH(ngay_tao)
+        ORDER BY year ASC, month ASC
+      `;
+      
+      // Tạo labels cho 12 tháng
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        labels.push(date.toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' }));
+      }
+      
+    } else if (period === 'quarterly') {
+      // Doanh thu 4 quý gần nhất
+      query = `
+        SELECT 
+          YEAR(ngay_tao) as year,
+          QUARTER(ngay_tao) as quarter,
+          SUM(tong_tien) as revenue
+        FROM donhang 
+        WHERE trangthai = 'hoanthanh' 
+          AND ngay_tao >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        GROUP BY YEAR(ngay_tao), QUARTER(ngay_tao)
+        ORDER BY year ASC, quarter ASC
+      `;
+      
+      // Tạo labels cho 4 quý
+      const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+      const currentYear = new Date().getFullYear();
+      const currentQuarter = Math.floor(new Date().getMonth() / 3);
+      
+      for (let i = 3; i >= 0; i--) {
+        const quarterIndex = (currentQuarter - i + 4) % 4;
+        const year = currentYear - Math.floor((currentQuarter - i + 4) / 4);
+        labels.push(`${quarters[quarterIndex]} ${year}`);
+      }
+    }
+    
+    const [results] = await pool.query(query);
+    
+    // Tạo mảng dữ liệu với giá trị 0 cho các ngày/tháng/quý không có doanh thu
+    const values = new Array(labels.length).fill(0);
+    
+    if (period === 'weekly') {
+      results.forEach(row => {
+        const date = new Date(row.date);
+        const dayIndex = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+        if (dayIndex >= 0 && dayIndex < 7) {
+          values[6 - dayIndex] = parseFloat(row.revenue) || 0;
+        }
+      });
+    } else if (period === 'monthly') {
+      results.forEach(row => {
+        const monthsAgo = (new Date().getFullYear() - row.year) * 12 + (new Date().getMonth() + 1 - row.month);
+        if (monthsAgo >= 0 && monthsAgo < 12) {
+          values[11 - monthsAgo] = parseFloat(row.revenue) || 0;
+        }
+      });
+    } else if (period === 'quarterly') {
+      results.forEach(row => {
+        const currentYear = new Date().getFullYear();
+        const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1;
+        const quartersAgo = (currentYear - row.year) * 4 + (currentQuarter - row.quarter);
+        if (quartersAgo >= 0 && quartersAgo < 4) {
+          values[3 - quartersAgo] = parseFloat(row.revenue) || 0;
+        }
+      });
+    }
+    
+    res.json({
+      labels,
+      values,
+      period
+    });
+    
+  } catch (err) {
+    console.error('Error in getRevenueByPeriod:', err);
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -125,9 +125,12 @@ function displaySupportRequests(requests) {
             <td>${formatDate(request.ngay_tao)}</td>
             <td>${getStatusBadge(request.trangthai)}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="viewRequestDetail(${request.id_yeucau})">
-                    <i class="fas fa-eye"></i>
-                </button>
+                <div class="status-buttons">
+                    <button class="btn btn-sm btn-primary me-1" onclick="viewRequestDetail(${request.id_yeucau})" title="Xem chi tiết">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${getStatusButtons(request.id_yeucau, request.trangthai)}
+                </div>
             </td>
         </tr>
     `).join('');
@@ -195,6 +198,19 @@ async function viewRequestDetail(requestId) {
 // UPDATE REQUEST STATUS
 // =============================================
 async function updateRequestStatus(requestId, status) {
+    // Get status labels for confirmation
+    const statusLabels = {
+        'pending': 'Chờ xử lý',
+        'processing': 'Đang xử lý', 
+        'resolved': 'Đã giải quyết',
+        'closed': 'Đã đóng'
+    };
+    
+    // Confirm status change
+    if (!confirm(`Bạn có chắc chắn muốn chuyển trạng thái thành "${statusLabels[status]}"?`)) {
+        return;
+    }
+    
     try {
         const response = await fetch(`${API_URL}/support/${requestId}/status`, {
             method: 'PUT',
@@ -207,8 +223,14 @@ async function updateRequestStatus(requestId, status) {
         const result = await response.json();
         
         if (response.ok) {
-            showNotification('Đã cập nhật trạng thái', 'success');
+            showNotification(`Đã cập nhật trạng thái thành "${statusLabels[status]}"`, 'success');
             loadSupportRequests();
+            
+            // Close modal if open
+            const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailModal'));
+            if (modal) {
+                modal.hide();
+            }
         } else {
             showNotification(result.error || 'Có lỗi xảy ra', 'error');
         }
@@ -302,6 +324,55 @@ function changePage(page) {
 }
 
 // =============================================
+// GET STATUS BUTTONS
+// =============================================
+function getStatusButtons(requestId, currentStatus) {
+    const buttons = [];
+    
+    // Chờ xử lý -> Đang xử lý
+    if (currentStatus === 'pending') {
+        buttons.push(`
+            <button class="btn btn-sm btn-info me-1" onclick="updateRequestStatus(${requestId}, 'processing')" title="Bắt đầu xử lý">
+                <i class="fas fa-play"></i>
+            </button>
+        `);
+    }
+    
+    // Đang xử lý -> Đã giải quyết
+    if (currentStatus === 'processing') {
+        buttons.push(`
+            <button class="btn btn-sm btn-success me-1" onclick="updateRequestStatus(${requestId}, 'resolved')" title="Đánh dấu đã giải quyết">
+                <i class="fas fa-check"></i>
+            </button>
+        `);
+    }
+    
+    // Đã giải quyết -> Đã đóng
+    if (currentStatus === 'resolved') {
+        buttons.push(`
+            <button class="btn btn-sm btn-secondary me-1" onclick="updateRequestStatus(${requestId}, 'closed')" title="Đóng yêu cầu">
+                <i class="fas fa-archive"></i>
+            </button>
+        `);
+    }
+    
+    // Nút quay lại trạng thái trước (nếu không phải pending)
+    if (currentStatus !== 'pending') {
+        const prevStatus = currentStatus === 'processing' ? 'pending' : 
+                          currentStatus === 'resolved' ? 'processing' : 'resolved';
+        const prevLabel = prevStatus === 'pending' ? 'Chờ xử lý' : 
+                         prevStatus === 'processing' ? 'Đang xử lý' : 'Đã giải quyết';
+        buttons.push(`
+            <button class="btn btn-sm btn-warning me-1" onclick="updateRequestStatus(${requestId}, '${prevStatus}')" title="Quay lại: ${prevLabel}">
+                <i class="fas fa-undo"></i>
+            </button>
+        `);
+    }
+    
+    return buttons.join('');
+}
+
+// =============================================
 // HELPER FUNCTIONS
 // =============================================
 function getContactTypeLabel(type) {
@@ -334,11 +405,41 @@ function formatDateTime(dateString) {
 }
 
 // =============================================
-// LOGOUT
+// SHOW NOTIFICATION
 // =============================================
-function logout() {
-    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-        localStorage.removeItem('currentUser');
-        window.location.href = 'admin-login.html';
-    }
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification-toast');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification-toast alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
 }
+
+

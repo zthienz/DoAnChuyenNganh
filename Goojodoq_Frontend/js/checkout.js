@@ -137,8 +137,10 @@ function calculateTotal() {
     if (appliedVoucher) {
         if (appliedVoucher.discountType === 'theo_phantram') {
             discountAmount = subtotalAmount * appliedVoucher.discount / 100;
-        } else {
+        } else if (appliedVoucher.discountType === 'theo_tien') {
             discountAmount = appliedVoucher.discount;
+        } else {
+            discountAmount = 0;
         }
     } else {
         discountAmount = 0;
@@ -199,7 +201,7 @@ async function applyVoucher() {
         if (voucher.discountType === 'theo_phantram') {
             savedAmount = subtotalAmount * voucher.discount / 100;
             discountText = `Giảm ${voucher.discount}%`;
-        } else {
+        } else if (voucher.discountType === 'theo_tien') {
             savedAmount = voucher.discount;
             discountText = `Giảm ${formatPrice(voucher.discount)}`;
         }

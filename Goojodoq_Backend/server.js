@@ -8,9 +8,9 @@ import supportRoutes from "./routes/supportRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import { getProfile, updateProfile, updateAddress, checkAddress } from "./controllers/profileController.js";
-import { createOrder, getAllOrders, getOrders, getOrderDetail, cancelOrder, confirmReceived, confirmOrder, getRevenueStats } from "./controllers/orderController.js";
+import { createOrder, getAllOrders, getOrders, getOrderDetail, cancelOrder, confirmReceived, confirmOrder, getRevenueStats, getRevenueByPeriod } from "./controllers/orderController.js";
 import { getWishlist, addToWishlist, removeFromWishlist, checkWishlist } from "./controllers/wishlistController.js";
-import { checkVoucher, getAvailableVouchers, useVoucher } from "./controllers/voucherController.js";
+import { checkVoucher, getAvailableVouchers, useVoucher, getAllVouchersAdmin, createVoucher, updateVoucher, deleteVoucher } from "./controllers/voucherController.js";
 import { getProductReviews, getProductReviewStats, getOrderProductsForReview, createReview, replyToReview, deleteReviewReply } from "./controllers/reviewController.js";
 
 dotenv.config();
@@ -260,6 +260,7 @@ app.get("/api/profile/:userId/check-address", checkAddress);
 app.get("/api/orders/user/:userId", getOrders); // User: Get orders by userId
 app.get("/api/orders/detail/:orderId", getOrderDetail);
 app.get("/api/orders/revenue", getRevenueStats); // Admin: Get revenue statistics
+app.get("/api/orders/revenue-chart", getRevenueByPeriod); // Admin: Get revenue chart data
 app.get("/api/orders", getAllOrders); // Admin: Get all orders
 app.post("/api/orders", createOrder);
 app.put("/api/orders/:orderId/cancel", cancelOrder);
@@ -280,6 +281,12 @@ app.get("/api/wishlist/:userId/:productId/check", checkWishlist);
 app.post("/api/vouchers/check", checkVoucher);
 app.get("/api/vouchers/available", getAvailableVouchers);
 app.post("/api/vouchers/use", useVoucher);
+
+// Admin voucher management
+app.get("/api/vouchers/admin/all", getAllVouchersAdmin);
+app.post("/api/vouchers/admin", createVoucher);
+app.put("/api/vouchers/admin/:id", updateVoucher);
+app.delete("/api/vouchers/admin/:id", deleteVoucher);
 
 // =============================================
 // REVIEW API ROUTES
