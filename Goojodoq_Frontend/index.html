@@ -62,9 +62,8 @@
                         <div class="navbar-nav ms-auto d-flex align-items-center">
                             <!-- Search -->
                             <div class="search-box me-3">
-                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..."
-                        
-                        111111        id="searchInput" autocomplete="off">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." 111111
+                                    id="searchInput" autocomplete="off">
                                 <button class="btn-search" onclick="searchProducts()">
                                     <i class="fas fa-search"></i>
                                 </button>
@@ -85,7 +84,8 @@
                             </div>
 
                             <!-- Cart Icon - Chỉ hiện khi user đăng nhập (không phải admin) -->
-                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3"
+                                style="display: none;">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle"
                                     id="cartCount">0</span>
@@ -116,7 +116,8 @@
                             <div class="col-lg-6">
                                 <div class="hero-text">
                                     <h1 class="hero-title">Nailtoong Xuất Hiện - Đế Thương Bung Nổi</h1>
-                                    <p class="hero-subtitle">Khám phá bộ sưu tập phụ kiện điện tử chất lượng cao từ GOOJODOQ</p>
+                                    <p class="hero-subtitle">Khám phá bộ sưu tập phụ kiện điện tử chất lượng cao từ
+                                        GOOJODOQ</p>
                                     <div class="hero-buttons">
                                         <a href="shop.html" class="btn btn-primary btn-lg me-3">MUA NGAY</a>
                                         <a href="#products" class="btn btn-outline-light btn-lg">XEM SẢN PHẨM</a>
@@ -154,48 +155,48 @@
             <!-- Slide 3 - Video -->
             <div class="slide video-slide">
                 <div class="slide-background"></div>
-                    <video muted loop preload="metadata">
-                        <source src="images/hero/video.mp4" type="video/mp4">
-                        <img src="images/hero/video-fallback.jpg" alt="Video fallback">
-                    </video>
-                </div>
-                <div class="slide-content">
-                    <div class="container h-100">
-                        <div class="row align-items-center h-100">
-                            <div class="col-lg-6">
-                                <div class="hero-text">
-                                    <h1 class="hero-title">Trải Nghiệm Công Nghệ</h1>
-                                    <p class="hero-subtitle">Cảm nhận sự khác biệt với các sản phẩm GOOJODOQ</p>
-                                    <div class="hero-buttons">
-                                        <a href="shop.html" class="btn btn-primary btn-lg me-3">MUA NGAY</a>
-                                        <a href="#products" class="btn btn-outline-light btn-lg">TÌM HIỂU THÊM</a>
-                                    </div>
+                <video muted loop preload="metadata">
+                    <source src="images/hero/video.mp4" type="video/mp4">
+                    <img src="images/hero/video-fallback.jpg" alt="Video fallback">
+                </video>
+            </div>
+            <div class="slide-content">
+                <div class="container h-100">
+                    <div class="row align-items-center h-100">
+                        <div class="col-lg-6">
+                            <div class="hero-text">
+                                <h1 class="hero-title">Trải Nghiệm Công Nghệ</h1>
+                                <p class="hero-subtitle">Cảm nhận sự khác biệt với các sản phẩm GOOJODOQ</p>
+                                <div class="hero-buttons">
+                                    <a href="shop.html" class="btn btn-primary btn-lg me-3">MUA NGAY</a>
+                                    <a href="#products" class="btn btn-outline-light btn-lg">TÌM HIỂU THÊM</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Navigation Arrows -->
-            <button class="slide-nav prev" onclick="changeSlide(-1)" aria-label="Previous slide">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="slide-nav next" onclick="changeSlide(1)" aria-label="Next slide">
-                <i class="fas fa-chevron-right"></i>
-            </button>
+        <!-- Navigation Arrows -->
+        <button class="slide-nav prev" onclick="changeSlide(-1)" aria-label="Previous slide">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="slide-nav next" onclick="changeSlide(1)" aria-label="Next slide">
+            <i class="fas fa-chevron-right"></i>
+        </button>
 
-            <!-- Slide Indicators -->
-            <div class="slide-indicators">
-                <button class="indicator active" onclick="currentSlide(1)" aria-label="Go to slide 1"></button>
-                <button class="indicator" onclick="currentSlide(2)" aria-label="Go to slide 2"></button>
-                <button class="indicator" onclick="currentSlide(3)" aria-label="Go to slide 3"></button>
-            </div>
+        <!-- Slide Indicators -->
+        <div class="slide-indicators">
+            <button class="indicator active" onclick="currentSlide(1)" aria-label="Go to slide 1"></button>
+            <button class="indicator" onclick="currentSlide(2)" aria-label="Go to slide 2"></button>
+            <button class="indicator" onclick="currentSlide(3)" aria-label="Go to slide 3"></button>
+        </div>
 
-            <!-- Play/Pause Button -->
-            <button class="play-pause-btn" onclick="toggleAutoplay()" aria-label="Toggle autoplay">
-                <i class="fas fa-pause" id="playPauseIcon"></i>
-            </button>
+        <!-- Play/Pause Button -->
+        <button class="play-pause-btn" onclick="toggleAutoplay()" aria-label="Toggle autoplay">
+            <i class="fas fa-pause" id="playPauseIcon"></i>
+        </button>
         </div>
     </section>
 
@@ -210,9 +211,8 @@
                             <p class="section-subtitle mb-0">Ưu đãi đặc biệt - Số lượng có hạn</p>
                         </div>
                         <!-- Admin Edit Button -->
-                        <button id="editSaleBtn" class="btn btn-warning btn-sm ms-3" style="display: none;" 
-                                onclick="openSectionManager('sale', 'Sản phẩm đang giảm giá')" 
-                                title="Chỉnh sửa mục này">
+                        <button id="editSaleBtn" class="btn btn-warning btn-sm ms-3" style="display: none;"
+                            onclick="openSectionManager('sale', 'Sản phẩm đang giảm giá')" title="Chỉnh sửa mục này">
                             <i class="fas fa-edit me-1"></i>Chỉnh sửa
                         </button>
                     </div>
@@ -221,8 +221,16 @@
 
             <!-- Sale Products Carousel -->
             <div class="sale-carousel-wrapper">
-                <div class="sale-carousel" id="saleCarousel">
-                    <!-- Products will be loaded here via JavaScript -->
+                <button class="carousel-nav prev-btn" id="salePrevBtn" onclick="moveSaleCarousel(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="carousel-nav next-btn" id="saleNextBtn" onclick="moveSaleCarousel(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+
+                <div class="sale-carousel-container">
+                    <div class="sale-carousel" id="saleCarousel">
+                    </div>
                 </div>
             </div>
         </div>
@@ -239,9 +247,8 @@
                             <p class="section-subtitle mb-0">Những sản phẩm được yêu thích nhất tại GOOJODOQ</p>
                         </div>
                         <!-- Admin Edit Button -->
-                        <button id="editFeaturedBtn" class="btn btn-warning btn-sm ms-3" style="display: none;" 
-                                onclick="openSectionManager('featured', 'Sản phẩm nổi bật')" 
-                                title="Chỉnh sửa mục này">
+                        <button id="editFeaturedBtn" class="btn btn-warning btn-sm ms-3" style="display: none;"
+                            onclick="openSectionManager('featured', 'Sản phẩm nổi bật')" title="Chỉnh sửa mục này">
                             <i class="fas fa-edit me-1"></i>Chỉnh sửa
                         </button>
                     </div>
@@ -325,10 +332,14 @@
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h5 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h5>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle" target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
-                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i
+                                class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle"
+                            target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i
+                                class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i
+                                class="fab fa-tiktok"></i></a>
                     </div>
                     <div class="mt-3">
                         <p class="mb-1"><strong>Giờ làm việc:</strong></p>
@@ -358,7 +369,7 @@
     <script src="js/product-section-manager.js"></script>
     <script>
         // Show edit buttons for admin
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const currentUser = getCurrentUser();
             if (currentUser && currentUser.quyen === 'admin') {
                 document.getElementById('editSaleBtn').style.display = 'inline-block';

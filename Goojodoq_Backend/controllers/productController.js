@@ -1,4 +1,60 @@
 import { pool } from "../config/db.js";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Helper function to save base64 image to file
+function saveBase64Image(base64Data, productId, imageIndex = 0) {
+  try {
+    // Extract image data and format
+    const matches = base64Data.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+    if (!matches) {
+      throw new Error('Invalid base64 image format');
+    }
+    
+    const imageFormat = matches[1]; // jpg, png, etc.
+    const imageData = matches[2];
+    
+    // Create filename
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 8);
+    const filename = `product_${productId}_${timestamp}_${imageIndex}.${imageFormat}`;
+    
+    // Define paths
+    const uploadsDir = path.join(__dirname, '../../Goojodoq_Frontend/images/products');
+    const filePath = path.join(uploadsDir, filename);
+    const relativePath = `/images/products/${filename}`;
+    
+    // Ensure directory exists
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+      console.log('📁 Created uploads directory:', uploadsDir);
+    }
+    
+    // Save file
+    const buffer = Buffer.from(imageData, 'base64');
+    fs.writeFileSync(filePath, buffer);
+    
+    console.log('💾 Image saved:', {
+      filename,
+      size: `${Math.round(buffer.length / 1024)}KB`,
+      path: relativePath
+    });
+    
+    return relativePath;
+    
+  } catch (error) {
+    console.error('❌ Error saving image:', error);
+    // Return placeholder path as fallback
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 8);
+    return `/images/products/product_${productId}_${timestamp}_${imageIndex}.jpg`;
+  }
+}
 
 // Lấy tất cả sản phẩm
 export const getAllProducts = async (req, res) => {
@@ -108,7 +164,7 @@ export const createProduct = async (req, res) => {
     } = req.body;
 
     // Insert sản phẩm
-    // Lưu ý: gia_goc là giá gốc, gia là giá bán (sau giảm giá nếu có)
+    // Lưu ý: gia là giá hiện tại (giá bán), gia_goc là giá gốc (trước khi giảm)
     const [result] = await pool.query(
       `INSERT INTO sanpham 
       (ma_sku, ten_sanpham, duongdan, mota_ngan, mota_chitiet, 
@@ -121,8 +177,8 @@ export const createProduct = async (req, res) => {
         short_description,
         description,
         category_id,
-        sale_price || price, // gia là giá bán (giá sau giảm nếu có)
-        price, // gia_goc là giá gốc
+        price, // gia là giá hiện tại (giá bán)
+        sale_price, // gia_goc là giá gốc (có thể null)
         stock_quantity
       ]
     );
@@ -131,20 +187,42 @@ export const createProduct = async (req, res) => {
 
     // Insert ảnh chính
     if (images && images.main) {
+      let imagePath;
+      
+      if (images.main.startsWith('data:image/')) {
+        // Save base64 image to file
+        imagePath = saveBase64Image(images.main, productId, 0);
+        console.log('✅ Main image saved to:', imagePath);
+      } else {
+        // Use provided path
+        imagePath = images.main;
+      }
+      
       await pool.query(
         `INSERT INTO anh_sanpham (id_sanpham, duongdan_anh, mo_ta, thu_tu) 
          VALUES (?, ?, ?, 0)`,
-        [productId, images.main, product_name]
+        [productId, imagePath, product_name]
       );
     }
 
     // Insert ảnh phụ
     if (images && images.additional && images.additional.length > 0) {
       for (let i = 0; i < images.additional.length; i++) {
+        let imagePath;
+        
+        if (images.additional[i].startsWith('data:image/')) {
+          // Save base64 image to file
+          imagePath = saveBase64Image(images.additional[i], productId, i + 1);
+          console.log(`✅ Additional image ${i + 1} saved to:`, imagePath);
+        } else {
+          // Use provided path
+          imagePath = images.additional[i];
+        }
+        
         await pool.query(
           `INSERT INTO anh_sanpham (id_sanpham, duongdan_anh, mo_ta, thu_tu) 
            VALUES (?, ?, ?, ?)`,
-          [productId, images.additional[i], `${product_name} - Góc ${i + 2}`, i + 1]
+          [productId, imagePath, `${product_name} - Góc ${i + 2}`, i + 1]
         );
       }
     }

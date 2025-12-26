@@ -17,7 +17,9 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+// Tăng giới hạn payload để hỗ trợ upload ảnh base64
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static files (images)
 app.use('/images', express.static('../Goojodoq_Frontend/images'));

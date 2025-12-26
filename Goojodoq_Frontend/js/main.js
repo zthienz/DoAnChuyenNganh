@@ -68,6 +68,7 @@ function initializeApp() {
     setupEventListeners();
     initializeSlideshow();
     initializeAdminMode();
+    initializeProductUpdateListeners();
 }
 
 // =============================================
@@ -127,22 +128,64 @@ function setupEventListeners() {
 // PRODUCT FUNCTIONS
 // =============================================
 async function loadSaleProducts() {
+    console.log('🔄 Loading sale products...');
     try {
+        console.log('📡 Fetching from:', `${API_BASE_URL}/products/sections/sale`);
         const response = await fetch(`${API_BASE_URL}/products/sections/sale`);
+        console.log('📡 Response status:', response.status, response.ok);
+        
         if (!response.ok) {
             throw new Error('Failed to fetch sale products');
         }
         
         const data = await response.json();
+        console.log('📦 Received data:', data);
+        
         if (data.success && data.products) {
+            console.log('✅ Found', data.products.length, 'sale products');
             displaySaleCarousel(data.products);
+        } else {
+            console.log('❌ No products in response or success=false');
+            displaySaleCarousel([]);
         }
     } catch (error) {
-        console.error('Error loading sale products:', error);
-        const carousel = document.getElementById('saleCarousel');
-        if (carousel) {
-            carousel.innerHTML = '<p class="text-center text-muted">Không thể tải sản phẩm giảm giá</p>';
-        }
+        console.error('❌ Error loading sale products:', error);
+        console.log('🔧 Creating fallback test products...');
+        
+        // Create test products as fallback
+        const testProducts = [
+            {
+                product_id: 1,
+                product_name: 'Sản phẩm test 1',
+                price: 100000,
+                sale_price: 150000,
+                image: 'default.jpg'
+            },
+            {
+                product_id: 2,
+                product_name: 'Sản phẩm test 2',
+                price: 200000,
+                sale_price: 300000,
+                image: 'default.jpg'
+            },
+            {
+                product_id: 3,
+                product_name: 'Sản phẩm test 3',
+                price: 150000,
+                sale_price: 200000,
+                image: 'default.jpg'
+            },
+            {
+                product_id: 4,
+                product_name: 'Sản phẩm test 4',
+                price: 250000,
+                sale_price: 350000,
+                image: 'default.jpg'
+            }
+        ];
+        
+        console.log('🧪 Using test products:', testProducts);
+        displaySaleCarousel(testProducts);
     }
 }
 
@@ -175,10 +218,34 @@ function displaySaleCarousel(products) {
     
     if (!products || products.length === 0) {
         carousel.innerHTML = '<p class="text-center text-muted">Không có sản phẩm giảm giá</p>';
+        // Initialize with empty data to prevent errors
+        initSaleCarousel(0, 0, 0);
         return;
     }
     
-    const carouselHTML = products.map(product => {
+    console.log('displaySaleCarousel called with', products.length, 'products');
+    
+    // Create infinite loop by duplicating products multiple times
+    let displayProducts = [...products];
+    
+    // If we have few products, duplicate them to ensure smooth infinite scroll
+    if (products.length < 8) {
+        // Duplicate products until we have at least 12 items for smooth scrolling
+        while (displayProducts.length < 12) {
+            displayProducts = [...displayProducts, ...products];
+        }
+    }
+    
+    // Add extra copies at beginning and end for seamless loop
+    const extraCopies = Math.min(products.length, 6); // At least 6 extra copies on each side
+    const startCopies = displayProducts.slice(-extraCopies);
+    const endCopies = displayProducts.slice(0, extraCopies);
+    
+    displayProducts = [...startCopies, ...displayProducts, ...endCopies];
+    
+    console.log('Final display products count:', displayProducts.length, 'extraCopies:', extraCopies);
+    
+    const carouselHTML = displayProducts.map((product, index) => {
         const imageUrl = getProductImageUrl(product.image);
         
         const discount = product.sale_price && product.price < product.sale_price 
@@ -186,7 +253,7 @@ function displaySaleCarousel(products) {
             : 0;
         
         return `
-            <div class="sale-card">
+            <div class="sale-card" data-index="${index}">
                 <div class="sale-badge">-${discount}%</div>
                 <div class="sale-image">
                     <img src="${imageUrl}" 
@@ -199,7 +266,7 @@ function displaySaleCarousel(products) {
                     </h5>
                     <div class="sale-price">
                         <span class="price-new">${formatPrice(product.price)}</span>
-                        ${product.sale_price ? `<span class="price-old">${formatPrice(product.sale_price)}</span>` : ''}
+                        ${product.sale_price && product.sale_price > product.price ? `<span class="price-old">${formatPrice(product.sale_price)}</span>` : ''}
                     </div>
                     <button class="btn-buy-now" onclick="addToCart(${product.product_id}, '${escapeHtml(product.product_name)}', ${product.price}, '${imageUrl}')">
                         <i class="fas fa-shopping-cart me-2"></i>Mua ngay
@@ -210,6 +277,9 @@ function displaySaleCarousel(products) {
     }).join('');
     
     carousel.innerHTML = carouselHTML;
+    
+    // Initialize carousel with new data
+    initSaleCarousel(products.length, displayProducts.length, extraCopies);
 }
 
 function displayProducts(products) {
@@ -235,7 +305,7 @@ function displayProducts(products) {
                     <img src="${imageUrl}" 
                          alt="${product.product_name}" 
                          onerror="this.src='images/products/default.jpg'">
-                    ${product.sale_price && product.price < product.sale_price ? '<div class="product-badge sale">SALE</div>' : ''}
+                    ${product.sale_price && product.sale_price > product.price ? '<div class="product-badge sale">SALE</div>' : ''}
                     ${product.is_new ? '<div class="product-badge new">MỚI</div>' : ''}
                 </div>
                 <div class="product-info">
@@ -456,6 +526,30 @@ function formatPrice(price) {
         style: 'currency',
         currency: 'VND'
     }).format(price);
+}
+
+function getProductImageUrl(imagePath) {
+    if (!imagePath) {
+        return 'images/products/default.jpg';
+    }
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    // If it starts with /, it's already a relative path from root
+    if (imagePath.startsWith('/')) {
+        return imagePath.substring(1); // Remove leading slash for relative path
+    }
+    
+    // If it's just a filename, add the products path
+    if (!imagePath.includes('/')) {
+        return `images/products/${imagePath}`;
+    }
+    
+    // Otherwise return as is
+    return imagePath;
 }
 
 function showLoading(elementId) {
@@ -1106,123 +1200,6 @@ function stopAutoLogout() {
 }
 
 // =============================================
-// SALE PRODUCTS CAROUSEL
-// =============================================
-async function loadSaleProducts() {
-    try {
-        console.log('🔍 Loading sale products...');
-        const response = await fetch(`${API_BASE_URL}/products`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch products');
-        }
-        
-        const products = await response.json();
-        console.log('📦 Total products:', products.length);
-        
-        // Lọc sản phẩm đang giảm giá (có gia_goc > gia)
-        const saleProducts = products.filter(product => {
-            const hasDiscount = product.sale_price && product.price && product.sale_price > product.price;
-            if (hasDiscount) {
-                console.log('💰 Sale product found:', product.product_name, 'Original:', product.sale_price, 'Sale:', product.price);
-            }
-            return hasDiscount;
-        });
-        
-        console.log('🎉 Sale products count:', saleProducts.length);
-        
-        if (saleProducts.length === 0) {
-            console.log('⚠️ No sale products found, hiding section');
-            document.getElementById('sale-products').style.display = 'none';
-            return;
-        }
-        
-        displaySaleProducts(saleProducts);
-        initSaleCarousel(saleProducts.length);
-        
-    } catch (error) {
-        console.error('❌ Error loading sale products:', error);
-        document.getElementById('sale-products').style.display = 'none';
-    }
-}
-
-function displaySaleProducts(products) {
-    const carousel = document.getElementById('saleCarousel');
-    if (!carousel) return;
-    
-    let productsHTML = products.map(product => {
-        // Tính phần trăm giảm giá
-        const discountPercent = Math.round(((product.sale_price - product.price) / product.sale_price) * 100);
-        
-        // Xử lý đường dẫn ảnh
-        const imageUrl = getProductImageUrl(product.image);
-        
-        return `
-            <div class="sale-product-card" onclick="window.location.href='product-detail.html?id=${product.product_id}'">
-                <div class="sale-badge">-${discountPercent}%</div>
-                <div class="product-image">
-                    <img src="${imageUrl}" 
-                         alt="${product.product_name}" 
-                         onerror="this.src='images/products/default.jpg'">
-                </div>
-                <div class="product-info">
-                    <h5 class="product-name">${product.product_name}</h5>
-                    <div class="product-price">
-                        <span class="original-price">${formatPrice(product.sale_price)}</span>
-                        <span class="sale-price">${formatPrice(product.price)}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    carousel.innerHTML = productsHTML;
-}
-
-function initSaleCarousel(productCount) {
-    const carousel = document.getElementById('saleCarousel');
-    if (!carousel || productCount === 0) return;
-    
-    // Clone all products to create seamless loop
-    const originalHTML = carousel.innerHTML;
-    carousel.innerHTML = originalHTML + originalHTML; // Duplicate for seamless loop
-    
-    const products = carousel.querySelectorAll('.sale-product-card');
-    if (products.length === 0) return;
-    
-    // Auto scroll every 5 seconds
-    let currentPosition = 0;
-    const cardWidth = 300; // 280px width + 20px gap
-    
-    setInterval(() => {
-        currentPosition -= cardWidth;
-        
-        // Check if we've scrolled past half (original products)
-        const totalWidth = productCount * cardWidth;
-        if (Math.abs(currentPosition) >= totalWidth) {
-            // Reset to start without animation
-            carousel.style.transition = 'none';
-            currentPosition = 0;
-            carousel.style.transform = `translateX(${currentPosition}px)`;
-            
-            // Re-enable animation after a brief moment
-            setTimeout(() => {
-                carousel.style.transition = 'transform 0.5s ease';
-                currentPosition -= cardWidth;
-                carousel.style.transform = `translateX(${currentPosition}px)`;
-            }, 50);
-        } else {
-            carousel.style.transition = 'transform 0.5s ease';
-            carousel.style.transform = `translateX(${currentPosition}px)`;
-        }
-    }, 5000);
-}
-
-// Initialize sale carousel when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    loadSaleProducts();
-});
-
-// =============================================
 // WISHLIST FUNCTIONS
 // =============================================
 async function toggleWishlist(productId, productName, price, image) {
@@ -1366,3 +1343,394 @@ async function checkProductInWishlist(productId) {
         initSpaceFix();
     }
 })();
+
+// Sale Carousel Variables
+let saleCarouselData = {
+    currentIndex: 0,
+    originalProductCount: 0,
+    totalDisplayCount: 0,
+    extraCopies: 0,
+    itemWidth: 300, // 280px + 20px gap
+    visibleItems: 4,
+    isTransitioning: false,
+    coreStartIndex: 0,
+    coreEndIndex: 0
+};
+
+function initSaleCarousel(originalCount, totalCount, extraCopies) {
+    console.log('initSaleCarousel called with:', { originalCount, totalCount, extraCopies });
+    
+    saleCarouselData.originalProductCount = originalCount;
+    saleCarouselData.totalDisplayCount = totalCount;
+    saleCarouselData.extraCopies = extraCopies;
+    
+    // Calculate the core section (main products without extra copies)
+    saleCarouselData.coreStartIndex = extraCopies;
+    saleCarouselData.coreEndIndex = totalCount - extraCopies;
+    
+    console.log('Carousel data initialized:', saleCarouselData);
+    
+    // Calculate visible items based on screen width
+    updateVisibleItems();
+    
+    // Set initial position (start at the beginning of core section)
+    saleCarouselData.currentIndex = saleCarouselData.coreStartIndex;
+    updateCarouselPosition(false); // No animation for initial position
+    
+    // Add resize listener
+    window.addEventListener('resize', updateVisibleItems);
+}
+
+function updateVisibleItems() {
+    const wrapper = document.querySelector('.sale-carousel-wrapper');
+    if (!wrapper) return;
+    
+    const wrapperWidth = wrapper.offsetWidth - 100; // Account for navigation buttons
+    
+    // Calculate based on actual card width if available
+    const carousel = document.getElementById('saleCarousel');
+    const saleCard = carousel?.querySelector('.sale-card');
+    
+    if (saleCard) {
+        const cardRect = saleCard.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(carousel);
+        const gap = parseInt(computedStyle.gap) || 20;
+        const itemWidth = cardRect.width + gap;
+        
+        saleCarouselData.itemWidth = itemWidth;
+        saleCarouselData.visibleItems = Math.floor(wrapperWidth / itemWidth);
+    } else {
+        // Fallback calculation
+        saleCarouselData.visibleItems = Math.floor(wrapperWidth / saleCarouselData.itemWidth);
+    }
+    
+    saleCarouselData.visibleItems = Math.max(1, Math.min(saleCarouselData.visibleItems, 5));
+}
+
+function moveSaleCarousel(direction) {
+    console.log('🎠 moveSaleCarousel called with direction:', direction);
+    
+    const carousel = document.getElementById('saleCarousel');
+    if (!carousel) {
+        console.error('❌ Carousel element not found');
+        return;
+    }
+    
+    const cards = carousel.querySelectorAll('.sale-card');
+    if (cards.length === 0) {
+        console.error('❌ No cards found in carousel');
+        return;
+    }
+    
+    console.log('📊 Current state:', {
+        isTransitioning: saleCarouselData.isTransitioning,
+        originalProductCount: saleCarouselData.originalProductCount,
+        currentIndex: saleCarouselData.currentIndex,
+        totalCards: cards.length
+    });
+    
+    if (saleCarouselData.isTransitioning) {
+        console.log('⏳ Carousel is transitioning, skipping...');
+        return;
+    }
+    
+    if (saleCarouselData.originalProductCount === 0) {
+        console.log('📦 No products, skipping...');
+        return;
+    }
+    
+    saleCarouselData.isTransitioning = true;
+    
+    // Simple movement logic
+    saleCarouselData.currentIndex += direction;
+    
+    // Handle boundaries for infinite loop
+    const maxIndex = cards.length - 1;
+    if (saleCarouselData.currentIndex > maxIndex) {
+        saleCarouselData.currentIndex = saleCarouselData.coreStartIndex;
+    } else if (saleCarouselData.currentIndex < 0) {
+        saleCarouselData.currentIndex = saleCarouselData.coreEndIndex - 1;
+    }
+    
+    console.log('🎯 Moving to index:', saleCarouselData.currentIndex);
+    
+    updateCarouselPosition(true);
+    
+    // Reset transition flag
+    setTimeout(() => {
+        saleCarouselData.isTransitioning = false;
+        console.log('✅ Transition completed');
+    }, 500);
+}
+
+// Make function globally accessible
+window.moveSaleCarousel = moveSaleCarousel;
+
+function updateCarouselPosition(animate = true) {
+    const carousel = document.getElementById('saleCarousel');
+    if (!carousel) {
+        console.error('❌ Carousel not found in updateCarouselPosition');
+        return;
+    }
+    
+    // Get actual card width
+    const firstCard = carousel.querySelector('.sale-card');
+    if (!firstCard) {
+        console.error('❌ No cards found for width calculation');
+        return;
+    }
+    
+    const cardRect = firstCard.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(carousel);
+    const gap = parseInt(computedStyle.gap) || 20;
+    const actualItemWidth = cardRect.width + gap;
+    
+    // Update stored width
+    saleCarouselData.itemWidth = actualItemWidth;
+    
+    const translateX = -saleCarouselData.currentIndex * actualItemWidth;
+    
+    console.log('🎨 Updating position:', {
+        currentIndex: saleCarouselData.currentIndex,
+        itemWidth: actualItemWidth,
+        translateX: translateX,
+        animate: animate
+    });
+    
+    // Apply transition
+    carousel.style.transition = animate ? 'transform 0.5s ease' : 'none';
+    carousel.style.transform = `translateX(${translateX}px)`;
+    
+    // Re-enable transition for future moves
+    if (!animate) {
+        setTimeout(() => {
+            carousel.style.transition = 'transform 0.5s ease';
+        }, 50);
+    }
+}
+
+// Auto-play functionality (optional)
+let saleCarouselAutoPlay = null;
+
+function startSaleCarouselAutoPlay() {
+    if (saleCarouselAutoPlay) return;
+    
+    saleCarouselAutoPlay = setInterval(() => {
+        moveSaleCarousel(1);
+    }, 4000); // Move every 4 seconds
+}
+
+function stopSaleCarouselAutoPlay() {
+    if (saleCarouselAutoPlay) {
+        clearInterval(saleCarouselAutoPlay);
+        saleCarouselAutoPlay = null;
+    }
+}
+
+// Pause auto-play on hover
+document.addEventListener('DOMContentLoaded', function() {
+    const carouselWrapper = document.querySelector('.sale-carousel-wrapper');
+    if (carouselWrapper) {
+        carouselWrapper.addEventListener('mouseenter', stopSaleCarouselAutoPlay);
+        carouselWrapper.addEventListener('mouseleave', startSaleCarouselAutoPlay);
+        
+        // Start auto-play initially
+        setTimeout(startSaleCarouselAutoPlay, 2000);
+    }
+});
+
+// Test function for carousel - can be called from browser console
+window.testCarousel = function() {
+    console.log('Testing carousel...');
+    console.log('Current carousel data:', saleCarouselData);
+    
+    const carousel = document.getElementById('saleCarousel');
+    console.log('Carousel element found:', !!carousel);
+    
+    if (carousel) {
+        const cards = carousel.querySelectorAll('.sale-card');
+        console.log('Number of cards:', cards.length);
+    }
+    
+    console.log('Testing moveSaleCarousel function...');
+    if (typeof window.moveSaleCarousel === 'function') {
+        console.log('moveSaleCarousel is available globally');
+        window.moveSaleCarousel(1);
+    } else {
+        console.error('moveSaleCarousel is not available globally');
+    }
+};
+
+// Also add a simple manual test
+window.manualMoveCarousel = function(direction) {
+    console.log('Manual move carousel:', direction);
+    moveSaleCarousel(direction);
+};
+// Simple backup carousel function for testing
+window.simpleCarouselMove = function(direction) {
+    console.log('🧪 Simple carousel move:', direction);
+    
+    const carousel = document.getElementById('saleCarousel');
+    if (!carousel) {
+        console.error('No carousel found');
+        return;
+    }
+    
+    const cards = carousel.querySelectorAll('.sale-card');
+    if (cards.length === 0) {
+        console.error('No cards found');
+        return;
+    }
+    
+    // Get current transform
+    const currentTransform = carousel.style.transform || 'translateX(0px)';
+    const currentX = parseInt(currentTransform.match(/-?\d+/) || [0])[0];
+    
+    // Calculate new position
+    const cardWidth = 300; // Fixed width for testing
+    const newX = currentX + (direction * -cardWidth);
+    
+    console.log('Moving from', currentX, 'to', newX);
+    
+    // Apply new transform
+    carousel.style.transition = 'transform 0.5s ease';
+    carousel.style.transform = `translateX(${newX}px)`;
+};
+// Test function to create fake sale products for testing
+window.createTestSaleProducts = function() {
+    console.log('🧪 Creating test sale products...');
+    
+    const testProducts = [
+        {
+            product_id: 1,
+            product_name: 'Test Product 1',
+            price: 100000,
+            sale_price: 150000,
+            image: 'test1.jpg'
+        },
+        {
+            product_id: 2,
+            product_name: 'Test Product 2',
+            price: 200000,
+            sale_price: 300000,
+            image: 'test2.jpg'
+        },
+        {
+            product_id: 3,
+            product_name: 'Test Product 3',
+            price: 150000,
+            sale_price: 200000,
+            image: 'test3.jpg'
+        },
+        {
+            product_id: 4,
+            product_name: 'Test Product 4',
+            price: 250000,
+            sale_price: 350000,
+            image: 'test4.jpg'
+        }
+    ];
+    
+    console.log('📦 Test products created:', testProducts);
+    displaySaleCarousel(testProducts);
+};
+
+// Quick test function
+window.quickTestCarousel = function() {
+    console.log('⚡ Quick carousel test...');
+    createTestSaleProducts();
+    
+    setTimeout(() => {
+        console.log('🎯 Testing carousel movement...');
+        moveSaleCarousel(1);
+    }, 1000);
+};
+
+// =============================================
+// PRODUCT UPDATE LISTENERS
+// =============================================
+function initializeProductUpdateListeners() {
+    console.log('🔄 Initializing product update listeners...');
+    
+    // Listen for BroadcastChannel messages from add-product page
+    if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('product_updates');
+        
+        channel.addEventListener('message', function(event) {
+            console.log('📡 Received product update message:', event.data);
+            
+            if (event.data.type === 'PRODUCT_ADDED') {
+                console.log('✅ New product added, refreshing displays...');
+                refreshProductDisplays();
+            }
+        });
+        
+        console.log('📡 BroadcastChannel listener initialized');
+    } else {
+        console.warn('⚠️ BroadcastChannel not supported in this browser');
+    }
+    
+    // Listen for postMessage from iframe/popup
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'REFRESH_PRODUCTS') {
+            console.log('📡 Received refresh message from child window');
+            refreshProductDisplays();
+        }
+    });
+    
+    // Listen for storage events (cross-tab communication fallback)
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'productCacheInvalidated') {
+            console.log('📡 Received storage event for product cache invalidation');
+            refreshProductDisplays();
+            // Clean up the storage flag
+            localStorage.removeItem('productCacheInvalidated');
+        }
+    });
+    
+    console.log('✅ All product update listeners initialized');
+}
+
+function refreshProductDisplays() {
+    console.log('🔄 Refreshing product displays...');
+    
+    // Clear any cached data
+    if (typeof localStorage !== 'undefined') {
+        const keysToRemove = [
+            'products',
+            'featuredProducts', 
+            'saleProducts',
+            'productCache'
+        ];
+        
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+            console.log(`🗑️ Cleared cache: ${key}`);
+        });
+    }
+    
+    // Refresh sale products if on index page
+    const saleCarousel = document.getElementById('saleCarousel');
+    if (saleCarousel) {
+        console.log('🔄 Reloading sale products...');
+        loadSaleProducts();
+    }
+    
+    // Refresh featured products if on index page
+    const productGrid = document.getElementById('productGrid');
+    if (productGrid && !document.getElementById('productsGrid')) {
+        console.log('🔄 Reloading featured products...');
+        loadFeaturedProducts();
+    }
+    
+    // If on shop page, trigger shop refresh
+    if (typeof window.refreshShopProducts === 'function') {
+        console.log('🔄 Refreshing shop products...');
+        window.refreshShopProducts();
+    }
+    
+    // Show notification
+    showNotification('Danh sách sản phẩm đã được cập nhật!', 'info');
+    
+    console.log('✅ Product displays refreshed');
+}

@@ -10,12 +10,14 @@ let displayedProducts = [];
 let currentPage = 1;
 const PRODUCTS_PER_PAGE = 12;
 let filteredProducts = [];
+let saleProductIds = []; // Danh sách ID sản phẩm giảm giá từ section "sale"
 
 // =============================================
 // INITIALIZATION
 // =============================================
 document.addEventListener('DOMContentLoaded', function() {
     loadAllProducts();
+    loadSaleProductIds(); // Load danh sách sản phẩm giảm giá
     setupEventListeners();
     
     // Initialize search suggestions
@@ -55,6 +57,31 @@ async function loadAllProducts() {
     } catch (error) {
         console.error('Error loading products:', error);
         showError('Không thể tải sản phẩm. Vui lòng thử lại sau.');
+    }
+}
+
+// Load danh sách ID sản phẩm giảm giá từ section "sale"
+async function loadSaleProductIds() {
+    try {
+        console.log('🔄 Loading sale product IDs...');
+        
+        const response = await fetch(`${window.API_BASE_URL}/products/sections/sale`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch sale products');
+        }
+        
+        const data = await response.json();
+        if (data.success && data.products) {
+            saleProductIds = data.products.map(product => product.product_id);
+            console.log(`✅ Loaded ${saleProductIds.length} sale product IDs:`, saleProductIds);
+        } else {
+            saleProductIds = [];
+            console.log('❌ No sale products found');
+        }
+        
+    } catch (error) {
+        console.error('Error loading sale product IDs:', error);
+        saleProductIds = [];
     }
 }
 
@@ -102,7 +129,7 @@ function displayShopProducts(reset = true) {
                         <img src="${imageUrl}" 
                              alt="${product.product_name}" 
                              onerror="this.src='images/products/default.jpg'">
-                        ${salePrice && salePrice < price ? '<div class="product-badge sale">SALE</div>' : ''}
+                        ${salePrice && salePrice > price ? '<div class="product-badge sale">SALE</div>' : ''}
                         ${product.is_new ? '<div class="product-badge new">MỚI</div>' : ''}
                         ${product.is_bestseller ? '<div class="product-badge bestseller">BÁN CHẠY</div>' : ''}
                         <div class="product-overlay">
@@ -216,19 +243,33 @@ function loadMore() {
 // FILTER FUNCTIONS
 // =============================================
 function filterProducts() {
-    const searchTerm = document.getElementById('sidebarSearch').value.toLowerCase();
+    // Get search term from header search input
+    const headerSearchInput = document.getElementById('searchInput');
+    const searchTerm = headerSearchInput ? headerSearchInput.value.toLowerCase() : '';
     const priceMin = parseFloat(document.getElementById('priceMin').value) || 0;
     const priceMax = parseFloat(document.getElementById('priceMax').value) || Infinity;
     
     // Get selected categories
     const selectedCategories = [];
-    document.querySelectorAll('.category-filter:checked').forEach(checkbox => {
-        selectedCategories.push(parseInt(checkbox.value));
-    });
+    const catAll = document.getElementById('catAll');
+    
+    if (!catAll || !catAll.checked) {
+        document.querySelectorAll('.category-filter:checked').forEach(checkbox => {
+            selectedCategories.push(parseInt(checkbox.value));
+        });
+    }
+    
+    // Get selected status filters
+    const statusFilters = {
+        sale: document.getElementById('filterSale')?.checked || false,
+        inStock: document.getElementById('filterInStock')?.checked || false,
+        outOfStock: document.getElementById('filterOutOfStock')?.checked || false
+    };
     
     // Filter products
     filteredProducts = allProducts.filter(product => {
         const price = parseFloat(product.price);
+        const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
         
         // Search filter
         if (searchTerm && !product.product_name.toLowerCase().includes(searchTerm)) {
@@ -240,9 +281,35 @@ function filterProducts() {
             return false;
         }
         
-        // Category filter
+        // Category filter - only apply if specific categories are selected
         if (selectedCategories.length > 0 && !selectedCategories.includes(product.category_id)) {
             return false;
+        }
+        
+        // Status filters - only apply if at least one is checked
+        const hasStatusFilter = statusFilters.sale || statusFilters.inStock || statusFilters.outOfStock;
+        
+        if (hasStatusFilter) {
+            let matchesStatus = false;
+            
+            // Check sale filter - sử dụng danh sách từ section "sale"
+            if (statusFilters.sale && saleProductIds.includes(product.product_id)) {
+                matchesStatus = true;
+            }
+            
+            // Check in-stock filter
+            if (statusFilters.inStock && product.stock_quantity > 0) {
+                matchesStatus = true;
+            }
+            
+            // Check out-of-stock filter
+            if (statusFilters.outOfStock && product.stock_quantity <= 0) {
+                matchesStatus = true;
+            }
+            
+            if (!matchesStatus) {
+                return false;
+            }
         }
         
         return true;
@@ -253,8 +320,11 @@ function filterProducts() {
 }
 
 function resetFilters() {
-    // Reset search
-    document.getElementById('sidebarSearch').value = '';
+    // Reset header search input
+    const headerSearchInput = document.getElementById('searchInput');
+    if (headerSearchInput) {
+        headerSearchInput.value = '';
+    }
     
     // Reset price
     document.getElementById('priceMin').value = '0';
@@ -266,8 +336,16 @@ function resetFilters() {
     });
     document.getElementById('catAll').checked = true;
     
+    // Reset status filters
+    document.querySelectorAll('.status-filter').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
     // Reset sort
     document.getElementById('sortSelect').value = 'default';
+    
+    // Reload sale product IDs (in case admin updated)
+    loadSaleProductIds();
     
     // Reload all products
     filteredProducts = [...allProducts];
@@ -374,6 +452,7 @@ function setupEventListeners() {
                 document.querySelectorAll('.category-filter').forEach(checkbox => {
                     checkbox.checked = false;
                 });
+                filterProducts();
             }
         });
     }
@@ -384,33 +463,68 @@ function setupEventListeners() {
             if (this.checked) {
                 document.getElementById('catAll').checked = false;
             }
+            
+            // If no categories are selected, check "All"
+            const anyChecked = document.querySelector('.category-filter:checked');
+            if (!anyChecked) {
+                document.getElementById('catAll').checked = true;
+            }
+            
             filterProducts();
         });
     });
     
     // Status filters
-    ['filterSale', 'filterNew', 'filterBestseller'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('change', filterProducts);
-        }
+    document.querySelectorAll('.status-filter').forEach(checkbox => {
+        checkbox.addEventListener('change', filterProducts);
     });
     
-    // Search on Enter
-    const sidebarSearch = document.getElementById('sidebarSearch');
-    if (sidebarSearch) {
-        sidebarSearch.addEventListener('keypress', function(e) {
+    // Header search input - auto-filter on input (with debounce)
+    const headerSearchInput = document.getElementById('searchInput');
+    if (headerSearchInput) {
+        let searchTimeout;
+        headerSearchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterProducts();
+            }, 500);
+        });
+        
+        // Also filter on Enter key
+        headerSearchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 filterProducts();
             }
         });
     }
+    
+    // Price inputs on Enter
+    ['priceMin', 'priceMax'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    filterProducts();
+                }
+            });
+        }
+    });
 }
 
 function searchProducts() {
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput && searchInput.value.trim()) {
-        document.getElementById('sidebarSearch').value = searchInput.value.trim();
+    // Trigger filter when search button is clicked
+    filterProducts();
+}
+
+// Hàm để refresh danh sách sản phẩm giảm giá (có thể gọi từ bên ngoài)
+async function refreshSaleProducts() {
+    await loadSaleProductIds();
+    // Nếu đang lọc sản phẩm giảm giá, cập nhật lại kết quả
+    const saleFilter = document.getElementById('filterSale');
+    if (saleFilter && saleFilter.checked) {
         filterProducts();
     }
 }
+
+// Make function globally accessible
+window.refreshSaleProducts = refreshSaleProducts;

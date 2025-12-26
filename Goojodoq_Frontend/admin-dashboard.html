@@ -15,48 +15,49 @@
             height: 300px;
             margin: 20px 0;
         }
-        
+
         .chart-container canvas {
             max-height: 300px !important;
         }
-        
-        .btn-group .btn-check:checked + .btn {
+
+        .btn-group .btn-check:checked+.btn {
             background-color: #007bff;
             border-color: #007bff;
             color: white;
         }
-        
+
         .card {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             border: 1px solid rgba(0, 0, 0, 0.125);
         }
-        
+
         .card-header {
             background-color: #f8f9fa;
             border-bottom: 1px solid rgba(0, 0, 0, 0.125);
         }
-        
+
         #revenueChart {
             height: 400px !important;
         }
-        
-        #orderStatusChart, #inventoryChart {
+
+        #orderStatusChart,
+        #inventoryChart {
             height: 300px !important;
         }
-        
+
         .order-stats-list .order-stat-item {
             padding: 8px 0;
             border-bottom: 1px solid #f0f0f0;
         }
-        
+
         .order-stats-list .order-stat-item:last-child {
             border-bottom: none;
         }
-        
+
         .stat-label {
             font-weight: 500;
         }
-        
+
         .support-stat {
             display: flex;
             align-items: center;
@@ -65,7 +66,7 @@
             border-radius: 8px;
             margin-bottom: 15px;
         }
-        
+
         .support-icon {
             width: 50px;
             height: 50px;
@@ -76,80 +77,84 @@
             margin-right: 15px;
             color: white;
         }
-        
+
         .support-info h4 {
             margin: 0;
             font-size: 1.5rem;
             font-weight: bold;
         }
-        
+
         .support-info p {
             margin: 0;
             color: #6c757d;
             font-size: 0.9rem;
         }
-        
+
         /* Đồng bộ thiết kế 2 bảng */
-        .activity-item, .order-stat-item {
+        .activity-item,
+        .order-stat-item {
             transition: all 0.2s ease;
             border-radius: 6px;
             margin-bottom: 8px;
         }
-        
-        .activity-item:hover, .order-stat-item:hover {
+
+        .activity-item:hover,
+        .order-stat-item:hover {
             background-color: #f8f9fa;
             transform: translateX(2px);
         }
-        
+
         .activity-item:last-child {
             border-bottom: none !important;
         }
-        
-        .activity-title, .stat-label {
+
+        .activity-title,
+        .stat-label {
             color: #495057;
             font-size: 0.95rem;
             font-weight: 500;
         }
-        
+
         .activity-desc {
             color: #6c757d;
             font-size: 0.85rem;
         }
-        
+
         .activity-time {
             color: #adb5bd;
             font-size: 0.75rem;
         }
-        
+
         /* Thiết kế đồng bộ cho card */
         .dashboard-card {
             border: 1px solid #e9ecef;
             border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
         }
-        
+
         .dashboard-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
         }
-        
+
         .dashboard-card .card-header {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-bottom: 1px solid #dee2e6;
             border-radius: 12px 12px 0 0 !important;
             padding: 1rem 1.25rem;
         }
-        
+
         .dashboard-card .card-body {
             padding: 1.25rem;
         }
-        
+
         /* Icon styling đồng bộ */
-        .activity-icon .rounded-circle, .stat-label i {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        .activity-icon .rounded-circle,
+        .stat-label i {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
-        
+
         /* Badge styling đồng bộ */
         .badge {
             font-size: 0.75rem;
@@ -157,14 +162,32 @@
             border-radius: 6px;
             font-weight: 500;
         }
+
         
+            .activity-list {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            .activity-list::-webkit-scrollbar {
+                width: 0px;
+                background: transparent;
+            }
+
+            .dashboard-card .card-body {
+                overflow: hidden;
+            }
+
         /* Responsive improvements */
         @media (max-width: 768px) {
-            .activity-item, .order-stat-item {
+
+            .activity-item,
+            .order-stat-item {
                 padding: 0.75rem !important;
             }
-            
-            .activity-title, .stat-label {
+
+            .activity-title,
+            .stat-label {
                 font-size: 0.9rem;
             }
         }
@@ -326,13 +349,16 @@
                                 Biểu đồ doanh thu
                             </h5>
                             <div class="btn-group" role="group">
-                                <input type="radio" class="btn-check" name="revenueFilter" id="weeklyRevenue" value="weekly" checked>
+                                <input type="radio" class="btn-check" name="revenueFilter" id="weeklyRevenue"
+                                    value="weekly" checked>
                                 <label class="btn btn-outline-primary btn-sm" for="weeklyRevenue">Tuần</label>
-                                
-                                <input type="radio" class="btn-check" name="revenueFilter" id="monthlyRevenue" value="monthly">
+
+                                <input type="radio" class="btn-check" name="revenueFilter" id="monthlyRevenue"
+                                    value="monthly">
                                 <label class="btn btn-outline-primary btn-sm" for="monthlyRevenue">Tháng</label>
-                                
-                                <input type="radio" class="btn-check" name="revenueFilter" id="quarterlyRevenue" value="quarterly">
+
+                                <input type="radio" class="btn-check" name="revenueFilter" id="quarterlyRevenue"
+                                    value="quarterly">
                                 <label class="btn btn-outline-primary btn-sm" for="quarterlyRevenue">Quý</label>
                             </div>
                         </div>

@@ -79,8 +79,14 @@
                                 <!-- Will be populated by JavaScript -->
                             </div>
 
+                            <!-- Admin Login Button - Hiện khi chưa đăng nhập -->
+                            <div id="adminLoginButton" class="me-3" style="display: none;">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+
                             <!-- Cart Icon - Chỉ hiện khi user đăng nhập (không phải admin) -->
-                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3"
+                                style="display: none;">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span class="badge bg-danger position-absolute top-0 start-100 translate-middle"
                                     id="cartCount">0</span>
@@ -112,56 +118,6 @@
         </div>
     </section>
 
-    <!-- Contact Options -->
-    <section class="contact-options py-5">
-        <div class="container">
-            <div class="row g-4">
-                <!-- Option 1: Individual User -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="contact-option-card">
-                        <div class="option-icon">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h3 class="option-title">Tôi là người dùng cá nhân</h3>
-                        <p class="option-desc">Nếu bạn có bất kỳ câu hỏi nào trong quá trình sử dụng sản phẩm</p>
-                        <button class="btn btn-outline-primary" onclick="selectContactType('individual')">
-                            Đăng ký ngay
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Option 2: Business Customer -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="contact-option-card">
-                        <div class="option-icon">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <h3 class="option-title">Tôi là khách hàng doanh nghiệp</h3>
-                        <p class="option-desc">Nếu bạn muốn hợp tác với chúng tôi về mua sắm số lượng lớn hoặc ngành
-                            kinh doanh khác kênh sau.</p>
-                        <button class="btn btn-outline-primary" onclick="selectContactType('business')">
-                            Đăng ký ngay
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Option 3: Content Creator -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="contact-option-card">
-                        <div class="option-icon">
-                            <i class="fas fa-video"></i>
-                        </div>
-                        <h3 class="option-title">Tôi là người sáng tạo nội dung</h3>
-                        <p class="option-desc">Nếu bạn thích chia sẻ trải nghiệm sản phẩm và quan tâm đến việc hợp tác
-                            cùng GOOJODOQ, đừng ngần ngại liên hệ với đội ngũ marketing của chúng tôi.</p>
-                        <button class="btn btn-outline-primary" onclick="selectContactType('creator')">
-                            Đăng ký ngay
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Contact Form Section -->
     <section class="contact-form-section py-5 bg-light" id="contactFormSection">
@@ -233,9 +189,26 @@
         </div>
     </section>
 
-    <!-- Contact Info -->
+    <!-- Contact Info with Map -->
     <section class="contact-info-section py-5">
         <div class="container">
+            <!-- Map Section -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="map-container">
+                        <h2 class="section-title text-center mb-4">Vị trí của chúng tôi</h2>
+                        <div class="map-wrapper">
+                            <iframe
+                                src="https://www.google.com/maps?q=126+Nguyễn+Thiện+Thành,+Phường+5,+Trà+Vinh,+Việt+Nam&output=embed"
+                                width="100%" height="400" style="border:0; border-radius: 15px;" allowfullscreen=""
+                                loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Info Cards -->
             <div class="row g-4">
                 <div class="col-lg-4 col-md-6">
                     <div class="info-card">
@@ -243,7 +216,7 @@
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <h4 class="info-title">Địa chỉ</h4>
-                        <p class="info-text">123 Đường ABC, Quận 1<br>Thành phố Hồ Chí Minh, Việt Nam</p>
+                        <p class="info-text">126 Nguyễn Thiện Thành, Phường 5<br>Trà Vinh, Việt Nam</p>
                     </div>
                 </div>
 
@@ -255,7 +228,7 @@
                         <h4 class="info-title">Điện thoại</h4>
                         <p class="info-text">
                             Hotline: 1900-xxxx<br>
-                            Tel: (028) 1234 5678
+                            Tel: (0294) 1234 5678
                         </p>
                     </div>
                 </div>
@@ -365,11 +338,11 @@
         </div>
     </footer>
 
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <!-- Custom JS -->
-        <script src="js/main.js"></script>
-        <script src="js/contact.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/main.js"></script>
+    <script src="js/contact.js"></script>
 </body>
 
 </html>

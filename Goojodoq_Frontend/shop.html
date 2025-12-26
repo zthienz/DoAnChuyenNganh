@@ -64,6 +64,11 @@
                                 <!-- Will be populated by JavaScript -->
                             </div>
 
+                            <!-- Admin Login Button - Hiện khi chưa đăng nhập -->
+                            <div id="adminLoginButton" class="me-3" style="display: none;">
+                                <!-- Will be populated by JavaScript -->
+                            </div>
+
                             <!-- Cart Icon - Chỉ hiện khi user đăng nhập (không phải admin) -->
                             <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
                                 <i class="fas fa-shopping-cart"></i>
@@ -106,7 +111,6 @@
                 <!-- Sidebar Filters -->
                 <div class="col-lg-3 col-md-4 mb-4">
                     <div class="shop-sidebar">
-
 
                         <!-- Category Filter -->
                         <div class="sidebar-widget">
@@ -182,6 +186,31 @@
                                     <input class="form-check-input category-filter" type="checkbox" value="11" id="cat11">
                                     <label class="form-check-label" for="cat11">
                                         Tai Nghe
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="sidebar-widget">
+                            <h5 class="widget-title">Trạng thái sản phẩm</h5>
+                            <div class="status-list">
+                                <div class="form-check">
+                                    <input class="form-check-input status-filter" type="checkbox" value="sale" id="filterSale">
+                                    <label class="form-check-label" for="filterSale">
+                                        <i class="fas fa-tag text-danger me-2"></i>Đang giảm giá
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input status-filter" type="checkbox" value="in-stock" id="filterInStock">
+                                    <label class="form-check-label" for="filterInStock">
+                                        <i class="fas fa-check-circle text-success me-2"></i>Còn hàng
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input status-filter" type="checkbox" value="out-of-stock" id="filterOutOfStock">
+                                    <label class="form-check-label" for="filterOutOfStock">
+                                        <i class="fas fa-times-circle text-danger me-2"></i>Hết hàng
                                     </label>
                                 </div>
                             </div>
