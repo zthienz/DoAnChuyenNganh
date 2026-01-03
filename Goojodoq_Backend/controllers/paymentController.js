@@ -163,15 +163,26 @@ export const handlePayOSWebhook = async (req, res) => {
 
     // Nếu thanh toán thành công, cập nhật trạng thái đơn hàng
     if (success) {
-      await pool.query(
+      console.log('🔄 Updating order payment status for orderId:', orderId);
+      
+      const updateResult = await pool.query(
         `UPDATE donhang 
-         SET trangthai = 'cho_xacnhan', phuongthuc_thanhtoan = 'payos', 
+         SET trangthai_thanhtoan = 'da_tt', phuongthuc_thanhtoan = 'bank_transfer', 
              ngay_capnhat = NOW() 
          WHERE id_donhang = ?`,
         [orderId]
       );
 
       console.log('✅ Payment successful for order:', orderId);
+      console.log('📊 Update result:', updateResult);
+      
+      // Kiểm tra lại trạng thái sau khi cập nhật
+      const [updatedOrder] = await pool.query(
+        'SELECT trangthai, trangthai_thanhtoan, phuongthuc_thanhtoan FROM donhang WHERE id_donhang = ?',
+        [orderId]
+      );
+      console.log('🔍 Order status after update:', updatedOrder[0]);
+      
     } else {
       console.log('❌ Payment failed for order:', orderId, 'Reason:', desc);
     }

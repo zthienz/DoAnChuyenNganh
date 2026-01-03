@@ -199,6 +199,11 @@ export const getOrders = async (req, res) => {
     if (orders.length > 0) {
       console.log('📦 First order id_nguoidung:', orders[0].id_nguoidung);
       console.log('📦 First order ma_donhang:', orders[0].ma_donhang);
+      console.log('📦 First order payment info:', {
+        trangthai: orders[0].trangthai,
+        trangthai_thanhtoan: orders[0].trangthai_thanhtoan,
+        phuongthuc_thanhtoan: orders[0].phuongthuc_thanhtoan
+      });
       console.log('📦 All order user IDs:', orders.map(o => o.id_nguoidung));
     }
 
@@ -280,9 +285,9 @@ export const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
 
-    // Kiểm tra trạng thái đơn hàng
+    // Kiểm tra thông tin đơn hàng
     const [orders] = await pool.query(
-      'SELECT trangthai FROM donhang WHERE id_donhang = ?',
+      'SELECT trangthai, phuongthuc_thanhtoan, trangthai_thanhtoan FROM donhang WHERE id_donhang = ?',
       [orderId]
     );
 
@@ -290,11 +295,23 @@ export const cancelOrder = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
     }
 
-    if (orders[0].trangthai !== 'cho_xacnhan') {
-      return res.status(400).json({ error: 'Không thể hủy đơn hàng này' });
+    const order = orders[0];
+
+    // Kiểm tra trạng thái đơn hàng - chỉ cho phép hủy khi chờ xác nhận
+    if (order.trangthai !== 'cho_xacnhan') {
+      return res.status(400).json({ 
+        error: 'Không thể hủy đơn hàng này. Đơn hàng đã được xác nhận hoặc đang giao.' 
+      });
     }
 
-    // Cập nhật trạng thái
+    // Kiểm tra phương thức thanh toán - KHÔNG cho phép hủy đơn hàng chuyển khoản
+    if (order.phuongthuc_thanhtoan === 'bank_transfer' || order.phuongthuc_thanhtoan === 'momo' || order.phuongthuc_thanhtoan === 'vnpay') {
+      return res.status(400).json({ 
+        error: 'Không thể hủy đơn hàng thanh toán bằng chuyển khoản. Vui lòng liên hệ hỗ trợ khách hàng nếu cần thiết.' 
+      });
+    }
+
+    // Cập nhật trạng thái đơn hàng
     await pool.query(
       'UPDATE donhang SET trangthai = "huy" WHERE id_donhang = ?',
       [orderId]
@@ -313,7 +330,13 @@ export const cancelOrder = async (req, res) => {
       );
     }
 
-    res.json({ success: true, message: 'Đã hủy đơn hàng' });
+    // Nếu có giao dịch thanh toán đang pending, cập nhật thành cancelled
+    await pool.query(
+      'UPDATE payment_transactions SET status = "cancelled" WHERE id_donhang = ? AND status = "pending"',
+      [orderId]
+    );
+
+    res.json({ success: true, message: 'Đã hủy đơn hàng thành công' });
 
   } catch (err) {
     console.error('Error in cancelOrder:', err);

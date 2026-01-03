@@ -212,7 +212,39 @@ function displayOrders(orders) {
     let html = '';
     orders.forEach(order => {
         const statusBadge = getStatusBadge(order.trangthai);
-        const canCancel = order.trangthai === 'cho_xacnhan';
+        
+        // Logic hủy đơn hàng mới
+        let canCancel = false;
+        let cancelTooltip = '';
+        
+        // Debug log để kiểm tra dữ liệu
+        console.log('🔍 Order debug:', {
+            id: order.id_donhang,
+            ma_donhang: order.ma_donhang,
+            trangthai: order.trangthai,
+            phuongthuc_thanhtoan: order.phuongthuc_thanhtoan,
+            trangthai_thanhtoan: order.trangthai_thanhtoan,
+            canCancel: canCancel,
+            cancelTooltip: cancelTooltip
+        });
+        
+        if (order.trangthai === 'cho_xacnhan') {
+            // Nếu thanh toán COD, luôn cho phép hủy khi chờ xác nhận
+            if (order.phuongthuc_thanhtoan === 'cod') {
+                canCancel = true;
+                console.log('✅ COD order - can cancel');
+            } 
+            // Nếu thanh toán chuyển khoản, KHÔNG cho phép hủy (bất kể đã thanh toán hay chưa)
+            else if (order.phuongthuc_thanhtoan === 'bank_transfer' || order.phuongthuc_thanhtoan === 'momo' || order.phuongthuc_thanhtoan === 'vnpay') {
+                canCancel = false;
+                cancelTooltip = 'Không thể hủy đơn hàng thanh toán bằng chuyển khoản. Vui lòng liên hệ hỗ trợ khách hàng nếu cần thiết.';
+                console.log('❌ Bank transfer order - cannot cancel (policy)');
+            }
+        } else {
+            cancelTooltip = 'Chỉ có thể hủy đơn hàng khi chờ xác nhận';
+            console.log('❌ Order not in pending status - cannot cancel');
+        }
+        
         const canConfirmReceived = order.trangthai === 'dang_giao';
         const canReview = order.trangthai === 'hoanthanh';
         
@@ -220,6 +252,26 @@ function displayOrders(orders) {
         let addressStr = '';
         if (order.diachi_chitiet) {
             addressStr = `${order.diachi_chitiet}, ${order.quanhuyen}, ${order.thanhpho}`;
+        }
+        
+        // Hiển thị phương thức thanh toán
+        let paymentMethodText = '';
+        switch(order.phuongthuc_thanhtoan) {
+            case 'cod':
+                paymentMethodText = '<span class="badge bg-secondary"><i class="fas fa-money-bill-wave me-1"></i>COD</span>';
+                break;
+            case 'bank_transfer':
+            case 'payos':
+                paymentMethodText = '<span class="badge bg-primary"><i class="fas fa-university me-1"></i>Chuyển khoản</span>';
+                break;
+            case 'momo':
+                paymentMethodText = '<span class="badge bg-danger"><i class="fas fa-mobile-alt me-1"></i>MoMo</span>';
+                break;
+            case 'vnpay':
+                paymentMethodText = '<span class="badge bg-info"><i class="fas fa-credit-card me-1"></i>VNPay</span>';
+                break;
+            default:
+                paymentMethodText = '<span class="badge bg-light text-dark">Khác</span>';
         }
         
         html += `
@@ -238,7 +290,10 @@ function displayOrders(orders) {
                             })}
                         </span>
                     </div>
-                    <div>${statusBadge}</div>
+                    <div>
+                        ${statusBadge}
+                        <span class="ms-2">${paymentMethodText}</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-light mb-3 py-2">
@@ -307,7 +362,11 @@ function displayOrders(orders) {
                                 <button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id_donhang})">
                                     <i class="fas fa-times me-1"></i>Hủy đơn
                                 </button>
-                            ` : ''}
+                            ` : (cancelTooltip ? `
+                                <button class="btn btn-sm btn-outline-secondary" disabled title="${cancelTooltip}">
+                                    <i class="fas fa-times me-1"></i>Hủy đơn
+                                </button>
+                            ` : '')}
                             ${canConfirmReceived ? `
                                 <button class="btn btn-sm btn-success" onclick="confirmReceived(${order.id_donhang})">
                                     <i class="fas fa-check me-1"></i>Đã nhận hàng

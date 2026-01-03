@@ -2131,3 +2131,55 @@ body {
         min-height: 32px; /* Giảm để thu gọn */
     }
 }
+
+/* =============================================
+   ORDER CANCEL BUTTON STYLES
+   ============================================= */
+.btn-outline-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.btn-outline-secondary:disabled:hover {
+    opacity: 0.5;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Tooltip for disabled buttons */
+.btn[disabled][title] {
+    position: relative;
+}
+
+.btn[disabled][title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+.btn[disabled][title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+}

@@ -243,7 +243,7 @@ async function confirmOrder() {
             subtotal: subtotalAmount,
             discount: discountAmount,
             addressId: addressData.id_diachi,
-            paymentMethod: paymentMethod,
+            paymentMethod: paymentMethod === 'bank' ? 'bank_transfer' : paymentMethod,
             note: note,
             voucherCode: appliedVoucher ? appliedVoucher.code : null
         };

@@ -88,12 +88,58 @@ function displayOrders(orders) {
     orders.forEach(order => {
         const statusBadge = getStatusBadge(order.trangthai);
         const canConfirm = order.trangthai === 'cho_xacnhan';
-        const canCancel = order.trangthai === 'cho_xacnhan';
+        
+        // Logic hủy đơn hàng cho admin - tương tự như user
+        let canCancel = false;
+        let cancelTooltip = '';
+        
+        if (order.trangthai === 'cho_xacnhan') {
+            // Admin có thể hủy đơn COD bất kỳ lúc nào khi chờ xác nhận
+            if (order.phuongthuc_thanhtoan === 'cod') {
+                canCancel = true;
+            } 
+            // Với đơn hàng chuyển khoản, admin KHÔNG thể hủy (bất kể đã thanh toán hay chưa)
+            else if (order.phuongthuc_thanhtoan === 'bank_transfer' || order.phuongthuc_thanhtoan === 'momo' || order.phuongthuc_thanhtoan === 'vnpay') {
+                canCancel = false;
+                cancelTooltip = 'Không thể hủy đơn hàng thanh toán bằng chuyển khoản. Cần xử lý thủ công nếu cần thiết.';
+            }
+        } else {
+            cancelTooltip = 'Chỉ có thể hủy đơn hàng khi chờ xác nhận';
+        }
         
         // Build address string
         let addressStr = '';
         if (order.diachi_chitiet) {
             addressStr = `${order.diachi_chitiet}, ${order.quanhuyen}, ${order.thanhpho}`;
+        }
+        
+        // Hiển thị phương thức thanh toán
+        let paymentMethodText = '';
+        let paymentStatusText = '';
+        
+        switch(order.phuongthuc_thanhtoan) {
+            case 'cod':
+                paymentMethodText = '<span class="badge bg-secondary"><i class="fas fa-money-bill-wave me-1"></i>COD</span>';
+                break;
+            case 'bank_transfer':
+            case 'payos':
+                paymentMethodText = '<span class="badge bg-primary"><i class="fas fa-university me-1"></i>Chuyển khoản</span>';
+                break;
+            case 'momo':
+                paymentMethodText = '<span class="badge bg-danger"><i class="fas fa-mobile-alt me-1"></i>MoMo</span>';
+                break;
+            case 'vnpay':
+                paymentMethodText = '<span class="badge bg-info"><i class="fas fa-credit-card me-1"></i>VNPay</span>';
+                break;
+            default:
+                paymentMethodText = '<span class="badge bg-light text-dark">Khác</span>';
+        }
+        
+        // Trạng thái thanh toán
+        if (order.trangthai_thanhtoan === 'da_tt') {
+            paymentStatusText = '<span class="badge bg-success ms-1"><i class="fas fa-check me-1"></i>Đã thanh toán</span>';
+        } else {
+            paymentStatusText = '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-clock me-1"></i>Chưa thanh toán</span>';
         }
         
         html += `
@@ -112,7 +158,10 @@ function displayOrders(orders) {
                             })}
                         </span>
                     </div>
-                    <div>${statusBadge}</div>
+                    <div>
+                        ${statusBadge}
+                        <span class="ms-2">${paymentMethodText}${paymentStatusText}</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
@@ -197,7 +246,11 @@ function displayOrders(orders) {
                                 <button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id_donhang})">
                                     <i class="fas fa-times me-1"></i>Hủy đơn
                                 </button>
-                            ` : ''}
+                            ` : (cancelTooltip ? `
+                                <button class="btn btn-sm btn-outline-secondary" disabled title="${cancelTooltip}">
+                                    <i class="fas fa-times me-1"></i>Hủy đơn
+                                </button>
+                            ` : '')}
                         </div>
                     </div>
                 </div>
