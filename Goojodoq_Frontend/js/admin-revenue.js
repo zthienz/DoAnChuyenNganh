@@ -75,6 +75,9 @@ async function loadRevenue() {
         // Update details table
         updateDetailsTable(data.details, filterType);
 
+        // Enable export button after loading data
+        enableExportButton();
+
     } catch (error) {
         console.error('❌ Error loading revenue:', error);
         showNotification('Không thể tải dữ liệu doanh thu!', 'error');
@@ -190,4 +193,34 @@ function showNotification(message, type = 'info') {
 // Export to Excel (optional feature)
 function exportToExcel() {
     showNotification('Tính năng xuất Excel đang được phát triển...', 'info');
+}
+
+// Xuất báo cáo doanh thu theo khoảng thời gian
+function exportPeriodReport() {
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+
+    if (!fromDate || !toDate) {
+        showNotification('Vui lòng chọn khoảng thời gian trước khi xuất báo cáo!', 'warning');
+        return;
+    }
+
+    // Gọi hàm xuất hóa đơn tổng hợp từ invoice.js
+    exportPeriodInvoice(fromDate, toDate);
+}
+
+// Cập nhật trạng thái nút xuất báo cáo khi có dữ liệu
+function enableExportButton() {
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.disabled = false;
+    }
+}
+
+// Vô hiệu hóa nút xuất báo cáo khi chưa có dữ liệu
+function disableExportButton() {
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.disabled = true;
+    }
 }

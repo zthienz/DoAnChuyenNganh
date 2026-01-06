@@ -97,22 +97,13 @@ function displayAddress() {
 // Display products
 function displayProducts() {
     const productsHtml = cartData.items.map(item => {
-        let imageUrl = item.image || '/images/products/default.jpg';
-        if (imageUrl.startsWith('/images')) {
-            imageUrl = `http://localhost:3000${imageUrl}`;
-        }
-
         const itemTotal = item.soluong * parseFloat(item.gia_donvi);
 
         return `
             <div class="product-item">
-                <img src="${imageUrl}" 
-                     alt="${item.product_name}" 
-                     class="product-image"
-                     onerror="this.src='images/products/default.jpg'">
                 <div class="product-info">
                     <h6 class="mb-1">${item.product_name}</h6>
-                    <p class="text-muted mb-1">SKU: ${item.sku}</p>
+                    <p class="text-muted mb-1">SKU: ${item.sku || 'N/A'}</p>
                     <p class="mb-0">
                         <span class="text-primary">${formatPrice(item.gia_donvi)}</span>
                         <span class="text-muted"> x ${item.soluong}</span>

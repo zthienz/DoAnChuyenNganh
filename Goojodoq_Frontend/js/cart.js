@@ -61,10 +61,8 @@ function displayCart() {
 
     // Display cart items
     cartItems.innerHTML = cartData.items.map(item => {
-        let imageUrl = item.image || '/images/products/default.jpg';
-        if (imageUrl.startsWith('/images')) {
-            imageUrl = `http://localhost:3000${imageUrl}`;
-        }
+        // Sử dụng utility function để xử lý đường dẫn hình ảnh
+        const imageUrl = processImageUrl(item.image);
 
         const itemTotal = item.soluong * parseFloat(item.gia_donvi);
         const isSelected = selectedItems.has(item.id_chitiet);
@@ -81,7 +79,7 @@ function displayCart() {
                     <img src="${imageUrl}" 
                          alt="${item.product_name}" 
                          class="cart-item-image"
-                         onerror="this.src='images/products/default.jpg'">
+                         onerror="handleImageError(this)">
                     
                     <div class="cart-item-info">
                         <h5 class="cart-item-title">${item.product_name}</h5>
@@ -368,5 +366,22 @@ async function checkout() {
     } catch (error) {
         console.error('Error during checkout:', error);
         showNotification('Không thể xử lý thanh toán. Vui lòng thử lại!', 'error');
+    }
+}
+// Handle image loading errors
+function handleImageError(img) {
+    // Prevent infinite loop
+    if (img.src.includes('default.jpg')) {
+        return;
+    }
+    
+    // Try different fallback paths
+    if (img.src.startsWith('http://localhost:3000')) {
+        // If backend URL failed, try frontend relative path
+        const imagePath = img.src.replace('http://localhost:3000/images/products/', '');
+        img.src = `images/products/${imagePath}`;
+    } else {
+        // If all else fails, use default image
+        img.src = 'images/products/default.jpg';
     }
 }

@@ -237,6 +237,9 @@ function displayOrders(orders) {
                             <button class="btn btn-sm btn-info text-white" onclick="viewOrderDetail(${order.id_donhang})">
                                 <i class="fas fa-eye me-1"></i>Chi tiết
                             </button>
+                            <button class="btn btn-sm btn-secondary" onclick="exportOrderInvoice(${order.id_donhang})" title="Xuất hóa đơn">
+                                <i class="fas fa-file-invoice me-1"></i>Hóa đơn
+                            </button>
                             ${canConfirm ? `
                                 <button class="btn btn-sm btn-success" onclick="confirmOrder(${order.id_donhang})">
                                     <i class="fas fa-check me-1"></i>Xác nhận

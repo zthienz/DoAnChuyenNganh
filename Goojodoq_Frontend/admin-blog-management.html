@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý bài viết - Admin GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .blog-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .blog-thumbnail {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .status-badge {
+            font-size: 0.8em;
+        }
+        
+        .action-buttons .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Admin Header -->
+    <section class="admin-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2">Quản lý bài viết</h1>
+                    <p class="mb-0">Quản lý tất cả bài viết trên website GOOJODOQ</p>
+                </div>
+                <div>
+                    <a href="admin-add-blog.html" class="btn btn-light me-2">
+                        <i class="fas fa-plus me-2"></i>Thêm bài viết
+                    </a>
+                    <a href="blog.html" class="btn btn-outline-light">
+                        <i class="fas fa-eye me-2"></i>Xem trang bài viết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="text-primary" id="totalPosts">0</h3>
+                            <p class="mb-0">Tổng bài viết</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="text-success" id="publishedPosts">0</h3>
+                            <p class="mb-0">Đã xuất bản</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="text-warning" id="draftPosts">0</h3>
+                            <p class="mb-0">Bản nháp</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="text-info" id="thisMonth">0</h3>
+                            <p class="mb-0">Tháng này</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm bài viết...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="categoryFilter">
+                                <option value="">Tất cả danh mục</option>
+                                <option value="Đánh giá sản phẩm">Đánh giá sản phẩm</option>
+                                <option value="Hướng dẫn">Hướng dẫn</option>
+                                <option value="Tin tức">Tin tức</option>
+                                <option value="Khuyến mãi">Khuyến mãi</option>
+                                <option value="Công nghệ">Công nghệ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="sortBy">
+                                <option value="date">Sắp xếp theo ngày</option>
+                                <option value="title">Sắp xếp theo tiêu đề</option>
+                                <option value="category">Sắp xếp theo danh mục</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-outline-secondary" onclick="clearFilters()" title="Xóa bộ lọc">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="loadBlogPosts()" title="Làm mới">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blog Posts Table -->
+            <div class="blog-table">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Hình ảnh</th>
+                                <th>Tiêu đề</th>
+                                <th>Danh mục</th>
+                                <th>Tác giả</th>
+                                <th>Ngày tạo</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blogTableBody">
+                            <!-- Blog posts will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center" id="pagination">
+                    <!-- Pagination will be generated here -->
+                </ul>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa bài viết này không?</p>
+                    <p class="text-danger"><strong>Lưu ý:</strong> Hành động này không thể hoàn tác!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let blogPosts = [];
+        let filteredPosts = [];
+        let currentPage = 1;
+        const postsPerPage = 10;
+        let postToDelete = null;
+
+        // Load blog posts
+        function loadBlogPosts() {
+            blogPosts = JSON.parse(localStorage.getItem('blogPosts')) || [];
+            
+            // If no blog posts exist, initialize with sample data
+            if (blogPosts.length === 0) {
+                console.log('🔄 No blog posts found, initializing with sample data...');
+                initializeSampleData();
+            }
+            
+            filteredPosts = [...blogPosts];
+            updateStats();
+            displayPosts();
+            generatePagination();
+        }
+
+        // Initialize sample data
+        function initializeSampleData() {
+            const samplePosts = [
+                {
+                    id: 1,
+                    title: "Top 5 tai nghe Bluetooth tốt nhất năm 2025",
+                    excerpt: "Khám phá những mẫu tai nghe Bluetooth chất lượng cao với âm thanh tuyệt vời và pin bền bỉ...",
+                    content: `
+                        <h2>Giới thiệu</h2>
+                        <p>Tai nghe Bluetooth đã trở thành phụ kiện không thể thiếu trong cuộc sống hiện đại. Với sự phát triển của công nghệ, các sản phẩm tai nghe Bluetooth ngày càng được cải tiến về chất lượng âm thanh, thời lượng pin và tính năng thông minh.</p>
+                        
+                        <h3>1. GOOJODOQ Air Pro</h3>
+                        <p>Với công nghệ chống ồn chủ động ANC và thời lượng pin lên đến 30 giờ, GOOJODOQ Air Pro là lựa chọn hàng đầu cho những ai yêu thích âm nhạc chất lượng cao.</p>
+                        
+                        <h3>2. GOOJODOQ Sport</h3>
+                        <p>Thiết kế chống nước IPX7, phù hợp cho các hoạt động thể thao và tập luyện. Âm thanh mạnh mẽ với bass sâu.</p>
+                        
+                        <h3>Kết luận</h3>
+                        <p>Việc chọn tai nghe Bluetooth phù hợp phụ thuộc vào nhu cầu sử dụng của từng người. Hãy cân nhắc các yếu tố như chất lượng âm thanh, thời lượng pin và giá cả để đưa ra quyết định tốt nhất.</p>
+                    `,
+                    category: "Đánh giá sản phẩm",
+                    date: "20/11/2025",
+                    image: "images/products/TAINGHE001-1.webp",
+                    author: "Admin"
+                },
+                {
+                    id: 2,
+                    title: "Hướng dẫn chọn quạt mini phù hợp cho mùa hè",
+                    excerpt: "Mùa hè đang đến, cùng tìm hiểu cách chọn quạt mini phù hợp với nhu cầu của bạn...",
+                    content: `
+                        <h2>Tại sao nên chọn quạt mini?</h2>
+                        <p>Quạt mini là giải pháp tuyệt vời cho những ngày hè nóng bức. Với kích thước nhỏ gọn, dễ dàng mang theo và sử dụng ở mọi nơi.</p>
+                        
+                        <h3>Các tiêu chí chọn quạt mini</h3>
+                        <ul>
+                            <li><strong>Thời lượng pin:</strong> Nên chọn sản phẩm có pin từ 4-8 giờ</li>
+                            <li><strong>Tốc độ gió:</strong> Có ít nhất 3 cấp độ điều chỉnh</li>
+                            <li><strong>Độ ồn:</strong> Dưới 40dB để không gây khó chịu</li>
+                            <li><strong>Chất liệu:</strong> Nhựa ABS cao cấp, an toàn</li>
+                        </ul>
+                        
+                        <h3>Sản phẩm đề xuất</h3>
+                        <p>GOOJODOQ Mini Fan với thiết kế hiện đại, pin 6 giờ và 3 cấp độ gió là lựa chọn tuyệt vời cho mùa hè này.</p>
+                    `,
+                    category: "Hướng dẫn",
+                    date: "18/11/2025",
+                    image: "images/products/QUAT001-1.webp",
+                    author: "Admin"
+                },
+                {
+                    id: 3,
+                    title: "GOOJODOQ ra mắt bộ sưu tập phụ kiện mới",
+                    excerpt: "Chúng tôi vui mừng giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với nhiều tính năng ưu việt...",
+                    content: `
+                        <h2>Bộ sưu tập mới 2025</h2>
+                        <p>GOOJODOQ tự hào giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với thiết kế hiện đại và công nghệ tiên tiến.</p>
+                        
+                        <h3>Sản phẩm nổi bật</h3>
+                        <ol>
+                            <li>Hub USB-C 7 trong 1</li>
+                            <li>Sạc dự phòng 20000mAh</li>
+                            <li>Cáp sạc nhanh 100W</li>
+                            <li>Đế sạc không dây 15W</li>
+                        </ol>
+                        
+                        <p>Tất cả sản phẩm đều được thiết kế với chất lượng cao và giá cả hợp lý, phù hợp với mọi đối tượng khách hàng.</p>
+                    `,
+                    category: "Tin tức",
+                    date: "15/11/2025",
+                    image: "images/products/HUB001_1.webp",
+                    author: "Admin"
+                }
+            ];
+            
+            blogPosts = samplePosts;
+            localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+            console.log('✅ Sample blog posts initialized');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = blogPosts.length;
+            const published = blogPosts.filter(post => !post.status || post.status !== 'draft').length;
+            const drafts = blogPosts.filter(post => post.status === 'draft').length;
+            
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const thisMonth = blogPosts.filter(post => {
+                try {
+                    const postDate = new Date(post.date.split('/').reverse().join('-'));
+                    return postDate.getMonth() === currentMonth && postDate.getFullYear() === currentYear;
+                } catch (e) {
+                    return false;
+                }
+            }).length;
+
+            document.getElementById('totalPosts').textContent = total;
+            document.getElementById('publishedPosts').textContent = published;
+            document.getElementById('draftPosts').textContent = drafts;
+            document.getElementById('thisMonth').textContent = thisMonth;
+        }
+
+        // Display posts in table
+        function displayPosts() {
+            const startIndex = (currentPage - 1) * postsPerPage;
+            const endIndex = startIndex + postsPerPage;
+            const postsToShow = filteredPosts.slice(startIndex, endIndex);
+
+            const tbody = document.getElementById('blogTableBody');
+            
+            if (postsToShow.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Không có bài viết nào</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = postsToShow.map(post => `
+                <tr>
+                    <td>
+                        <img src="${post.image}" alt="${post.title}" class="blog-thumbnail"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2260%22%3E%3Crect width=%2280%22 height=%2260%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2210%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                    </td>
+                    <td>
+                        <div>
+                            <h6 class="mb-1">${post.title}</h6>
+                            <small class="text-muted">${post.excerpt.substring(0, 80)}...</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary">${post.category}</span>
+                    </td>
+                    <td>${post.author}</td>
+                    <td>${post.date}</td>
+                    <td>
+                        <span class="badge status-badge ${post.status === 'draft' ? 'bg-warning' : 'bg-success'}">
+                            ${post.status === 'draft' ? 'Bản nháp' : 'Đã xuất bản'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="blog-detail.html?id=${post.id}" class="btn btn-sm btn-outline-primary" title="Xem">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-warning" onclick="editPost(${post.id})" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePost(${post.id})" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Generate pagination
+        function generatePagination() {
+            const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+            const pagination = document.getElementById('pagination');
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let paginationHTML = '';
+
+            // Previous button
+            paginationHTML += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Trước</a>
+                </li>
+            `;
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    paginationHTML += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                        </li>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+
+            // Next button
+            paginationHTML += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Sau</a>
+                </li>
+            `;
+
+            pagination.innerHTML = paginationHTML;
+        }
+
+        // Change page
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                displayPosts();
+                generatePagination();
+            }
+        }
+
+        // Filter posts
+        function filterPosts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            filteredPosts = blogPosts.filter(post => {
+                const matchesSearch = post.title.toLowerCase().includes(searchTerm) || 
+                                    post.excerpt.toLowerCase().includes(searchTerm);
+                const matchesCategory = !categoryFilter || post.category === categoryFilter;
+                
+                return matchesSearch && matchesCategory;
+            });
+
+            // Sort posts
+            filteredPosts.sort((a, b) => {
+                switch (sortBy) {
+                    case 'title':
+                        return a.title.localeCompare(b.title);
+                    case 'category':
+                        return a.category.localeCompare(b.category);
+                    case 'date':
+                    default:
+                        return new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-'));
+                }
+            });
+
+            currentPage = 1;
+            displayPosts();
+            generatePagination();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('sortBy').value = 'date';
+            filterPosts();
+        }
+
+        // Edit post
+        function editPost(id) {
+            // For now, redirect to add page with edit mode
+            // In a real application, you would pass the post ID and load it for editing
+            window.location.href = `admin-add-blog.html?edit=${id}`;
+        }
+
+        // Delete post
+        function deletePost(id) {
+            postToDelete = id;
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        // Confirm delete
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+            if (postToDelete) {
+                blogPosts = blogPosts.filter(post => post.id !== postToDelete);
+                localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                modal.hide();
+                
+                loadBlogPosts();
+                postToDelete = null;
+            }
+        });
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterPosts);
+        document.getElementById('categoryFilter').addEventListener('change', filterPosts);
+        document.getElementById('sortBy').addEventListener('change', filterPosts);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check admin access
+            const currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+            if (!currentUser || currentUser.quyen !== 'admin') {
+                alert('Bạn cần đăng nhập với quyền admin để truy cập trang này!');
+                window.location.href = 'admin-login.html';
+                return;
+            }
+
+            console.log('🔍 Admin Blog Management - Loading posts...');
+            loadBlogPosts();
+            
+            // Debug: Log current localStorage data
+            const storedPosts = localStorage.getItem('blogPosts');
+            console.log('📊 Current localStorage blogPosts:', storedPosts ? JSON.parse(storedPosts) : 'No data');
+        });
+    </script>
+</body>
+
+</html>

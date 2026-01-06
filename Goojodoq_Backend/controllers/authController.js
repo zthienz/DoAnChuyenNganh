@@ -248,14 +248,14 @@ export const deleteUser = async (req, res) => {
     // 2. Xóa danh sách yêu thích
     console.log("❤️ Deleting wishlist items");
     await connection.query(
-      "DELETE FROM yeuthich WHERE id_nguoidung = ?",
+      "DELETE FROM sanpham_yeuthich WHERE id_nguoidung = ?",
       [userId]
     );
 
     // 3. Xóa đánh giá
     console.log("⭐ Deleting reviews");
     await connection.query(
-      "DELETE FROM danhgia WHERE id_nguoidung = ?",
+      "DELETE FROM danhgia_sanpham WHERE id_nguoidung = ?",
       [userId]
     );
 

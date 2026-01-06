@@ -2,6 +2,7 @@ import { pool } from "../config/db.js";
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { logActivity } from './activityController.js';
 
 // Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -346,10 +347,10 @@ export const deleteProduct = async (req, res) => {
     await pool.query('DELETE FROM anh_sanpham WHERE id_sanpham = ?', [id]);
 
     // Xóa đánh giá
-    await pool.query('DELETE FROM danhgia WHERE id_sanpham = ?', [id]);
+    await pool.query('DELETE FROM danhgia_sanpham WHERE id_sanpham = ?', [id]);
 
     // Xóa khỏi wishlist
-    await pool.query('DELETE FROM yeuthich WHERE id_sanpham = ?', [id]);
+    await pool.query('DELETE FROM sanpham_yeuthich WHERE id_sanpham = ?', [id]);
 
     // Xóa khỏi giỏ hàng
     await pool.query('DELETE FROM chitiet_giohang WHERE id_sanpham = ?', [id]);
@@ -427,7 +428,7 @@ export const updateProduct = async (req, res) => {
       sku
     } = req.body;
 
-    console.log('📝 Updating product:', { id, category_id, product_name, price, sale_price });
+    console.log('📝 Updating product:', { id, category_id, product_name, price, sale_price, stock_quantity });
 
     // Validation
     if (!product_name || product_name.trim() === '') {
@@ -458,9 +459,9 @@ export const updateProduct = async (req, res) => {
       });
     }
 
-    // Kiểm tra sản phẩm có tồn tại không
+    // Kiểm tra sản phẩm có tồn tại không và lấy thông tin cũ
     const [products] = await pool.query(
-      'SELECT id_sanpham FROM sanpham WHERE id_sanpham = ?',
+      'SELECT id_sanpham, ten_sanpham, tonkho FROM sanpham WHERE id_sanpham = ?',
       [id]
     );
 
@@ -470,6 +471,10 @@ export const updateProduct = async (req, res) => {
         error: 'Không tìm thấy sản phẩm' 
       });
     }
+
+    const oldProduct = products[0];
+    const oldStock = parseInt(oldProduct.tonkho);
+    const newStock = parseInt(stock_quantity);
 
     // Kiểm tra danh mục có tồn tại không
     const [categories] = await pool.query(
@@ -504,10 +509,33 @@ export const updateProduct = async (req, res) => {
         parseInt(category_id),
         currentPrice, // gia là giá bán hiện tại
         originalPrice, // gia_goc là giá gốc
-        parseInt(stock_quantity),
+        newStock,
         id
       ]
     );
+
+    // Ghi lại hoạt động nếu số lượng tồn kho thay đổi
+    if (oldStock !== newStock) {
+      const stockChange = newStock - oldStock;
+      const changeType = stockChange > 0 ? 'tăng' : 'giảm';
+      const changeAmount = Math.abs(stockChange);
+      
+      // Lấy ID admin (tạm thời lấy admin đầu tiên)
+      const [admins] = await pool.query("SELECT id_nguoidung FROM nguoidung WHERE quyen = 'admin' LIMIT 1");
+      const adminId = admins.length > 0 ? admins[0].id_nguoidung : null;
+      
+      if (adminId) {
+        await logActivity({
+          loai_hoatdong: 'product_stock_update',
+          id_nguoidung: adminId,
+          id_sanpham: parseInt(id),
+          tieu_de: `Cập nhật tồn kho sản phẩm "${oldProduct.ten_sanpham}"`,
+          mo_ta: `Admin đã ${changeType} ${changeAmount} sản phẩm (từ ${oldStock} thành ${newStock})`,
+          du_lieu_cu: { tonkho: oldStock },
+          du_lieu_moi: { tonkho: newStock }
+        });
+      }
+    }
 
     res.json({
       success: true,

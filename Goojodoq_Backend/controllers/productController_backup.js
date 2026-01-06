@@ -282,10 +282,10 @@ export const deleteProduct = async (req, res) => {
     await pool.query('DELETE FROM anh_sanpham WHERE id_sanpham = ?', [id]);
 
     // Xóa đánh giá
-    await pool.query('DELETE FROM danhgia WHERE id_sanpham = ?', [id]);
+    await pool.query('DELETE FROM danhgia_sanpham WHERE id_sanpham = ?', [id]);
 
     // Xóa khỏi wishlist
-    await pool.query('DELETE FROM yeuthich WHERE id_sanpham = ?', [id]);
+    await pool.query('DELETE FROM sanpham_yeuthich WHERE id_sanpham = ?', [id]);
 
     // Xóa khỏi giỏ hàng
     await pool.query('DELETE FROM chitiet_giohang WHERE id_sanpham = ?', [id]);

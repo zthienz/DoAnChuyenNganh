@@ -99,68 +99,72 @@ async function loadRecentActivity() {
     try {
         console.log('🔄 Loading recent activity...');
         
-        const response = await fetch(`${API_URL}/orders`);
-        console.log('📡 Orders API response status:', response.status);
+        // Lấy hoạt động gần đây từ API mới
+        const activitiesResponse = await fetch(`${API_URL}/activities/recent?limit=10`);
+        console.log('📡 Activities API response status:', activitiesResponse.status);
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        let activities = [];
+        if (activitiesResponse.ok) {
+            activities = await activitiesResponse.json();
+            console.log('📡 Activities found:', activities.length);
         }
         
-        const data = await response.json();
-        console.log('📡 Orders API response type:', Array.isArray(data) ? 'Array' : 'Object');
-        console.log('📡 Orders API raw data:', data);
-        
-        const allOrders = Array.isArray(data) ? data : (data.orders || []);
-        
-        console.log('📦 Total orders found:', allOrders.length);
-        if (allOrders.length > 0) {
-            console.log('📦 Sample order:', allOrders[0]);
+        // Lấy đơn hàng gần đây để bổ sung
+        const ordersResponse = await fetch(`${API_URL}/orders`);
+        let recentOrders = [];
+        if (ordersResponse.ok) {
+            const orderData = await ordersResponse.json();
+            const allOrders = Array.isArray(orderData) ? orderData : (orderData.orders || []);
+            recentOrders = allOrders
+                .sort((a, b) => new Date(b.ngay_tao) - new Date(a.ngay_tao))
+                .slice(0, 5);
         }
         
-        // Get the 5 most recent orders
-        const recentOrders = allOrders
-            .sort((a, b) => new Date(b.ngay_tao) - new Date(a.ngay_tao))
-            .slice(0, 5);
-
-        console.log('📦 Recent orders:', recentOrders.length);
+        // Kết hợp activities và orders, sắp xếp theo thời gian
+        const combinedActivities = [];
+        
+        // Thêm activities
+        activities.forEach(activity => {
+            combinedActivities.push({
+                type: 'activity',
+                data: activity,
+                timestamp: new Date(activity.ngay_tao)
+            });
+        });
+        
+        // Thêm orders
+        recentOrders.forEach(order => {
+            combinedActivities.push({
+                type: 'order',
+                data: order,
+                timestamp: new Date(order.ngay_tao)
+            });
+        });
+        
+        // Sắp xếp theo thời gian và lấy 10 mục gần nhất
+        const sortedActivities = combinedActivities
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 10);
 
         const activityList = document.getElementById('recentActivity');
         
-        if (recentOrders.length === 0) {
+        if (sortedActivities.length === 0) {
             activityList.innerHTML = `
                 <div class="text-center py-4">
                     <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
-                    <p class="text-muted mt-2 mb-0">Chưa có đơn hàng nào</p>
+                    <p class="text-muted mt-2 mb-0">Chưa có hoạt động nào</p>
                 </div>
             `;
             return;
         }
 
-        activityList.innerHTML = recentOrders.map(order => `
-            <div class="activity-item d-flex align-items-center p-3 border-bottom">
-                <div class="activity-icon me-3">
-                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                </div>
-                <div class="activity-content flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="activity-title mb-1 fw-bold">Đơn hàng #${order.id_donhang}</p>
-                            <p class="activity-desc mb-1 text-muted small">
-                                ${order.ten_nguoidung || order.hoten || 'Khách hàng'} - ${formatPrice(order.tong_tien || 0)}
-                            </p>
-                            <p class="activity-time mb-0 text-muted" style="font-size: 0.8rem;">
-                                <i class="fas fa-clock me-1"></i>${formatDateTime(order.ngay_tao)}
-                            </p>
-                        </div>
-                        <div class="activity-status">
-                            ${getOrderStatusBadge(order.trangthai)}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        activityList.innerHTML = sortedActivities.map(item => {
+            if (item.type === 'activity') {
+                return renderActivityItem(item.data);
+            } else {
+                return renderOrderItem(item.data);
+            }
+        }).join('');
 
         console.log('✅ Recent activity loaded successfully');
 
@@ -174,6 +178,87 @@ async function loadRecentActivity() {
             </div>
         `;
     }
+}
+
+// Render activity item (chỉnh sửa tồn kho, etc.)
+function renderActivityItem(activity) {
+    let icon, bgColor, title, description;
+    
+    switch (activity.loai_hoatdong) {
+        case 'product_stock_update':
+            icon = 'fas fa-boxes';
+            bgColor = 'bg-warning';
+            title = activity.tieu_de;
+            description = activity.mo_ta;
+            break;
+        case 'product_create':
+            icon = 'fas fa-plus-circle';
+            bgColor = 'bg-success';
+            title = activity.tieu_de;
+            description = activity.mo_ta;
+            break;
+        case 'product_update':
+            icon = 'fas fa-edit';
+            bgColor = 'bg-info';
+            title = activity.tieu_de;
+            description = activity.mo_ta;
+            break;
+        default:
+            icon = 'fas fa-cog';
+            bgColor = 'bg-secondary';
+            title = activity.tieu_de;
+            description = activity.mo_ta;
+    }
+    
+    return `
+        <div class="activity-item d-flex align-items-center p-3 border-bottom">
+            <div class="activity-icon me-3">
+                <div class="${bgColor} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="${icon}"></i>
+                </div>
+            </div>
+            <div class="activity-content flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="activity-title mb-1 fw-bold">${title}</p>
+                        <p class="activity-desc mb-1 text-muted small">${description}</p>
+                        <p class="activity-time mb-0 text-muted" style="font-size: 0.8rem;">
+                            <i class="fas fa-clock me-1"></i>${formatDateTime(activity.ngay_tao)}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Render order item (đơn hàng)
+function renderOrderItem(order) {
+    return `
+        <div class="activity-item d-flex align-items-center p-3 border-bottom">
+            <div class="activity-icon me-3">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+            <div class="activity-content flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="activity-title mb-1 fw-bold">Đơn hàng #${order.id_donhang}</p>
+                        <p class="activity-desc mb-1 text-muted small">
+                            ${order.ten_nguoidung || order.hoten || 'Khách hàng'} - ${formatPrice(order.tong_tien || 0)}
+                        </p>
+                        <p class="activity-time mb-0 text-muted" style="font-size: 0.8rem;">
+                            <i class="fas fa-clock me-1"></i>${formatDateTime(order.ngay_tao)}
+                        </p>
+                    </div>
+                    <div class="activity-status">
+                        ${getOrderStatusBadge(order.trangthai)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // =============================================

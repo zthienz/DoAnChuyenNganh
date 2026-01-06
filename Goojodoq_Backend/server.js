@@ -7,11 +7,13 @@ import authRoutes from "./routes/authRoutes.js";
 import supportRoutes from "./routes/supportRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import activityRoutes from "./routes/activityRoutes.js";
 import { getProfile, updateProfile, updateAddress, checkAddress } from "./controllers/profileController.js";
 import { createOrder, getAllOrders, getOrders, getOrderDetail, cancelOrder, confirmReceived, confirmOrder, getRevenueStats, getRevenueByPeriod } from "./controllers/orderController.js";
 import { getWishlist, addToWishlist, removeFromWishlist, checkWishlist } from "./controllers/wishlistController.js";
 import { checkVoucher, getAvailableVouchers, useVoucher, getAllVouchersAdmin, createVoucher, updateVoucher, deleteVoucher } from "./controllers/voucherController.js";
 import { getProductReviews, getProductReviewStats, getOrderProductsForReview, createReview, replyToReview, deleteReviewReply } from "./controllers/reviewController.js";
+import { getOrderInvoice, getPeriodInvoice } from "./controllers/invoiceController.js";
 
 dotenv.config();
 
@@ -248,6 +250,9 @@ app.use("/api/categories", categoryRoutes);
 // Payment routes
 app.use("/api/payment", paymentRoutes);
 
+// Activity routes
+app.use("/api/activities", activityRoutes);
+
 // =============================================
 // PROFILE API ROUTES
 // =============================================
@@ -310,6 +315,15 @@ app.post("/api/reviews/:reviewId/reply", replyToReview);
 
 // Xóa trả lời
 app.delete("/api/reviews/reply/:replyId", deleteReviewReply);
+
+// =============================================
+// INVOICE API ROUTES
+// =============================================
+// Lấy hóa đơn cho 1 đơn hàng
+app.get("/api/invoice/order/:orderId", getOrderInvoice);
+
+// Lấy hóa đơn tổng hợp theo khoảng thời gian
+app.get("/api/invoice/period", getPeriodInvoice);
 
 // =============================================
 // START SERVER

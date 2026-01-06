@@ -79,8 +79,8 @@ export const createPaymentLink = async (req, res) => {
           price: paymentAmount
         }
       ],
-      returnUrl: returnUrl || `http://localhost:3000/payment-success.html?orderId=${orderId}`,
-      cancelUrl: cancelUrl || `http://localhost:3000/payment-cancel.html?orderId=${orderId}`
+      returnUrl: returnUrl || `http://localhost:8080/payment-success.html?orderId=${orderId}`,
+      cancelUrl: cancelUrl || `http://localhost:8080/payment-cancel.html?orderId=${orderId}`
     };
 
     console.log('💳 PayOS payment data:', JSON.stringify(paymentData, null, 2));

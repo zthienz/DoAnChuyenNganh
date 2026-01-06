@@ -49,16 +49,16 @@ export const createOrder = async (req, res) => {
     // Xử lý voucher nếu có
     if (voucherCode) {
       const [vouchers] = await pool.query(
-        'SELECT id_voucher FROM voucher WHERE ma_voucher = ?',
+        'SELECT id_magiamgia FROM magiamgia WHERE ma = ?',
         [voucherCode]
       );
 
       if (vouchers.length > 0) {
-        const voucherId = vouchers[0].id_voucher;
+        const voucherId = vouchers[0].id_magiamgia;
         
-        // Giảm số lượng voucher
+        // Giảm số lượng voucher nếu có giới hạn
         await pool.query(
-          'UPDATE voucher SET soluong = soluong - 1 WHERE id_voucher = ?',
+          'UPDATE magiamgia SET gioihan_sudung = gioihan_sudung - 1 WHERE id_magiamgia = ? AND gioihan_sudung > 0',
           [voucherId]
         );
 

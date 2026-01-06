@@ -149,6 +149,238 @@ CREATE TABLE chitiet_giohang (
     soluong INT NOT NULL DEFAULT 1,
     gia_donvi DECIMAL(15,2) NOT NULL,
     ngay_them TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ngay_capnhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_giohang) REFERENCES giohang(id_giohang) ON DELETE CASCADE,
+    FOREIGN KEY (id_sanpham) REFERENCES sanpham(id_sanpham) ON DELETE CASCADE,
+    UNIQUE KEY unique_cart_product (id_giohang, id_sanpham),
+    INDEX idx_giohang (id_giohang),
+    INDEX idx_sanpham (id_sanpham)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- BẢNG ĐƠN HÀNG (Orders)
+-- =============================================
+CREATE TABLE donhang (
+    id_donhang BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_nguoidung BIGINT UNSIGNED NOT NULL,
+    ma_donhang VARCHAR(50) UNIQUE NOT NULL,
+    trangthai ENUM('cho_xacnhan', 'dang_giao', 'hoanthanh', 'huy') DEFAULT 'cho_xacnhan',
+    tong_tien DECIMAL(15,2) NOT NULL,
+    id_diachi BIGINT UNSIGNED NOT NULL,
+    phuongthuc_thanhtoan ENUM('cod', 'payos') DEFAULT 'cod',
+    ghichu TEXT,
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ngay_capnhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_nguoidung) REFERENCES nguoidung(id_nguoidung) ON DELETE CASCADE,
+    FOREIGN KEY (id_diachi) REFERENCES diachi(id_diachi) ON DELETE RESTRICT,
+    INDEX idx_nguoidung (id_nguoidung),
+    INDEX idx_ma_donhang (ma_donhang),
+    INDEX idx_trangthai (trangthai),
+    INDEX idx_ngay_tao (ngay_tao)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE chitiet_donhang (
+    id_chitiet BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_donhang BIGINT UNSIGNED NOT NULL,
+    id_sanpham BIGINT UNSIGNED NOT NULL,
+    soluong INT NOT NULL,
+    gia_donvi DECIMAL(15,2) NOT NULL,
+    thanh_tien DECIMAL(15,2) NOT NULL,
+    FOREIGN KEY (id_donhang) REFERENCES donhang(id_donhang) ON DELETE CASCADE,
+    FOREIGN KEY (id_sanpham) REFERENCES sanpham(id_sanpham) ON DELETE RESTRICT,
+    INDEX idx_donhang (id_donhang),
+    INDEX idx_sanpham (id_sanpham)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- BẢNG THANH TOÁN (Payment Transactions)
+-- =============================================
+CREATE TABLE payment_transactions (
+    id_transaction BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_donhang BIGINT UNSIGNED NOT NULL,
+    order_code BIGINT NOT NULL UNIQUE,
+    amount DECIMAL(15,2) NOT NULL,
+    payment_method VARCHAR(50) NOT NULL DEFAULT 'payos',
+    status ENUM('pending', 'completed', 'failed', 'cancelled') DEFAULT 'pending',
+    payment_url TEXT,
+    response_code VARCHAR(10),
+    response_desc TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_donhang) REFERENCES donhang(id_donhang) ON DELETE CASCADE,
+    INDEX idx_order_code (order_code),
+    INDEX idx_status (status),
+    INDEX idx_donhang (id_donhang)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- BẢNG MÃ GIẢM GIÁ (Vouchers)
+-- =============================================
+CREATE TABLE magiamgia (
+    id_magiamgia INT PRIMARY KEY AUTO_INCREMENT,
+    ma VARCHAR(50) UNIQUE NOT NULL,
+    mo_ta TEXT,
+    loai_giam ENUM('percent', 'fixed') NOT NULL DEFAULT 'percent',
+    giatri_giam DECIMAL(15,2) NOT NULL,
+    donhang_toi_thieu DECIMAL(15,2) DEFAULT 0,
+    gioihan_sudung INT DEFAULT NULL COMMENT 'NULL = không giới hạn',
+    hieu_luc_tu DATETIME DEFAULT NULL,
+    hieu_luc_den DATETIME DEFAULT NULL,
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ma (ma),
+    INDEX idx_hieu_luc (hieu_luc_tu, hieu_luc_den)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE voucher_sudung (
+    id_sudung BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_voucher INT NOT NULL,
+    id_nguoidung BIGINT UNSIGNED NOT NULL,
+    id_donhang BIGINT UNSIGNED NOT NULL,
+    ngay_sudung TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_voucher) REFERENCES magiamgia(id_magiamgia) ON DELETE CASCADE,
+    FOREIGN KEY (id_nguoidung) REFERENCES nguoidung(id_nguoidung) ON DELETE CASCADE,
+    FOREIGN KEY (id_donhang) REFERENCES donhang(id_donhang) ON DELETE CASCADE,
+    INDEX idx_voucher (id_voucher),
+    INDEX idx_nguoidung (id_nguoidung)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- BẢNG DANH SÁCH YÊU THÍCH (Wishlist)
+-- =============================================
+CREATE TABLE yeuthich (
+    id_yeuthich BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_nguoidung BIGINT UNSIGNED NOT NULL,
+    id_sanpham BIGINT UNSIGNED NOT NULL,
+    ngay_them TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_nguoidung) REFERENCES nguoidung(id_nguoidung) ON DELETE CASCADE,
+    FOREIGN KEY (id_sanpham) REFERENCES sanpham(id_sanpham) ON DELETE CASCADE,
+    UNIQUE KEY unique_wishlist (id_nguoidung, id_sanpham),
+    INDEX idx_nguoidung (id_nguoidung),
+    INDEX idx_sanpham (id_sanpham)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- BẢNG ĐÁNH GIÁ SẢN PHẨM (Product Reviews)
+-- =============================================
+CREATE TABLE danhgia_sanpham (
+    id_danhgia BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_donhang BIGINT UNSIGNED NOT NULL,
+    id_sanpham BIGINT UNSIGNED NOT NULL,
+    id_nguoidung BIGINT UNSIGNED NOT NULL,
+    so_sao INT NOT NULL CHECK (so_sao >= 0 AND so_sao <= 5),
+    noidung TEXT,
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_donhang) REFERENCES donhang(id_donhang) ON DELETE CASCADE,
+    FOREIGN KEY (id_sanpham) REFERENCES sanpham(id_sanpham) ON DELETE CASCADE,
+    FOREIGN KEY (id_nguoidung) REFERENCES nguoidung(id_nguoidung) ON DELETE CASCADE,
+    UNIQUE KEY unique_review (id_donhang, id_sanpham, id_nguoidung),
+    INDEX idx_sanpham (id_sanpham),
+    INDEX idx_donhang (id_donhang),
+    INDEX idx_nguoidung (id_nguoidung)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE traloi_danhgia (
+    id_traloi BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_danhgia BIGINT UNSIGNED NOT NULL,
+    id_admin BIGINT UNSIGNED NOT NULL,
+    noidung TEXT NOT NULL,
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_danhgia) REFERENCES danhgia_sanpham(id_danhgia) ON DELETE CASCADE,
+    FOREIGN KEY (id_admin) REFERENCES nguoidung(id_nguoidung) ON DELETE CASCADE,
+    INDEX idx_danhgia (id_danhgia)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- BẢNG HỖ TRỢ KHÁCH HÀNG (Customer Support)
+-- =============================================
+CREATE TABLE yeucau_hotro (
+    id_yeucau BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    id_nguoidung BIGINT UNSIGNED NULL,
+    hoten VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    sodienthoai VARCHAR(20) NOT NULL,
+    loai_lienhe ENUM('individual', 'business') DEFAULT 'individual',
+    chude VARCHAR(255) NOT NULL,
+    noidung TEXT NOT NULL,
+    trangthai ENUM('pending', 'processing', 'resolved', 'closed') DEFAULT 'pending',
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ngay_capnhat TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_nguoidung) REFERENCES nguoidung(id_nguoidung) ON DELETE SET NULL,
+    INDEX idx_nguoidung (id_nguoidung),
+    INDEX idx_trangthai (trangthai),
+    INDEX idx_ngay_tao (ngay_tao)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- BẢNG NHẬT KÝ HOẠT ĐỘNG (Activity Log)
+-- =============================================
+CREATE TABLE activity_log (
+    id_activity BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    loai_hoatdong ENUM('product_stock_update', 'product_create', 'product_update', 'product_delete', 'order_create', 'order_update') NOT NULL,
+    id_nguoidung BIGINT UNSIGNED,
+    id_sanpham BIGINT UNSIGNED NULL,
+    id_donhang BIGINT UNSIGNED NULL,
+    tieu_de VARCHAR(255) NOT NULL,
+    mo_ta TEXT,
+    du_lieu_cu JSON NULL COMMENT 'Dữ liệu trước khi thay đổi',
+    du_lieu_moi JSON NULL COMMENT 'Dữ liệu sau khi thay đổi',
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_nguoidung) REFERENCES nguoidung(id_nguoidung) ON DELETE SET NULL,
+    FOREIGN KEY (id_sanpham) REFERENCES sanpham(id_sanpham) ON DELETE CASCADE,
+    FOREIGN KEY (id_donhang) REFERENCES donhang(id_donhang) ON DELETE CASCADE,
+    INDEX idx_loai_hoatdong (loai_hoatdong),
+    INDEX idx_nguoidung (id_nguoidung),
+    INDEX idx_sanpham (id_sanpham),
+    INDEX idx_ngay_tao (ngay_tao)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================
+-- DỮ LIỆU MẪU (Sample Data)
+-- =============================================
+
+-- Thêm admin mặc định
+INSERT INTO nguoidung (email, matkhau, hoten, quyen) VALUES 
+('admin@goojodoq.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin');
+
+-- Thêm danh mục sản phẩm
+INSERT INTO danhmuc (ten_danhmuc, duongdan, mo_ta, thu_tu) VALUES
+('Quạt Mini', 'quat-mini', 'Quạt mini cầm tay, để bàn', 1),
+('Loa Bluetooth', 'loa-bluetooth', 'Loa không dây Bluetooth', 2),
+('Tai Nghe', 'tai-nghe', 'Tai nghe có dây và không dây', 3),
+('Phụ Kiện Điện Thoại', 'phu-kien-dien-thoai', 'Ốp lưng, cáp sạc, kính cường lực', 4);
+
+-- Thêm product sections
+INSERT INTO product_sections (ma_section, ten_section, mo_ta, thu_tu) VALUES
+('sale', 'Sản Phẩm Khuyến Mãi', 'Các sản phẩm đang được giảm giá', 1),
+('featured', 'Sản Phẩm Nổi Bật', 'Sản phẩm được đề xuất', 2),
+('all', 'Tất Cả Sản Phẩm', 'Toàn bộ sản phẩm trong cửa hàng', 3);
+
+-- =============================================
+-- TRIGGERS VÀ PROCEDURES
+-- =============================================
+
+-- Trigger cập nhật ngày sửa đổi cho bảng sản phẩm
+DELIMITER //
+CREATE TRIGGER update_product_timestamp 
+    BEFORE UPDATE ON sanpham 
+    FOR EACH ROW 
+BEGIN
+    SET NEW.ngay_capnhat = CURRENT_TIMESTAMP;
+END//
+DELIMITER ;
+
+-- Trigger cập nhật tồn kho khi tạo đơn hàng
+DELIMITER //
+CREATE TRIGGER update_stock_after_order 
+    AFTER INSERT ON chitiet_donhang 
+    FOR EACH ROW 
+BEGIN
+    UPDATE sanpham 
+    SET tonkho = tonkho - NEW.soluong 
+    WHERE id_sanpham = NEW.id_sanpham;
+END//
+DELIMITER ;
+    ngay_them TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_giohang) REFERENCES giohang(id_giohang) ON DELETE CASCADE,
     FOREIGN KEY (id_sanpham) REFERENCES sanpham(id_sanpham) ON DELETE CASCADE,
     INDEX idx_giohang (id_giohang),

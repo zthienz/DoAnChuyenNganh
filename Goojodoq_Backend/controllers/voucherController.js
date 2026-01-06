@@ -181,19 +181,37 @@ export const deleteVoucher = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Kiểm tra voucher có đang được sử dụng không
-    const [usage] = await pool.query(
-      'SELECT COUNT(*) as count FROM voucher_sudung WHERE id_voucher = ?',
+    // Kiểm tra voucher có tồn tại không
+    const [voucher] = await pool.query(
+      'SELECT * FROM magiamgia WHERE id_magiamgia = ?',
       [id]
     );
 
-    if (usage[0].count > 0) {
-      return res.status(400).json({ 
-        error: 'Không thể xóa mã giảm giá đã được sử dụng' 
+    if (voucher.length === 0) {
+      return res.status(404).json({ 
+        error: 'Không tìm thấy mã giảm giá' 
       });
     }
 
-    // Xóa voucher
+    const voucherData = voucher[0];
+    const now = new Date();
+    const validTo = voucherData.hieu_luc_den ? new Date(voucherData.hieu_luc_den) : null;
+    
+    // Nếu voucher chưa hết hạn, kiểm tra xem có đang được sử dụng không
+    if (!validTo || validTo > now) {
+      const [usage] = await pool.query(
+        'SELECT COUNT(*) as count FROM voucher_sudung WHERE id_voucher = ?',
+        [id]
+      );
+
+      if (usage[0].count > 0) {
+        return res.status(400).json({ 
+          error: 'Không thể xóa mã giảm giá đang còn hiệu lực và đã được sử dụng' 
+        });
+      }
+    }
+
+    // Xóa voucher (CASCADE sẽ tự động xóa các bản ghi liên quan trong voucher_sudung)
     await pool.query('DELETE FROM magiamgia WHERE id_magiamgia = ?', [id]);
 
     res.json({ success: true, message: 'Xóa mã giảm giá thành công' });
