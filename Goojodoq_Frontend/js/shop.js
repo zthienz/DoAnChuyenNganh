@@ -118,7 +118,7 @@ function displayShopProducts(reset = true) {
     let html = '';
     
     productsToShow.forEach(product => {
-        const imageUrl = product.image ? `http://localhost:3000${product.image}` : 'images/products/default.jpg';
+        const imageUrl = getProductImageUrl(product.image);
         const price = parseFloat(product.price);
         const salePrice = product.sale_price ? parseFloat(product.sale_price) : null;
         
@@ -434,6 +434,30 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function getProductImageUrl(imagePath) {
+    if (!imagePath) {
+        return 'images/products/default.jpg';
+    }
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    // If it starts with /, it's already a relative path from root
+    if (imagePath.startsWith('/')) {
+        return imagePath.substring(1); // Remove leading slash for relative path
+    }
+    
+    // If it's just a filename, add the products path
+    if (!imagePath.includes('/')) {
+        return `images/products/${imagePath}`;
+    }
+    
+    // Otherwise return as is
+    return imagePath;
 }
 
 function viewProduct(productId) {
