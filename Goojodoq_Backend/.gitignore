@@ -1,0 +1,50 @@
+# Temporary fix scripts
+fix_*.js
+test_*.js
+check_*.js
+
+# Backup files
+*_backup.js
+*.bak
+
+# Development/debugging files
+sync_*.js
+create_test_*.js
+create_*_table.js
+remove_*_tables.js
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env.local
+.env.development
+.env.test
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity

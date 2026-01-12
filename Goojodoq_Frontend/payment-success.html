@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thành công - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .success-page {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: bounce 1s ease-in-out;
+        }
+        .success-icon i {
+            font-size: 50px;
+            color: white;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        .order-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .loading-spinner {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-page">
+        <div class="container">
+            <div class="success-card">
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-spinner">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4>Đang xác nhận thanh toán...</h4>
+                    <p class="text-muted">Vui lòng đợi trong giây lát</p>
+                </div>
+
+                <!-- Success State -->
+                <div id="successState" style="display: none;">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    
+                    <h2 class="text-success mb-3">Thanh toán thành công!</h2>
+                    <p class="lead text-muted mb-4">
+                        Cảm ơn bạn đã mua hàng tại GOOJODOQ. Đơn hàng của bạn đã được xác nhận và sẽ được xử lý sớm nhất.
+                    </p>
+
+                    <div class="order-info" id="orderInfo">
+                        <!-- Order details will be loaded here -->
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="orders.html" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-list me-2"></i>Xem đơn hàng
+                        </a>
+                        <a href="index.html" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div id="errorState" style="display: none;">
+                    <div class="success-icon" style="background: #dc3545;">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    
+                    <h2 class="text-danger mb-3">Có lỗi xảy ra!</h2>
+                    <p class="lead text-muted mb-4" id="errorMessage">
+                        Không thể xác nhận trạng thái thanh toán. Vui lòng liên hệ hỗ trợ.
+                    </p>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="orders.html" class="btn btn-primary btn-lg me-md-2">
+                            <i class="fas fa-list me-2"></i>Kiểm tra đơn hàng
+                        </a>
+                        <a href="contact.html" class="btn btn-outline-danger btn-lg">
+                            <i class="fas fa-phone me-2"></i>Liên hệ hỗ trợ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api';
+
+        // Get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Format price
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN').format(price);
+        }
+
+        // Check payment status and update UI
+        async function checkPaymentStatus() {
+            try {
+                const orderId = getUrlParameter('orderId');
+                const orderCode = sessionStorage.getItem('paymentOrderCode');
+                
+                if (!orderId && !orderCode) {
+                    throw new Error('Không tìm thấy thông tin đơn hàng');
+                }
+
+                // Show loading
+                document.getElementById('loadingState').style.display = 'block';
+
+                // Check payment status
+                if (orderCode) {
+                    const response = await fetch(`${API_BASE_URL}/payment/status/${orderCode}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.status === 'completed') {
+                        await showSuccessState(orderId);
+                    } else if (result.status === 'pending') {
+                        // Still pending, check again after delay
+                        setTimeout(checkPaymentStatus, 3000);
+                        return;
+                    } else {
+                        throw new Error('Thanh toán chưa được xác nhận');
+                    }
+                } else {
+                    // Fallback: just show success if we have orderId
+                    await showSuccessState(orderId);
+                }
+
+            } catch (error) {
+                console.error('Error checking payment status:', error);
+                showErrorState(error.message);
+            }
+        }
+
+        // Show success state with order details
+        async function showSuccessState(orderId) {
+            try {
+                // Get order details
+                if (orderId) {
+                    const orderResponse = await fetch(`${API_BASE_URL}/orders/detail/${orderId}`);
+                    if (orderResponse.ok) {
+                        const orderData = await orderResponse.json();
+                        
+                        document.getElementById('orderInfo').innerHTML = `
+                            <div class="row text-start">
+                                <div class="col-md-6">
+                                    <strong>Mã đơn hàng:</strong><br>
+                                    <span class="text-primary">#${orderData.ma_donhang}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Tổng tiền:</strong><br>
+                                    <span class="text-success fs-5">${formatPrice(orderData.tong_tien)}đ</span>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <strong>Trạng thái:</strong><br>
+                                    <span class="badge bg-success">Đã thanh toán</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Hide loading, show success
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
+
+                // Clear session storage
+                sessionStorage.removeItem('paymentOrderId');
+                sessionStorage.removeItem('paymentOrderCode');
+
+            } catch (error) {
+                console.error('Error loading order details:', error);
+                // Still show success even if can't load details
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
+            }
+        }
+
+        // Show error state
+        function showErrorState(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorState').style.display = 'block';
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Small delay to ensure PayOS redirect is complete
+            setTimeout(checkPaymentStatus, 1000);
+        });
+    </script>
+</body>
+</html>

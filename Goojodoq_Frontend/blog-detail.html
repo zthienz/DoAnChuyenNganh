@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết bài viết - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .blog-detail-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 0;
+            color: white;
+        }
+        .blog-detail-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        .blog-detail-image {
+            width: 100%;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .blog-detail-meta {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .blog-detail-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+        .blog-detail-category {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 25px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .blog-detail-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+        .blog-detail-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #444;
+        }
+        .blog-detail-content p {
+            margin-bottom: 20px;
+        }
+        .blog-detail-content h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .blog-detail-content h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #444;
+        }
+        .blog-detail-content ul, .blog-detail-content ol {
+            margin-bottom: 20px;
+            padding-left: 30px;
+        }
+        .blog-detail-content li {
+            margin-bottom: 10px;
+        }
+        .back-to-blog {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .back-to-blog:hover {
+            color: #764ba2;
+        }
+        .related-posts {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid #eee;
+        }
+        .related-post-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .related-post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .related-post-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .related-post-card-body {
+            padding: 20px;
+        }
+        .related-post-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .related-post-date {
+            font-size: 0.85rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header-main">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="GOOJODOQ" class="logo">
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html">Mua sắm</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="blog.html">Bài viết</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Liên hệ</a>
+                            </li>
+                        </ul>
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <div class="search-box me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <button class="btn-search" onclick="searchProducts()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div id="authButtons" class="d-flex align-items-center me-3" style="display: none;"></div>
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                            </a>
+                            <div class="dropdown" id="userAccountDropdown" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Blog Detail Content -->
+    <section class="blog-detail-container">
+        <a href="blog.html" class="back-to-blog">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại Bài viết
+        </a>
+
+        <div id="blogDetailContent">
+            <!-- Content will be loaded here -->
+        </div>
+
+        <!-- Related Posts -->
+        <div class="related-posts">
+            <h3 class="mb-4">Bài viết liên quan</h3>
+            <div class="row" id="relatedPosts">
+                <!-- Related posts will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">CHÍNH SÁCH</h5>
+                    <ul class="footer-links">
+                        <li><a href="warranty.html">Chính sách bảo hành</a></li>
+                        <li><a href="return.html">Chính sách đổi trả</a></li>
+                        <li><a href="shipping.html">Chính sách vận chuyển</a></li>
+                        <li><a href="payment.html">Chính sách thanh toán</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">HỖ TRỢ KHÁCH HÀNG</h5>
+                    <ul class="footer-links">
+                        <li><a href="contact.html">Liên hệ</a></li>
+                    </ul>
+                    <div class="mt-3">
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i>Hotline: 1900-xxxx</p>
+                        <p class="mb-0"><i class="fas fa-envelope me-2"></i>support@goojodoq.com</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">VỀ GOOJODOQ</h5>
+                    <ul class="footer-links">
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="shop.html">Sản phẩm</a></li>
+                        <li><a href="blog.html">Bài viết & Tin tức</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h5>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle" target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Giờ làm việc:</strong></p>
+                        <p class="mb-0">Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+                        <p class="mb-0">Thứ Bảy: 8:00 - 12:00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4 pt-4 border-top">
+                <div class="col-md-12 text-center">
+                    <p class="footer-copyright mb-0">
+                        Copyright © 2025 GOOJODOQ. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Get blog post ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = parseInt(urlParams.get('id'));
+
+        // Sample blog data - same as blog.html
+        const blogPosts = JSON.parse(localStorage.getItem('blogPosts')) || [
+            {
+                id: 1,
+                title: "Top 5 tai nghe Bluetooth tốt nhất năm 2025",
+                excerpt: "Khám phá những mẫu tai nghe Bluetooth chất lượng cao với âm thanh tuyệt vời và pin bền bỉ...",
+                category: "Đánh giá sản phẩm",
+                date: "20/11/2025",
+                image: "images/products/TAINGHE001-1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Giới thiệu</h2>
+                    <p>Tai nghe Bluetooth đã trở thành phụ kiện không thể thiếu trong cuộc sống hiện đại. Với sự phát triển của công nghệ, các mẫu tai nghe ngày càng được cải tiến về chất lượng âm thanh, thời lượng pin và tính năng thông minh.</p>
+                    
+                    <h2>Top 5 tai nghe Bluetooth đáng mua nhất</h2>
+                    
+                    <h3>1. GOOJODOQ Premium Wireless</h3>
+                    <p>Tai nghe cao cấp với công nghệ chống ồn chủ động ANC, thời lượng pin lên đến 30 giờ và chất lượng âm thanh Hi-Fi tuyệt vời. Thiết kế ergonomic mang lại sự thoải mái tối đa khi sử dụng lâu dài.</p>
+                    
+                    <h3>2. GOOJODOQ Sport Pro</h3>
+                    <p>Được thiết kế đặc biệt cho người yêu thể thao với khả năng chống nước IPX7, móc tai chắc chắn và âm bass mạnh mẽ. Pin sử dụng liên tục 20 giờ.</p>
+                    
+                    <h3>3. GOOJODOQ Mini Buds</h3>
+                    <p>Tai nghe true wireless nhỏ gọn với hộp sạc tiện lợi. Kết nối Bluetooth 5.3 ổn định, âm thanh trong trẻo và giá cả phải chăng.</p>
+                    
+                    <h3>4. GOOJODOQ Studio Edition</h3>
+                    <p>Dành cho audiophile với driver 40mm, hỗ trợ codec LDAC và aptX HD. Chất lượng âm thanh studio với chi tiết tuyệt vời.</p>
+                    
+                    <h3>5. GOOJODOQ Kids Safe</h3>
+                    <p>Tai nghe an toàn cho trẻ em với giới hạn âm lượng 85dB, thiết kế đáng yêu và độ bền cao. Phù hợp cho học tập và giải trí.</p>
+                    
+                    <h2>Kết luận</h2>
+                    <p>Mỗi mẫu tai nghe đều có ưu điểm riêng phù hợp với nhu cầu khác nhau. Hãy chọn sản phẩm phù hợp với mục đích sử dụng và ngân sách của bạn.</p>
+                `
+            },
+            {
+                id: 2,
+                title: "Hướng dẫn chọn quạt mini phù hợp cho mùa hè",
+                excerpt: "Mùa hè đang đến, cùng tìm hiểu cách chọn quạt mini phù hợp với nhu cầu của bạn...",
+                category: "Hướng dẫn",
+                date: "18/11/2025",
+                image: "images/products/QUAT001-1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Tại sao nên chọn quạt mini?</h2>
+                    <p>Quạt mini là giải pháp làm mát di động hoàn hảo cho mùa hè. Với kích thước nhỏ gọn, bạn có thể mang theo bất cứ đâu - văn phòng, du lịch, hoặc sử dụng tại nhà.</p>
+                    
+                    <h2>Các yếu tố cần xem xét</h2>
+                    
+                    <h3>1. Công suất và tốc độ gió</h3>
+                    <p>Chọn quạt có ít nhất 3 cấp độ gió để điều chỉnh linh hoạt. Công suất từ 3-5W là phù hợp cho quạt mini cầm tay.</p>
+                    
+                    <h3>2. Dung lượng pin</h3>
+                    <p>Pin từ 2000mAh trở lên đảm bảo sử dụng liên tục 4-6 giờ. Nên chọn loại sạc USB-C để tiện lợi.</p>
+                    
+                    <h3>3. Thiết kế và trọng lượng</h3>
+                    <p>Quạt cầm tay nên dưới 200g, quạt để bàn có thể nặng hơn nhưng cần có đế chắc chắn.</p>
+                    
+                    <h3>4. Độ ồn</h3>
+                    <p>Chọn quạt có độ ồn dưới 40dB để không làm phiền khi làm việc hoặc ngủ.</p>
+                    
+                    <h2>Các loại quạt mini phổ biến</h2>
+                    <ul>
+                        <li>Quạt cầm tay: Di động, nhẹ, phù hợp mang theo</li>
+                        <li>Quạt để bàn: Ổn định, gió mạnh hơn</li>
+                        <li>Quạt kẹp: Tiết kiệm không gian, đa năng</li>
+                        <li>Quạt đeo cổ: Rảnh tay, phù hợp hoạt động ngoài trời</li>
+                    </ul>
+                    
+                    <h2>Lời khuyên</h2>
+                    <p>Hãy chọn sản phẩm từ thương hiệu uy tín như GOOJODOQ để đảm bảo chất lượng và có chế độ bảo hành tốt.</p>
+                `
+            },
+            {
+                id: 3,
+                title: "GOOJODOQ ra mắt bộ sưu tập phụ kiện mới",
+                excerpt: "Chúng tôi vui mừng giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với nhiều tính năng ưu việt...",
+                category: "Tin tức",
+                date: "15/11/2025",
+                image: "images/products/HUB001_1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Sự kiện ra mắt</h2>
+                    <p>GOOJODOQ tự hào giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với hơn 50 sản phẩm đột phá về công nghệ và thiết kế.</p>
+                    
+                    <h2>Các sản phẩm nổi bật</h2>
+                    
+                    <h3>Hub USB-C đa năng</h3>
+                    <p>Hub 7 trong 1 với HDMI 4K, USB 3.0, đọc thẻ SD/TF và sạc nhanh PD 100W. Thiết kế nhôm nguyên khối cao cấp.</p>
+                    
+                    <h3>Sạc dự phòng thông minh</h3>
+                    <p>Dung lượng 20000mAh với công nghệ sạc nhanh QC 3.0 và PD 18W. Màn hình LED hiển thị % pin chính xác.</p>
+                    
+                    <h3>Cáp sạc từ tính</h3>
+                    <p>Cáp 3 trong 1 với đầu từ tính Lightning, Type-C và Micro USB. Sạc nhanh 3A và truyền dữ liệu tốc độ cao.</p>
+                    
+                    <h2>Ưu đãi đặc biệt</h2>
+                    <p>Giảm giá 30% cho 100 khách hàng đầu tiên và tặng kèm phiếu mua hàng 200.000đ cho đơn hàng tiếp theo.</p>
+                `
+            },
+            {
+                id: 4,
+                title: "So sánh loa Bluetooth: Chọn loại nào phù hợp?",
+                excerpt: "Phân tích chi tiết các loại loa Bluetooth trên thị trường để giúp bạn đưa ra lựa chọn đúng đắn...",
+                category: "Đánh giá sản phẩm",
+                date: "12/11/2025",
+                image: "images/products/LOA001-1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Giới thiệu về loa Bluetooth</h2>
+                    <p>Loa Bluetooth đã trở thành thiết bị không thể thiếu cho những ai yêu thích âm nhạc. Với nhiều loại khác nhau trên thị trường, việc chọn lựa sản phẩm phù hợp có thể gây khó khăn.</p>
+                    
+                    <h2>Các loại loa Bluetooth phổ biến</h2>
+                    
+                    <h3>1. Loa mini di động</h3>
+                    <p>Nhỏ gọn, dễ mang theo, phù hợp cho du lịch và picnic. Thời lượng pin 6-10 giờ, công suất 3-5W.</p>
+                    
+                    <h3>2. Loa trung bình</h3>
+                    <p>Cân bằng giữa kích thước và chất lượng âm thanh. Công suất 10-20W, bass tốt, phù hợp sử dụng trong phòng.</p>
+                    
+                    <h3>3. Loa công suất lớn</h3>
+                    <p>Dành cho tiệc tùng và sự kiện. Công suất 30W trở lên, âm thanh mạnh mẽ, có thể kết nối nhiều loa.</p>
+                    
+                    <h3>4. Loa chống nước</h3>
+                    <p>Thiết kế đặc biệt với chuẩn IPX7, phù hợp cho bể bơi, biển và hoạt động ngoài trời.</p>
+                    
+                    <h2>Tiêu chí lựa chọn</h2>
+                    <ul>
+                        <li>Chất lượng âm thanh: Kiểm tra bass, treble và độ rõ</li>
+                        <li>Thời lượng pin: Tối thiểu 8 giờ cho sử dụng liên tục</li>
+                        <li>Kết nối: Bluetooth 5.0 trở lên cho kết nối ổn định</li>
+                        <li>Tính năng: Chống nước, sạc nhanh, kết nối đa loa</li>
+                    </ul>
+                    
+                    <h2>Khuyến nghị</h2>
+                    <p>GOOJODOQ cung cấp đầy đủ các dòng loa Bluetooth từ mini đến công suất lớn, đáp ứng mọi nhu cầu của bạn.</p>
+                `
+            },
+            {
+                id: 5,
+                title: "Bí quyết bảo quản phụ kiện điện tử bền lâu",
+                excerpt: "Những mẹo đơn giản giúp kéo dài tuổi thọ cho các thiết bị điện tử của bạn...",
+                category: "Hướng dẫn",
+                date: "10/11/2025",
+                image: "images/products/SACDUPHONG001-1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Tầm quan trọng của việc bảo quản</h2>
+                    <p>Bảo quản đúng cách giúp phụ kiện điện tử hoạt động tốt hơn và kéo dài tuổi thọ, tiết kiệm chi phí thay thế.</p>
+                    
+                    <h2>Các nguyên tắc cơ bản</h2>
+                    
+                    <h3>1. Tránh nhiệt độ cực đoan</h3>
+                    <p>Không để thiết bị dưới ánh nắng trực tiếp hoặc nơi quá lạnh. Nhiệt độ lý tưởng là 15-25°C.</p>
+                    
+                    <h3>2. Bảo vệ khỏi độ ẩm</h3>
+                    <p>Tránh để thiết bị ở nơi ẩm ướt. Nếu bị ướt, lau khô ngay và để khô tự nhiên.</p>
+                    
+                    <h3>3. Sạc pin đúng cách</h3>
+                    <p>Không để pin xuống 0% hoặc sạc 100% liên tục. Mức pin lý tưởng là 20-80%.</p>
+                    
+                    <h3>4. Vệ sinh định kỳ</h3>
+                    <p>Lau chùi nhẹ nhàng bằng khăn mềm, tránh dùng hóa chất mạnh.</p>
+                    
+                    <h2>Bảo quản theo loại thiết bị</h2>
+                    
+                    <h3>Tai nghe</h3>
+                    <ul>
+                        <li>Cuộn dây cẩn thận, không gấp góc</li>
+                        <li>Bảo quản trong hộp khi không dùng</li>
+                        <li>Vệ sinh đệm tai thường xuyên</li>
+                    </ul>
+                    
+                    <h3>Sạc dự phòng</h3>
+                    <ul>
+                        <li>Sạc đầy trước khi cất giữ lâu ngày</li>
+                        <li>Sạc lại mỗi 3 tháng nếu không sử dụng</li>
+                        <li>Tránh va đập mạnh</li>
+                    </ul>
+                    
+                    <h3>Cáp sạc</h3>
+                    <ul>
+                        <li>Không kéo căng hoặc uốn cong quá mức</li>
+                        <li>Rút cáp bằng cách cầm đầu jack, không kéo dây</li>
+                        <li>Cuộn tròn khi cất giữ</li>
+                    </ul>
+                    
+                    <h2>Kết luận</h2>
+                    <p>Chăm sóc đúng cách giúp thiết bị của bạn luôn hoạt động tốt và tiết kiệm chi phí lâu dài.</p>
+                `
+            },
+            {
+                id: 6,
+                title: "Khuyến mãi lớn cuối năm - Giảm giá đến 50%",
+                excerpt: "Đừng bỏ lỡ chương trình khuyến mãi lớn nhất trong năm với hàng trăm sản phẩm giảm giá sâu...",
+                category: "Khuyến mãi",
+                date: "08/11/2025",
+                image: "images/products/DONGHO001_1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Chương trình khuyến mãi cuối năm</h2>
+                    <p>GOOJODOQ tổ chức chương trình khuyến mãi lớn nhất trong năm với hàng trăm sản phẩm giảm giá từ 20% đến 50%!</p>
+                    
+                    <h2>Thời gian áp dụng</h2>
+                    <p>Từ ngày 01/12/2025 đến hết 31/12/2025</p>
+                    
+                    <h2>Các sản phẩm khuyến mãi</h2>
+                    
+                    <h3>Tai nghe Bluetooth - Giảm 40%</h3>
+                    <p>Tất cả các dòng tai nghe Bluetooth cao cấp giảm giá 40%. Chỉ từ 299.000đ.</p>
+                    
+                    <h3>Loa Bluetooth - Giảm 35%</h3>
+                    <p>Loa mini và loa công suất lớn giảm giá đến 35%. Âm thanh chất lượng, giá tốt nhất.</p>
+                    
+                    <h3>Sạc dự phòng - Giảm 30%</h3>
+                    <p>Sạc dự phòng dung lượng cao từ 10000mAh đến 30000mAh giảm 30%.</p>
+                    
+                    <h3>Phụ kiện khác - Giảm 20-50%</h3>
+                    <p>Cáp sạc, hub USB, quạt mini và nhiều phụ kiện khác giảm giá hấp dẫn.</p>
+                    
+                    <h2>Ưu đãi thêm</h2>
+                    <ul>
+                        <li>Miễn phí vận chuyển cho đơn hàng từ 500.000đ</li>
+                        <li>Tặng voucher 200.000đ cho đơn hàng tiếp theo</li>
+                        <li>Quà tặng hấp dẫn cho 100 khách hàng đầu tiên</li>
+                        <li>Bảo hành mở rộng thêm 6 tháng</li>
+                    </ul>
+                    
+                    <h2>Cách thức tham gia</h2>
+                    <p>Truy cập website GOOJODOQ hoặc đến cửa hàng để mua sắm và nhận ưu đãi ngay!</p>
+                `
+            },
+            {
+                id: 7,
+                title: "Đánh giá chuột không dây cao cấp",
+                excerpt: "Trải nghiệm chuột không dây với độ chính xác cao và thiết kế ergonomic tuyệt vời...",
+                category: "Đánh giá sản phẩm",
+                date: "05/11/2025",
+                image: "images/products/CHUOT001_1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Giới thiệu sản phẩm</h2>
+                    <p>Chuột không dây GOOJODOQ Pro là sản phẩm cao cấp dành cho game thủ và người làm việc chuyên nghiệp.</p>
+                    
+                    <h2>Thiết kế và chất liệu</h2>
+                    <p>Thiết kế ergonomic giúp giảm mỏi tay khi sử dụng lâu. Vỏ nhựa ABS cao cấp với lớp phủ chống trượt.</p>
+                    
+                    <h3>Đặc điểm nổi bật</h3>
+                    <ul>
+                        <li>Cảm biến quang học 3200 DPI có thể điều chỉnh</li>
+                        <li>6 nút bấm có thể lập trình</li>
+                        <li>Kết nối không dây 2.4GHz ổn định</li>
+                        <li>Pin sạc lithium 500mAh, sử dụng 30 ngày</li>
+                        <li>Đèn LED RGB 16 triệu màu</li>
+                    </ul>
+                    
+                    <h2>Hiệu suất</h2>
+                    <p>Độ chính xác cao, phản hồi nhanh 1ms, phù hợp cho gaming và thiết kế đồ họa.</p>
+                    
+                    <h2>Ưu điểm</h2>
+                    <ul>
+                        <li>Thiết kế đẹp, cầm nắm thoải mái</li>
+                        <li>Pin bền, sạc nhanh</li>
+                        <li>Độ chính xác cao</li>
+                        <li>Giá cả hợp lý</li>
+                    </ul>
+                    
+                    <h2>Nhược điểm</h2>
+                    <ul>
+                        <li>Hơi nặng so với chuột thường (120g)</li>
+                        <li>Đèn LED không tắt được hoàn toàn</li>
+                    </ul>
+                    
+                    <h2>Kết luận</h2>
+                    <p>Đây là sản phẩm đáng mua trong tầm giá, phù hợp cho cả gaming và văn phòng.</p>
+                `
+            },
+            {
+                id: 8,
+                title: "Bàn phím cơ - Lựa chọn hoàn hảo cho game thủ",
+                excerpt: "Khám phá các loại bàn phím cơ với switch chất lượng và đèn LED RGB đẹp mắt...",
+                category: "Đánh giá sản phẩm",
+                date: "02/11/2025",
+                image: "images/products/BANPHIM001_1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Bàn phím cơ là gì?</h2>
+                    <p>Bàn phím cơ sử dụng switch cơ học thay vì màng cao su, mang lại cảm giác gõ tốt hơn và độ bền cao hơn.</p>
+                    
+                    <h2>Các loại switch phổ biến</h2>
+                    
+                    <h3>1. Cherry MX Blue</h3>
+                    <p>Switch clicky, âm thanh rõ ràng, phù hợp cho đánh máy. Lực nhấn 50g.</p>
+                    
+                    <h3>2. Cherry MX Red</h3>
+                    <p>Switch linear, êm ái, phù hợp cho gaming. Lực nhấn 45g.</p>
+                    
+                    <h3>3. Cherry MX Brown</h3>
+                    <p>Switch tactile, cân bằng giữa đánh máy và gaming. Lực nhấn 45g.</p>
+                    
+                    <h2>Bàn phím cơ GOOJODOQ Gaming</h2>
+                    
+                    <h3>Tính năng</h3>
+                    <ul>
+                        <li>Switch cơ học Outemu Blue/Red/Brown</li>
+                        <li>Đèn LED RGB 16.8 triệu màu</li>
+                        <li>Keycap PBT Double-shot bền bỉ</li>
+                        <li>Anti-ghosting toàn phím</li>
+                        <li>Khung nhôm chắc chắn</li>
+                        <li>Có thể tháo rời keycap</li>
+                    </ul>
+                    
+                    <h2>Ưu điểm của bàn phím cơ</h2>
+                    <ul>
+                        <li>Độ bền cao: 50-100 triệu lần nhấn</li>
+                        <li>Cảm giác gõ tuyệt vời</li>
+                        <li>Phản hồi nhanh</li>
+                        <li>Có thể thay thế switch và keycap</li>
+                        <li>Thiết kế đẹp mắt</li>
+                    </ul>
+                    
+                    <h2>Lời khuyên khi chọn mua</h2>
+                    <p>Hãy thử nghiệm các loại switch trước khi mua để chọn loại phù hợp với nhu cầu của bạn.</p>
+                    
+                    <h2>Kết luận</h2>
+                    <p>Bàn phím cơ GOOJODOQ là lựa chọn tuyệt vời với giá cả phải chăng và chất lượng cao.</p>
+                `
+            },
+            {
+                id: 9,
+                title: "Giá đỡ điện thoại thông minh cho mọi nhu cầu",
+                excerpt: "Tìm hiểu về các loại giá đỡ điện thoại tiện lợi cho xe hơi, bàn làm việc và nhiều hơn nữa...",
+                category: "Hướng dẫn",
+                date: "30/10/2025",
+                image: "images/products/GIADO001_1.webp",
+                author: "Admin",
+                content: `
+                    <h2>Tại sao cần giá đỡ điện thoại?</h2>
+                    <p>Giá đỡ điện thoại giúp bạn sử dụng thiết bị an toàn hơn, đặc biệt khi lái xe, làm việc hoặc xem phim.</p>
+                    
+                    <h2>Các loại giá đỡ phổ biến</h2>
+                    
+                    <h3>1. Giá đỡ xe hơi</h3>
+                    <p>Gắn vào khe gió hoặc kính lái, giúp xem bản đồ an toàn khi lái xe.</p>
+                    <ul>
+                        <li>Loại kẹp khe gió: Dễ lắp đặt, không che tầm nhìn</li>
+                        <li>Loại hút chân không: Chắc chắn, có thể điều chỉnh góc</li>
+                        <li>Loại từ tính: Tiện lợi, tháo lắp nhanh</li>
+                    </ul>
+                    
+                    <h3>2. Giá đỡ bàn làm việc</h3>
+                    <p>Đặt trên bàn, giúp làm việc hiệu quả hơn.</p>
+                    <ul>
+                        <li>Loại đế nặng: Ổn định, điều chỉnh góc linh hoạt</li>
+                        <li>Loại kẹp bàn: Tiết kiệm không gian</li>
+                        <li>Loại gấp gọn: Dễ mang theo</li>
+                    </ul>
+                    
+                    <h3>3. Giá đỡ giường</h3>
+                    <p>Kẹp vào đầu giường, xem phim thoải mái.</p>
+                    
+                    <h3>4. Giá đỡ đeo cổ</h3>
+                    <p>Rảnh tay hoàn toàn, phù hợp xem video, livestream.</p>
+                    
+                    <h2>Tiêu chí lựa chọn</h2>
+                    <ul>
+                        <li>Độ bền: Chất liệu kim loại hoặc nhựa ABS cao cấp</li>
+                        <li>Khả năng điều chỉnh: Góc xoay 360 độ</li>
+                        <li>Tương thích: Phù hợp với nhiều kích thước điện thoại</li>
+                        <li>Độ ổn định: Không rung lắc khi sử dụng</li>
+                    </ul>
+                    
+                    <h2>Sản phẩm GOOJODOQ</h2>
+                    <p>GOOJODOQ cung cấp đầy đủ các loại giá đỡ với thiết kế thông minh, chất lượng cao và giá cả hợp lý.</p>
+                    
+                    <h2>Lời khuyên</h2>
+                    <p>Chọn loại giá đỡ phù hợp với nhu cầu sử dụng chính của bạn để có trải nghiệm tốt nhất.</p>
+                `
+            }
+        ];
+
+        // Load blog detail
+        function loadBlogDetail() {
+            const post = blogPosts.find(p => p.id === postId);
+            
+            if (!post) {
+                document.getElementById('blogDetailContent').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Không tìm thấy bài viết này.
+                    </div>
+                `;
+                return;
+            }
+
+            // Update page title
+            document.title = post.title + ' - GOOJODOQ';
+
+            // Display blog detail
+            document.getElementById('blogDetailContent').innerHTML = `
+                <span class="blog-detail-category">${post.category}</span>
+                <h1 class="blog-detail-title">${post.title}</h1>
+                
+                <div class="blog-detail-meta">
+                    <div class="blog-detail-meta-item">
+                        <i class="far fa-calendar"></i>
+                        <span>${post.date}</span>
+                    </div>
+                    <div class="blog-detail-meta-item">
+                        <i class="far fa-user"></i>
+                        <span>${post.author}</span>
+                    </div>
+                </div>
+
+                <img src="${post.image}" alt="${post.title}" class="blog-detail-image" 
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22900%22 height=%22500%22%3E%3Crect width=%22900%22 height=%22500%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2230%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+
+                <div class="blog-detail-content">
+                    ${post.content || `<p>${post.excerpt}</p><p>Nội dung chi tiết đang được cập nhật...</p>`}
+                </div>
+            `;
+
+            // Load related posts
+            loadRelatedPosts(post.category, post.id);
+        }
+
+        // Load related posts
+        function loadRelatedPosts(category, currentId) {
+            const related = blogPosts
+                .filter(p => p.category === category && p.id !== currentId)
+                .slice(0, 3);
+
+            if (related.length === 0) {
+                document.getElementById('relatedPosts').innerHTML = `
+                    <div class="col-12">
+                        <p class="text-muted">Không có bài viết liên quan.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            related.forEach(post => {
+                html += `
+                    <div class="col-md-4 mb-3">
+                        <div class="related-post-card" onclick="window.location.href='blog-detail.html?id=${post.id}'">
+                            <img src="${post.image}" alt="${post.title}" 
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect width=%22400%22 height=%22200%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2220%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                            <div class="related-post-card-body">
+                                <h5 class="related-post-title">${post.title}</h5>
+                                <p class="related-post-date">
+                                    <i class="far fa-calendar me-1"></i>${post.date}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('relatedPosts').innerHTML = html;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlogDetail();
+        });
+    </script>
+</body>
+</html>

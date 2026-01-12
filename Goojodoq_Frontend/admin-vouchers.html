@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý mã giảm giá - GOOJODOQ Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/admin.css" rel="stylesheet">
+    <style>
+        .voucher-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .voucher-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        
+        .voucher-info-main {
+            min-width: 200px;
+        }
+        
+        .voucher-code {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #007bff;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 8px;
+            border: 2px solid #007bff20;
+        }
+        
+        .voucher-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .voucher-details {
+            min-width: 0; /* Allow flex item to shrink */
+        }
+        
+        .voucher-dates {
+            min-width: 160px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        
+        .voucher-actions {
+            min-width: 80px;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-upcoming {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-warning {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+        
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        
+        .modal-lg {
+            max-width: 800px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 991.98px) {
+            .voucher-card {
+                padding: 15px;
+            }
+            
+            .voucher-info-main {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .voucher-dates {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .voucher-actions {
+                min-width: auto;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .voucher-code {
+                font-size: 1.1em;
+                display: block;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .voucher-card {
+                padding: 12px;
+            }
+            
+            .voucher-details .d-flex {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+            }
+            
+            .btn-group {
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <a href="index.html" class="admin-logo" style="text-decoration: none; color: inherit; cursor: pointer;">
+                <img src="images/logo.png" alt="GOOJODOQ">
+                <h4>Administrator</h4>
+            </a>
+            
+            <nav class="admin-nav">
+                <a href="admin-dashboard.html" class="nav-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Quản trị hệ thống</span>
+                </a>
+                <a href="admin-customers.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Quản lý khách hàng</span>
+                </a>
+                <a href="admin-orders.html" class="nav-item">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Quản lý đơn hàng</span>
+                </a>
+                <a href="admin-products.html" class="nav-item">
+                    <i class="fas fa-box"></i>
+                    <span>Quản lý sản phẩm</span>
+                </a>
+                <a href="admin-vouchers.html" class="nav-item active">
+                    <i class="fas fa-tags"></i>
+                    <span>Quản lý mã giảm giá</span>
+                </a>
+                <a href="admin-statistics.html" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Thống kê sản phẩm</span>
+                </a>
+                <a href="admin-revenue.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Tổng doanh thu</span>
+                </a>
+                <a href="admin-support.html" class="nav-item">
+                    <i class="fas fa-headset"></i>
+                    <span>Yêu cầu hỗ trợ</span>
+                </a>
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Xem trang chủ</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout(); return false;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <h1>Quản lý mã giảm giá</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showCreateVoucherModal()">
+                        <i class="fas fa-plus me-2"></i>Tạo mã giảm giá
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Tổng mã giảm giá</h6>
+                                    <h3 id="totalVouchers">0</h3>
+                                </div>
+                                <i class="fas fa-tags fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Đang hoạt động</h6>
+                                    <h3 id="activeVouchers">0</h3>
+                                </div>
+                                <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Sắp hết hạn</h6>
+                                    <h3 id="expiringVouchers">0</h3>
+                                </div>
+                                <i class="fas fa-clock fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Đã hết hạn</h6>
+                                    <h3 id="expiredVouchers">0</h3>
+                                </div>
+                                <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <select class="form-select" id="statusFilter" onchange="filterVouchers()">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="active">Đang hoạt động</option>
+                                <option value="expired">Đã hết hạn</option>
+                                <option value="upcoming">Sắp có hiệu lực</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="typeFilter" onchange="filterVouchers()">
+                                <option value="">Tất cả loại</option>
+                                <option value="theo_phantram">Giảm theo %</option>
+                                <option value="theo_tien">Giảm theo tiền</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchVoucher" placeholder="Tìm kiếm mã giảm giá..." onkeyup="filterVouchers()">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                                <i class="fas fa-refresh me-1"></i>Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vouchers List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Danh sách mã giảm giá</h5>
+                </div>
+                <div class="card-body">
+                    <div id="vouchersContainer">
+                        <div class="text-center py-4">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Voucher Modal -->
+    <div class="modal fade" id="voucherModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="voucherModalTitle">Tạo mã giảm giá mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="voucherForm">
+                        <input type="hidden" id="voucherId">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="voucherCode" placeholder="Mã giảm giá" required>
+                                    <label for="voucherCode">Mã giảm giá *</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-select" id="discountType" required onchange="toggleDiscountFields()">
+                                        <option value="">Chọn loại giảm giá</option>
+                                        <option value="theo_phantram">Giảm theo phần trăm (%)</option>
+                                        <option value="theo_tien">Giảm theo số tiền (VNĐ)</option>
+                                    </select>
+                                    <label for="discountType">Loại giảm giá *</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="discountValue" placeholder="Giá trị giảm" required min="0">
+                                    <label for="discountValue" id="discountValueLabel">Giá trị giảm *</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="minOrder" placeholder="Đơn hàng tối thiểu" min="0" value="0">
+                                    <label for="minOrder">Đơn hàng tối thiểu (VNĐ)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating">
+                            <textarea class="form-control" id="description" placeholder="Mô tả" style="height: 80px"></textarea>
+                            <label for="description">Mô tả</label>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="usageLimit" placeholder="Giới hạn sử dụng" min="1">
+                                    <label for="usageLimit">Giới hạn sử dụng</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="datetime-local" class="form-control" id="validFrom">
+                                    <label for="validFrom">Có hiệu lực từ</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="datetime-local" class="form-control" id="validTo">
+                                    <label for="validTo">Có hiệu lực đến</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Lưu ý:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Mã giảm giá phải là duy nhất và không chứa ký tự đặc biệt</li>
+                                <li>Giá trị giảm theo % không được vượt quá 100%</li>
+                                <li>Nếu không đặt giới hạn sử dụng, mã sẽ có thể dùng không giới hạn</li>
+                                <li>Nếu không đặt thời gian, mã sẽ có hiệu lực vĩnh viễn</li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveVoucher()">
+                        <i class="fas fa-save me-2"></i>Lưu mã giảm giá
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xác nhận xóa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa mã giảm giá <strong id="deleteVoucherCode"></strong>?</p>
+                    <p class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Hành động này không thể hoàn tác!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteVoucher()">
+                        <i class="fas fa-trash me-2"></i>Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/admin-vouchers.js"></script>
+</body>
+</html>

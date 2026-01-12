@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chính sách Thanh toán - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .policy-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .policy-content {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+
+        .policy-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .policy-card h2 {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .policy-card h2:first-child {
+            margin-top: 0;
+        }
+
+        .policy-card p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .policy-card ul {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .policy-card ul li {
+            margin-bottom: 10px;
+        }
+
+        .policy-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .policy-logo img {
+            max-width: 150px;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .payment-method i {
+            font-size: 30px;
+            color: #667eea;
+            margin-right: 15px;
+        }
+
+        .payment-method-info h4 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .payment-method-info p {
+            font-size: 14px;
+            margin-bottom: 0;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header-main">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="GOOJODOQ" class="logo">
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html">Mua sắm</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="blog.html">Bài viết</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Liên hệ</a>
+                            </li>
+                        </ul>
+
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <div class="search-box me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <button class="btn-search" onclick="searchProducts()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
+                            <div id="authButtons" class="d-flex align-items-center me-3" style="display: none;"></div>
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                            </a>
+                            <div class="dropdown" id="userAccountDropdown" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="policy-hero">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Chính sách Thanh toán</h1>
+        </div>
+    </section>
+
+    <!-- Policy Content -->
+    <section class="policy-content">
+        <div class="container">
+            <div class="policy-card">
+                <div class="policy-logo">
+                    <img src="images/logo.png" alt="GOOJODOQ" onerror="this.style.display='none'">
+                </div>
+
+                <h2>Chính Sách Thanh Toán GOOJODOQ</h2>
+                <p>GOOJODOQ cung cấp nhiều phương thức thanh toán linh hoạt, an toàn và tiện lợi để đáp ứng nhu cầu của khách hàng.</p>
+
+                <h2>1. Các Phương Thức Thanh Toán</h2>
+
+                <div class="payment-method">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <div class="payment-method-info">
+                        <h4>Thanh toán khi nhận hàng (COD)</h4>
+                        <p>Thanh toán bằng tiền mặt khi nhận hàng từ nhân viên giao hàng</p>
+                    </div>
+                </div>
+
+                <div class="payment-method">
+                    <i class="fas fa-credit-card"></i>
+                    <div class="payment-method-info">
+                        <h4>Thanh toán bằng thẻ ATM/Visa/MasterCard</h4>
+                        <p>Thanh toán trực tuyến qua cổng thanh toán an toàn</p>
+                    </div>
+                </div>
+
+                <div class="payment-method">
+                    <i class="fas fa-university"></i>
+                    <div class="payment-method-info">
+                        <h4>Chuyển khoản ngân hàng</h4>
+                        <p>Chuyển khoản trực tiếp vào tài khoản ngân hàng của GOOJODOQ</p>
+                    </div>
+                </div>
+
+                <div class="payment-method">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div class="payment-method-info">
+                        <h4>Ví điện tử (MoMo, ZaloPay, VNPay)</h4>
+                        <p>Thanh toán nhanh chóng qua các ví điện tử phổ biến</p>
+                    </div>
+                </div>
+
+                <h2>2. Hướng Dẫn Thanh Toán</h2>
+
+                <p><strong>Thanh toán khi nhận hàng (COD):</strong></p>
+                <ul>
+                    <li>Chọn phương thức "Thanh toán khi nhận hàng" khi đặt hàng</li>
+                    <li>Kiểm tra sản phẩm trước khi thanh toán</li>
+                    <li>Thanh toán bằng tiền mặt cho nhân viên giao hàng</li>
+                    <li>Nhận hóa đơn và biên lai giao hàng</li>
+                </ul>
+
+                <p><strong>Thanh toán chuyển khoản:</strong></p>
+                <p>Thông tin tài khoản ngân hàng:</p>
+                <ul>
+                    <li>Ngân hàng: Vietcombank</li>
+                    <li>Số tài khoản: 1234567890</li>
+                    <li>Chủ tài khoản: CÔNG TY GOOJODOQ</li>
+                    <li>Nội dung chuyển khoản: Họ tên + Số điện thoại + Mã đơn hàng</li>
+                </ul>
+                <p>Sau khi chuyển khoản, vui lòng gửi ảnh chụp biên lai cho chúng tôi qua:</p>
+                <ul>
+                    <li>Email: support@goojodoq.com</li>
+                    <li>Fanpage Facebook</li>
+                    <li>Hotline: 1900-xxxx</li>
+                </ul>
+
+                <p><strong>Thanh toán qua thẻ ATM/Visa/MasterCard:</strong></p>
+                <ul>
+                    <li>Chọn phương thức thanh toán bằng thẻ khi đặt hàng</li>
+                    <li>Nhập thông tin thẻ vào cổng thanh toán an toàn</li>
+                    <li>Xác nhận giao dịch qua OTP</li>
+                    <li>Nhận email xác nhận thanh toán thành công</li>
+                </ul>
+
+                <p><strong>Thanh toán qua ví điện tử:</strong></p>
+                <ul>
+                    <li>Chọn ví điện tử muốn sử dụng (MoMo, ZaloPay, VNPay)</li>
+                    <li>Quét mã QR hoặc nhập số điện thoại ví</li>
+                    <li>Xác nhận thanh toán trên ứng dụng ví</li>
+                    <li>Nhận thông báo thanh toán thành công</li>
+                </ul>
+
+                <h2>3. Chính Sách Hoàn Tiền</h2>
+                <ul>
+                    <li>Hoàn tiền trong vòng 5-7 ngày làm việc kể từ khi xác nhận đổi trả</li>
+                    <li>Hoàn tiền về tài khoản/thẻ/ví đã thanh toán</li>
+                    <li>Với thanh toán COD: Hoàn tiền qua chuyển khoản ngân hàng</li>
+                    <li>Khách hàng cung cấp thông tin tài khoản để nhận hoàn tiền</li>
+                </ul>
+
+                <h2>4. Bảo Mật Thông Tin Thanh Toán</h2>
+                <p>GOOJODOQ cam kết:</p>
+                <ul>
+                    <li>Sử dụng công nghệ mã hóa SSL 256-bit để bảo vệ thông tin thanh toán</li>
+                    <li>Không lưu trữ thông tin thẻ của khách hàng</li>
+                    <li>Tuân thủ các tiêu chuẩn bảo mật quốc tế PCI DSS</li>
+                    <li>Thông tin thanh toán được xử lý qua cổng thanh toán uy tín</li>
+                    <li>Không chia sẻ thông tin thanh toán với bên thứ ba</li>
+                </ul>
+
+                <h2>5. Lưu Ý Quan Trọng</h2>
+                <ul>
+                    <li>Kiểm tra kỹ thông tin đơn hàng trước khi thanh toán</li>
+                    <li>Giữ lại biên lai, hóa đơn để đối chiếu khi cần thiết</li>
+                    <li>Liên hệ ngay với chúng tôi nếu gặp vấn đề trong quá trình thanh toán</li>
+                    <li>Không cung cấp thông tin thẻ/tài khoản cho bất kỳ ai qua điện thoại hoặc email</li>
+                    <li>GOOJODOQ không bao giờ yêu cầu khách hàng cung cấp mã OTP qua điện thoại</li>
+                </ul>
+
+                <h2>6. Hỗ Trợ Thanh Toán</h2>
+                <p>Nếu gặp bất kỳ vấn đề nào trong quá trình thanh toán, vui lòng liên hệ:</p>
+                <ul>
+                    <li>Hotline: 1900-xxxx (8:00 - 17:00, Thứ 2 - Thứ 6)</li>
+                    <li>Email: support@goojodoq.com</li>
+                    <li>Fanpage Facebook: GOOJODOQ.GLOBAL</li>
+                    <li>Chat trực tuyến trên website</li>
+                </ul>
+
+                <p style="margin-top: 30px; text-align: center; color: #667eea; font-weight: bold;">
+                    Cảm ơn quý khách đã tin tưởng và lựa chọn GOOJODOQ!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">CHÍNH SÁCH</h5>
+                    <ul class="footer-links">
+                        <li><a href="warranty.html">Chính sách bảo hành</a></li>
+                        <li><a href="return.html">Chính sách đổi trả</a></li>
+                        <li><a href="shipping.html">Chính sách vận chuyển</a></li>
+                        <li><a href="payment.html">Chính sách thanh toán</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">HỖ TRỢ KHÁCH HÀNG</h5>
+                    <ul class="footer-links">
+                        <li><a href="contact.html">Liên hệ</a></li>
+                    </ul>
+                    <div class="mt-3">
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i>Hotline: 1900-xxxx</p>
+                        <p class="mb-0"><i class="fas fa-envelope me-2"></i>support@goojodoq.com</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">VỀ GOOJODOQ</h5>
+                    <ul class="footer-links">
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="shop.html">Sản phẩm</a></li>
+                        <li><a href="blog.html">Bài viết & Tin tức</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h5>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle" target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Giờ làm việc:</strong></p>
+                        <p class="mb-0">Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+                        <p class="mb-0">Thứ Bảy: 8:00 - 12:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4 pt-4 border-top">
+                <div class="col-md-12 text-center">
+                    <p class="footer-copyright mb-0">
+                        Copyright © 2025 GOOJODOQ. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

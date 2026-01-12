@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chính sách Bảo hành - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .policy-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .policy-content {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+
+        .policy-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .policy-card h2 {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .policy-card h2:first-child {
+            margin-top: 0;
+        }
+
+        .policy-card p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .policy-card ul {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .policy-card ul li {
+            margin-bottom: 10px;
+        }
+
+        .policy-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .policy-logo img {
+            max-width: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header-main">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="GOOJODOQ" class="logo">
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html">Mua sắm</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="blog.html">Bài viết</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Liên hệ</a>
+                            </li>
+                        </ul>
+
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <div class="search-box me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <button class="btn-search" onclick="searchProducts()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
+                            <div id="authButtons" class="d-flex align-items-center me-3" style="display: none;"></div>
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                            </a>
+                            <div class="dropdown" id="userAccountDropdown" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="policy-hero">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Chính sách Bảo hành</h1>
+        </div>
+    </section>
+
+    <!-- Policy Content -->
+    <section class="policy-content">
+        <div class="container">
+            <div class="policy-card">
+                <div class="policy-logo">
+                    <img src="images/logo.png" alt="GOOJODOQ" onerror="this.style.display='none'">
+                </div>
+
+                <h2>1. Điều Kiện Bảo Trả</h2>
+                <p>Sản phẩm được bảo hành khi đáp ứng đầy đủ các điều kiện sau:</p>
+                <ul>
+                    <li>Thời Gian Yêu Cầu Bảo Hành: Trong vòng 7 ngày kể từ ngày nhận sản phẩm</li>
+                    <li>Thời Gian Yêu Cầu Đổi Trả: Trong vòng 7 ngày kể từ ngày nhận sản phẩm</li>
+                </ul>
+                <p>Vui lòng chuẩn bị các giấy tờ cần thiết cho yêu cầu bảo hành như:</p>
+                <ul>
+                    <li>Sản phẩm vẫn còn nguyên vẹn, không bị hư hỏng hay trầy xước</li>
+                    <li>Các phụ kiện kèm theo sản phẩm vẫn còn đầy đủ (nếu có)</li>
+                    <li>Sản phẩm không gặp lỗi do người sử dụng gây ra</li>
+                </ul>
+
+                <h2>2. Các Trường Hợp Không Thể Bảo Trả</h2>
+                <p>Những trường hợp sau đây sẽ không được bảo hành:</p>
+                <ul>
+                    <li>Yêu cầu bảo trả quá thời hạn quy định</li>
+                    <li>Sản phẩm bị hư hỏng do sử dụng không đúng cách, bảo quản không đúng cách</li>
+                    <li>Không có hóa đơn mua hàng hoặc phiếu bảo hành hợp lệ</li>
+                    <li>Sản phẩm đã qua sửa chữa bởi bên thứ ba không được ủy quyền</li>
+                </ul>
+
+                <h2>3. Quy Trình Bảo Trả</h2>
+                <p><strong>Liên Hệ Với Chúng Tôi:</strong></p>
+                <p>Trước khi gửi sản phẩm về để bảo hành/đổi trả, vui lòng liên hệ với chúng tôi qua các kênh sau:</p>
+                <ul>
+                    <li>Gọi điện thoại: Hotline 1900-xxxx</li>
+                    <li>Gửi email: support@goojodoq.com</li>
+                    <li>Nhắn tin qua Fanpage Facebook</li>
+                    <li>Liên hệ qua trang Liên hệ trên website</li>
+                </ul>
+
+                <p><strong>Xem Xét Và Xử Lý Nhanh:</strong></p>
+                <p>Chúng tôi sẽ xem xét yêu cầu của bạn trong vòng 1-2 ngày làm việc và thông báo kết quả cho bạn qua email hoặc điện thoại.</p>
+
+                <p><strong>Gửi Sản Phẩm Về:</strong></p>
+                <p>Nếu yêu cầu được chấp nhận, vui lòng gửi sản phẩm về địa chỉ chúng tôi cung cấp. Chi phí vận chuyển sẽ do GOOJODOQ chịu (nếu lỗi từ nhà sản xuất) hoặc khách hàng chịu (nếu đổi ý).</p>
+
+                <p><strong>Nhận Sản Phẩm Mới Hoặc Hoàn Tiền:</strong></p>
+                <p>Sau khi nhận và kiểm tra sản phẩm, chúng tôi sẽ:</p>
+                <ul>
+                    <li>Gửi sản phẩm mới thay thế (nếu còn hàng)</li>
+                    <li>Hoàn tiền 100% giá trị sản phẩm (nếu hết hàng hoặc khách hàng yêu cầu)</li>
+                    <li>Thời gian xử lý: 3-5 ngày làm việc</li>
+                </ul>
+
+                <h2>4. Chính Sách Phí Vận Chuyển</h2>
+                <ul>
+                    <li>Miễn phí vận chuyển khi bảo hành: GOOJODOQ sẽ chịu toàn bộ chi phí vận chuyển</li>
+                    <li>Đổi trả do lỗi sản xuất: Miễn phí vận chuyển 2 chiều</li>
+                    <li>Đổi trả do khách hàng đổi ý: Khách hàng chịu phí vận chuyển</li>
+                </ul>
+
+                <h2>5. Lưu Ý Đặc Biệt</h2>
+                <ul>
+                    <li>Vui lòng giữ lại hóa đơn mua hàng và phiếu bảo hành để được hỗ trợ tốt nhất</li>
+                    <li>Chính sách bảo hành có thể thay đổi tùy theo từng sản phẩm cụ thể</li>
+                    <li>Mọi thắc mắc xin vui lòng liên hệ: support@goojodoq.com hoặc Hotline: 1900-xxxx</li>
+                </ul>
+
+                <p style="margin-top: 30px; text-align: center; color: #667eea; font-weight: bold;">
+                    Cảm ơn quý khách đã tin tưởng và sử dụng sản phẩm của GOOJODOQ!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">CHÍNH SÁCH</h5>
+                    <ul class="footer-links">
+                        <li><a href="warranty.html">Chính sách bảo hành</a></li>
+                        <li><a href="return.html">Chính sách đổi trả</a></li>
+                        <li><a href="shipping.html">Chính sách vận chuyển</a></li>
+                        <li><a href="payment.html">Chính sách thanh toán</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">HỖ TRỢ KHÁCH HÀNG</h5>
+                    <ul class="footer-links">
+                        <li><a href="contact.html">Liên hệ</a></li>
+                    </ul>
+                    <div class="mt-3">
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i>Hotline: 1900-xxxx</p>
+                        <p class="mb-0"><i class="fas fa-envelope me-2"></i>support@goojodoq.com</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">VỀ GOOJODOQ</h5>
+                    <ul class="footer-links">
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="shop.html">Sản phẩm</a></li>
+                        <li><a href="blog.html">Bài viết & Tin tức</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h5>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle" target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Giờ làm việc:</strong></p>
+                        <p class="mb-0">Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+                        <p class="mb-0">Thứ Bảy: 8:00 - 12:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4 pt-4 border-top">
+                <div class="col-md-12 text-center">
+                    <p class="footer-copyright mb-0">
+                        Copyright © 2025 GOOJODOQ. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

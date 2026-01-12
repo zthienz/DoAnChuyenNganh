@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài viết & Tin tức - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .blog-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            color: white;
+            text-align: center;
+        }
+
+        .blog-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .blog-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .blog-card-body {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-category {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .blog-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #333;
+        }
+
+        .blog-excerpt {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            flex: 1;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+            color: #999;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .blog-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header-main">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="GOOJODOQ" class="logo">
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html">Mua sắm</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="blog.html">Bài viết</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Liên hệ</a>
+                            </li>
+                        </ul>
+
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <div class="search-box me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <button class="btn-search" onclick="searchProducts()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
+                            <div id="authButtons" class="d-flex align-items-center me-3" style="display: none;"></div>
+                            
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                            </a>
+                            <div class="dropdown" id="userAccountDropdown" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="blog-hero">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Bài viết</h1>
+            <p class="lead">Cập nhật tin tức mới nhất về công nghệ và sản phẩm GOOJODOQ</p>
+        </div>
+    </section>
+
+    <!-- Blog Content -->
+    <section class="py-5">
+        <div class="container">
+            <!-- Admin Controls -->
+            <div class="text-end mb-4" id="adminControls" style="display: none;">
+                <a href="admin-blog-management.html" class="btn btn-info me-2">
+                    <i class="fas fa-cog me-2"></i>Quản lý bài viết
+                </a>
+                <a href="admin-add-blog.html" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Tạo bài viết mới
+                </a>
+            </div>
+
+            <!-- Blog Posts Grid -->
+            <div class="row" id="blogPosts">
+                <!-- Blog posts will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">CHÍNH SÁCH</h5>
+                    <ul class="footer-links">
+                        <li><a href="warranty.html">Chính sách bảo hành</a></li>
+                        <li><a href="return.html">Chính sách đổi trả</a></li>
+                        <li><a href="shipping.html">Chính sách vận chuyển</a></li>
+                        <li><a href="payment.html">Chính sách thanh toán</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">HỖ TRỢ KHÁCH HÀNG</h5>
+                    <ul class="footer-links">
+                        <li><a href="contact.html">Liên hệ</a></li>
+                    </ul>
+                    <div class="mt-3">
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i>Hotline: 1900-xxxx</p>
+                        <p class="mb-0"><i class="fas fa-envelope me-2"></i>support@goojodoq.com</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">VỀ GOOJODOQ</h5>
+                    <ul class="footer-links">
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="shop.html">Sản phẩm</a></li>
+                        <li><a href="blog.html">Bài viết & Tin tức</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h5>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle" target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Giờ làm việc:</strong></p>
+                        <p class="mb-0">Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+                        <p class="mb-0">Thứ Bảy: 8:00 - 12:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4 pt-4 border-top">
+                <div class="col-md-12 text-center">
+                    <p class="footer-copyright mb-0">
+                        Copyright © 2025 GOOJODOQ. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Sample blog data - Load from localStorage or use default
+        let blogPosts = JSON.parse(localStorage.getItem('blogPosts')) || [
+            {
+                id: 1,
+                title: "Top 5 tai nghe Bluetooth tốt nhất năm 2025",
+                excerpt: "Khám phá những mẫu tai nghe Bluetooth chất lượng cao với âm thanh tuyệt vời và pin bền bỉ...",
+                content: `
+                    <h2>Giới thiệu</h2>
+                    <p>Tai nghe Bluetooth đã trở thành phụ kiện không thể thiếu trong cuộc sống hiện đại. Với sự phát triển của công nghệ, các sản phẩm tai nghe Bluetooth ngày càng được cải tiến về chất lượng âm thanh, thời lượng pin và tính năng thông minh.</p>
+                    
+                    <h3>1. GOOJODOQ Air Pro</h3>
+                    <p>Với công nghệ chống ồn chủ động ANC và thời lượng pin lên đến 30 giờ, GOOJODOQ Air Pro là lựa chọn hàng đầu cho những ai yêu thích âm nhạc chất lượng cao.</p>
+                    
+                    <h3>2. GOOJODOQ Sport</h3>
+                    <p>Thiết kế chống nước IPX7, phù hợp cho các hoạt động thể thao và tập luyện. Âm thanh mạnh mẽ với bass sâu.</p>
+                    
+                    <h3>Kết luận</h3>
+                    <p>Việc chọn tai nghe Bluetooth phù hợp phụ thuộc vào nhu cầu sử dụng của từng người. Hãy cân nhắc các yếu tố như chất lượng âm thanh, thời lượng pin và giá cả để đưa ra quyết định tốt nhất.</p>
+                `,
+                category: "Đánh giá sản phẩm",
+                date: "20/11/2025",
+                image: "images/products/TAINGHE001-1.webp",
+                author: "Admin"
+            },
+            {
+                id: 2,
+                title: "Hướng dẫn chọn quạt mini phù hợp cho mùa hè",
+                excerpt: "Mùa hè đang đến, cùng tìm hiểu cách chọn quạt mini phù hợp với nhu cầu của bạn...",
+                content: `
+                    <h2>Tại sao nên chọn quạt mini?</h2>
+                    <p>Quạt mini là giải pháp tuyệt vời cho những ngày hè nóng bức. Với kích thước nhỏ gọn, dễ dàng mang theo và sử dụng ở mọi nơi.</p>
+                    
+                    <h3>Các tiêu chí chọn quạt mini</h3>
+                    <ul>
+                        <li><strong>Thời lượng pin:</strong> Nên chọn sản phẩm có pin từ 4-8 giờ</li>
+                        <li><strong>Tốc độ gió:</strong> Có ít nhất 3 cấp độ điều chỉnh</li>
+                        <li><strong>Độ ồn:</strong> Dưới 40dB để không gây khó chịu</li>
+                        <li><strong>Chất liệu:</strong> Nhựa ABS cao cấp, an toàn</li>
+                    </ul>
+                    
+                    <h3>Sản phẩm đề xuất</h3>
+                    <p>GOOJODOQ Mini Fan với thiết kế hiện đại, pin 6 giờ và 3 cấp độ gió là lựa chọn tuyệt vời cho mùa hè này.</p>
+                `,
+                category: "Hướng dẫn",
+                date: "18/11/2025",
+                image: "images/products/QUAT001-1.webp",
+                author: "Admin"
+            },
+            {
+                id: 3,
+                title: "GOOJODOQ ra mắt bộ sưu tập phụ kiện mới",
+                excerpt: "Chúng tôi vui mừng giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với nhiều tính năng ưu việt...",
+                content: `
+                    <h2>Bộ sưu tập mới 2025</h2>
+                    <p>GOOJODOQ tự hào giới thiệu bộ sưu tập phụ kiện điện tử mới nhất với thiết kế hiện đại và công nghệ tiên tiến.</p>
+                    
+                    <h3>Sản phẩm nổi bật</h3>
+                    <ol>
+                        <li>Hub USB-C 7 trong 1</li>
+                        <li>Sạc dự phòng 20000mAh</li>
+                        <li>Cáp sạc nhanh 100W</li>
+                        <li>Đế sạc không dây 15W</li>
+                    </ol>
+                    
+                    <p>Tất cả sản phẩm đều được thiết kế với chất lượng cao và giá cả hợp lý, phù hợp với mọi đối tượng khách hàng.</p>
+                `,
+                category: "Tin tức",
+                date: "15/11/2025",
+                image: "images/products/HUB001_1.webp",
+                author: "Admin"
+            },
+            {
+                id: 4,
+                title: "So sánh loa Bluetooth: Chọn loại nào phù hợp?",
+                excerpt: "Phân tích chi tiết các loại loa Bluetooth trên thị trường để giúp bạn đưa ra lựa chọn đúng đắn...",
+                category: "Đánh giá sản phẩm",
+                date: "12/11/2025",
+                image: "images/products/LOA001-1.webp",
+                author: "Admin"
+            },
+            {
+                id: 5,
+                title: "Bí quyết bảo quản phụ kiện điện tử bền lâu",
+                excerpt: "Những mẹo đơn giản giúp kéo dài tuổi thọ cho các thiết bị điện tử của bạn...",
+                category: "Hướng dẫn",
+                date: "10/11/2025",
+                image: "images/products/SACDUPHONG001-1.webp",
+                author: "Admin"
+            },
+            {
+                id: 6,
+                title: "Khuyến mãi lớn cuối năm - Giảm giá đến 50%",
+                excerpt: "Đừng bỏ lỡ chương trình khuyến mãi lớn nhất trong năm với hàng trăm sản phẩm giảm giá sâu...",
+                category: "Khuyến mãi",
+                date: "08/11/2025",
+                image: "images/products/DONGHO001_1.webp",
+                author: "Admin"
+            },
+            {
+                id: 7,
+                title: "Đánh giá chuột không dây cao cấp",
+                excerpt: "Trải nghiệm chuột không dây với độ chính xác cao và thiết kế ergonomic tuyệt vời...",
+                category: "Đánh giá sản phẩm",
+                date: "05/11/2025",
+                image: "images/products/CHUOT001_1.webp",
+                author: "Admin"
+            },
+            {
+                id: 8,
+                title: "Bàn phím cơ - Lựa chọn hoàn hảo cho game thủ",
+                excerpt: "Khám phá các loại bàn phím cơ với switch chất lượng và đèn LED RGB đẹp mắt...",
+                category: "Đánh giá sản phẩm",
+                date: "02/11/2025",
+                image: "images/products/BANPHIM001_1.webp",
+                author: "Admin"
+            },
+            {
+                id: 9,
+                title: "Giá đỡ điện thoại thông minh cho mọi nhu cầu",
+                excerpt: "Tìm hiểu về các loại giá đỡ điện thoại tiện lợi cho xe hơi, bàn làm việc và nhiều hơn nữa...",
+                category: "Hướng dẫn",
+                date: "30/10/2025",
+                image: "images/products/GIADO001_1.webp",
+                author: "Admin"
+            }
+        ];
+
+        // Save sample data to localStorage if not exists
+        if (!localStorage.getItem('blogPosts')) {
+            localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+            console.log('✅ Sample blog posts saved to localStorage');
+        }
+
+        // Load blog posts
+        function loadBlogPosts() {
+            const blogPostsContainer = document.getElementById('blogPosts');
+            let html = '';
+
+            blogPosts.forEach(post => {
+                html += `
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="blog-card" onclick="window.location.href='blog-detail.html?id=${post.id}'" style="cursor: pointer;">
+                            <img src="${post.image}" alt="${post.title}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22250%22%3E%3Crect width=%22400%22 height=%22250%22 fill=%22%23e0e0e0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2220%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                            <div class="blog-card-body">
+                                <span class="blog-category">${post.category}</span>
+                                <h3 class="blog-title">${post.title}</h3>
+                                <p class="blog-excerpt">${post.excerpt}</p>
+                                <div class="blog-meta">
+                                    <div class="blog-date">
+                                        <i class="far fa-calendar"></i>
+                                        <span>${post.date}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            blogPostsContainer.innerHTML = html;
+        }
+
+        // Check if user is admin
+        function checkAdminAccess() {
+            // Use the same logic as main.js
+            const currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+            console.log('🔍 Checking admin access for blog:', currentUser);
+            
+            if (currentUser && currentUser.quyen === 'admin') {
+                console.log('✅ Admin access granted - showing admin controls');
+                document.getElementById('adminControls').style.display = 'block';
+            } else {
+                console.log('❌ No admin access - hiding admin controls');
+                document.getElementById('adminControls').style.display = 'none';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlogPosts();
+            checkAdminAccess();
+            
+            // Update auth UI from main.js
+            if (typeof updateAuthUI === 'function') {
+                updateAuthUI();
+            }
+        });
+
+        // Listen for storage changes (when user logs in/out in another tab)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'user') {
+                checkAdminAccess();
+            }
+        });
+
+        // Also check admin access when page becomes visible (in case user logged in elsewhere)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                checkAdminAccess();
+            }
+        });
+    </script>
+</body>
+
+</html>

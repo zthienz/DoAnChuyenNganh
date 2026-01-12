@@ -1,0 +1,9 @@
+Thư mục này chứa các hình ảnh cho website:
+
+- logo.png: Logo GOOJODOQ
+- hero-banner.jpg: Banner chính trang chủ
+- products/: Thư mục chứa hình ảnh sản phẩm
+- categories/: Thư mục chứa icon danh mục
+- default.jpg: Hình ảnh mặc định khi không có ảnh sản phẩm
+
+Bạn cần thêm các file hình ảnh tương ứng vào thư mục này.

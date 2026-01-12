@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán bị hủy - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .cancel-page {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .cancel-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .cancel-icon {
+            width: 100px;
+            height: 100px;
+            background: #dc3545;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: shake 0.5s ease-in-out;
+        }
+        .cancel-icon i {
+            font-size: 50px;
+            color: white;
+        }
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            75% {
+                transform: translateX(5px);
+            }
+        }
+        .order-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="cancel-page">
+        <div class="container">
+            <div class="cancel-card">
+                <div class="cancel-icon">
+                    <i class="fas fa-times"></i>
+                </div>
+                
+                <h2 class="text-danger mb-3">Thanh toán bị hủy</h2>
+                <p class="lead text-muted mb-4">
+                    Bạn đã hủy quá trình thanh toán. Đơn hàng của bạn vẫn được lưu và bạn có thể thanh toán lại sau.
+                </p>
+
+                <div class="order-info" id="orderInfo">
+                    <div class="row text-start">
+                        <div class="col-12">
+                            <strong>Lưu ý:</strong><br>
+                            <ul class="text-start mt-2">
+                                <li>Đơn hàng của bạn vẫn tồn tại trong hệ thống</li>
+                                <li>Bạn có thể thanh toán lại bằng cách vào "Đơn hàng của tôi"</li>
+                                <li>Hoặc liên hệ với chúng tôi để được hỗ trợ</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Cần hỗ trợ?</strong> Liên hệ hotline: <strong>1900-xxxx</strong>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="orders.html" class="btn btn-primary btn-lg me-md-2">
+                        <i class="fas fa-list me-2"></i>Xem đơn hàng
+                    </a>
+                    <a href="cart.html" class="btn btn-outline-secondary btn-lg me-md-2">
+                        <i class="fas fa-shopping-cart me-2"></i>Quay lại giỏ hàng
+                    </a>
+                    <a href="contact.html" class="btn btn-outline-danger btn-lg">
+                        <i class="fas fa-phone me-2"></i>Liên hệ hỗ trợ
+                    </a>
+                </div>
+
+                <div class="mt-4">
+                    <small class="text-muted">
+                        Bạn có thể thử thanh toán lại hoặc chọn phương thức thanh toán khác
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const orderId = getUrlParameter('orderId');
+            
+            if (orderId) {
+                // Update order info with specific order ID
+                const orderInfoElement = document.getElementById('orderInfo');
+                orderInfoElement.innerHTML = `
+                    <div class="row text-start">
+                        <div class="col-12 mb-3">
+                            <strong>Mã đơn hàng:</strong> <span class="text-primary">#${orderId}</span>
+                        </div>
+                        <div class="col-12">
+                            <strong>Trạng thái:</strong> <span class="text-danger">Đã hủy thanh toán</span><br>
+                            <small class="text-muted">Đơn hàng đã được hủy tự động do không hoàn thành thanh toán</small>
+                        </div>
+                    </div>
+                `;
+
+                // Call backend to handle payment cancellation
+                handlePaymentCancellation(orderId);
+            }
+
+            // Clear session storage
+            sessionStorage.removeItem('paymentOrderId');
+            sessionStorage.removeItem('paymentOrderCode');
+        });
+
+        // Handle payment cancellation
+        async function handlePaymentCancellation(orderId) {
+            try {
+                const orderCode = getUrlParameter('orderCode') || sessionStorage.getItem('paymentOrderCode');
+                
+                if (orderCode) {
+                    // Cancel the payment transaction
+                    const response = await fetch(`${API_BASE_URL}/payment/cancel/${orderCode}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            reason: 'User cancelled payment'
+                        })
+                    });
+
+                    if (response.ok) {
+                        console.log('✅ Payment cancelled successfully');
+                    } else {
+                        console.log('⚠️ Could not cancel payment, but order will be handled by sync process');
+                    }
+                }
+            } catch (error) {
+                console.error('Error handling payment cancellation:', error);
+                // Don't show error to user as this is background processing
+            }
+        }
+    </script>
+</body>
+</html>

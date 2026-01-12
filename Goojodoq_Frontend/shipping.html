@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chính sách Vận chuyển - GOOJODOQ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .policy-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .policy-content {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+
+        .policy-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .policy-card h2 {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .policy-card h2:first-child {
+            margin-top: 0;
+        }
+
+        .policy-card p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .policy-card ul {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .policy-card ul li {
+            margin-bottom: 10px;
+        }
+
+        .policy-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .policy-logo img {
+            max-width: 150px;
+        }
+
+        .shipping-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .shipping-table th,
+        .shipping-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .shipping-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .shipping-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header-main">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="index.html">
+                        <img src="images/logo.png" alt="GOOJODOQ" class="logo">
+                    </a>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="shop.html">Mua sắm</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="blog.html">Bài viết</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="contact.html">Liên hệ</a>
+                            </li>
+                        </ul>
+
+                        <div class="navbar-nav ms-auto d-flex align-items-center">
+                            <div class="search-box me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." id="searchInput">
+                                <button class="btn-search" onclick="searchProducts()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
+                            <div id="authButtons" class="d-flex align-items-center me-3" style="display: none;"></div>
+                            <a href="cart.html" id="cartIcon" class="nav-link position-relative me-3" style="display: none;">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="cartCount">0</span>
+                            </a>
+                            <div class="dropdown" id="userAccountDropdown" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="policy-hero">
+        <div class="container">
+            <h1 class="display-5 fw-bold">Chính sách Vận chuyển</h1>
+        </div>
+    </section>
+
+    <!-- Policy Content -->
+    <section class="policy-content">
+        <div class="container">
+            <div class="policy-card">
+                <div class="policy-logo">
+                    <img src="images/logo.png" alt="GOOJODOQ" onerror="this.style.display='none'">
+                </div>
+
+                <h2>Chính Sách Vận Chuyển GOOJODOQ</h2>
+                <p>GOOJODOQ cam kết mang đến dịch vụ vận chuyển nhanh chóng, an toàn và tiện lợi nhất cho khách hàng trên toàn quốc.</p>
+
+                <h2>1. Phạm Vi Vận Chuyển</h2>
+                <p>Chúng tôi hỗ trợ giao hàng toàn quốc:</p>
+                <ul>
+                    <li>Nội thành Hà Nội và TP. Hồ Chí Minh: 1-2 ngày làm việc</li>
+                    <li>Các tỉnh thành khác: 2-5 ngày làm việc</li>
+                    <li>Vùng sâu, vùng xa: 5-7 ngày làm việc</li>
+                </ul>
+
+                <h2>2. Phí Vận Chuyển</h2>
+                <table class="shipping-table">
+                    <thead>
+                        <tr>
+                            <th>Khu vực</th>
+                            <th>Phí vận chuyển</th>
+                            <th>Thời gian giao hàng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nội thành HN, HCM</td>
+                            <td>30.000đ</td>
+                            <td>1-2 ngày</td>
+                        </tr>
+                        <tr>
+                            <td>Các tỉnh thành khác</td>
+                            <td>40.000đ - 60.000đ</td>
+                            <td>2-5 ngày</td>
+                        </tr>
+                        <tr>
+                            <td>Vùng sâu, vùng xa</td>
+                            <td>60.000đ - 100.000đ</td>
+                            <td>5-7 ngày</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><strong>Miễn phí vận chuyển:</strong></p>
+                <ul>
+                    <li>Đơn hàng từ 500.000đ trở lên: Miễn phí toàn quốc</li>
+                    <li>Đơn hàng từ 300.000đ: Miễn phí nội thành HN, HCM</li>
+                </ul>
+
+                <h2>3. Đơn Vị Vận Chuyển</h2>
+                <p>GOOJODOQ hợp tác với các đơn vị vận chuyển uy tín:</p>
+                <ul>
+                    <li>Giao Hàng Nhanh (GHN)</li>
+                    <li>Giao Hàng Tiết Kiệm (GHTK)</li>
+                    <li>Viettel Post</li>
+                    <li>J&T Express</li>
+                </ul>
+
+                <h2>4. Quy Trình Giao Hàng</h2>
+                <p><strong>Bước 1: Xác nhận đơn hàng</strong></p>
+                <p>Sau khi đặt hàng thành công, bạn sẽ nhận được email/SMS xác nhận đơn hàng.</p>
+
+                <p><strong>Bước 2: Đóng gói và giao cho đơn vị vận chuyển</strong></p>
+                <p>Đơn hàng sẽ được đóng gói cẩn thận và giao cho đơn vị vận chuyển trong vòng 24h.</p>
+
+                <p><strong>Bước 3: Theo dõi đơn hàng</strong></p>
+                <p>Bạn có thể theo dõi tình trạng đơn hàng qua:</p>
+                <ul>
+                    <li>Website GOOJODOQ (mục Đơn hàng của tôi)</li>
+                    <li>Mã vận đơn được gửi qua email/SMS</li>
+                    <li>Hotline: 1900-xxxx</li>
+                </ul>
+
+                <p><strong>Bước 4: Nhận hàng và kiểm tra</strong></p>
+                <p>Vui lòng kiểm tra kỹ sản phẩm trước khi nhận hàng. Nếu có vấn đề, hãy từ chối nhận và liên hệ ngay với chúng tôi.</p>
+
+                <h2>5. Lưu Ý Quan Trọng</h2>
+                <ul>
+                    <li>Vui lòng cung cấp đầy đủ và chính xác thông tin địa chỉ giao hàng</li>
+                    <li>Đảm bảo có người nhận hàng trong khung giờ giao hàng</li>
+                    <li>Kiểm tra kỹ sản phẩm trước khi ký nhận</li>
+                    <li>Giữ lại biên lai giao hàng để đối chiếu khi cần thiết</li>
+                    <li>Liên hệ ngay với chúng tôi nếu có bất kỳ vấn đề nào phát sinh</li>
+                </ul>
+
+                <h2>6. Trường Hợp Đặc Biệt</h2>
+                <p><strong>Giao hàng không thành công:</strong></p>
+                <ul>
+                    <li>Không liên lạc được với người nhận: Đơn vị vận chuyển sẽ liên hệ lại 2-3 lần</li>
+                    <li>Địa chỉ không chính xác: Vui lòng cập nhật địa chỉ mới</li>
+                    <li>Người nhận từ chối nhận hàng: Phí vận chuyển 2 chiều sẽ do khách hàng chịu</li>
+                </ul>
+
+                <p><strong>Hàng hóa bị hư hỏng trong quá trình vận chuyển:</strong></p>
+                <ul>
+                    <li>Vui lòng chụp ảnh và quay video làm bằng chứng</li>
+                    <li>Liên hệ ngay với GOOJODOQ để được hỗ trợ đổi trả</li>
+                    <li>Chúng tôi sẽ chịu toàn bộ chi phí vận chuyển và đổi sản phẩm mới</li>
+                </ul>
+
+                <p style="margin-top: 30px; text-align: center; color: #667eea; font-weight: bold;">
+                    Mọi thắc mắc về vận chuyển, vui lòng liên hệ: support@goojodoq.com hoặc Hotline: 1900-xxxx
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">CHÍNH SÁCH</h5>
+                    <ul class="footer-links">
+                        <li><a href="warranty.html">Chính sách bảo hành</a></li>
+                        <li><a href="return.html">Chính sách đổi trả</a></li>
+                        <li><a href="shipping.html">Chính sách vận chuyển</a></li>
+                        <li><a href="payment.html">Chính sách thanh toán</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">HỖ TRỢ KHÁCH HÀNG</h5>
+                    <ul class="footer-links">
+                        <li><a href="contact.html">Liên hệ</a></li>
+                    </ul>
+                    <div class="mt-3">
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i>Hotline: 1900-xxxx</p>
+                        <p class="mb-0"><i class="fas fa-envelope me-2"></i>support@goojodoq.com</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">VỀ GOOJODOQ</h5>
+                    <ul class="footer-links">
+                        <li><a href="about.html">Giới thiệu</a></li>
+                        <li><a href="shop.html">Sản phẩm</a></li>
+                        <li><a href="blog.html">Bài viết & Tin tức</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h5>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/GOOJODOQ.GLOBAL" target="_blank" class="social-link me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Fgoojodoq.officials%2F&is_from_rle" target="_blank" class="social-link me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.youtube.com/@GOOJODOQ_GLOBAl" target="_blank" class="social-link me-2"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@goojodoq.officials" target="_blank" class="social-link me-2"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Giờ làm việc:</strong></p>
+                        <p class="mb-0">Thứ Hai - Thứ Sáu: 8:00 - 17:00</p>
+                        <p class="mb-0">Thứ Bảy: 8:00 - 12:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4 pt-4 border-top">
+                <div class="col-md-12 text-center">
+                    <p class="footer-copyright mb-0">
+                        Copyright © 2025 GOOJODOQ. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
