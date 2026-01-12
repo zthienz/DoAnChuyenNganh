@@ -180,8 +180,8 @@ export const handlePayOSWebhook = async (req, res) => {
     if (success) {
       console.log('✅ Payment successful for order:', orderId);
       
-      // Cập nhật đơn hàng thành "đã thanh toán" khi thanh toán thành công
-      // Chỉ cập nhật nếu đơn hàng đang ở trạng thái "cho_xacnhan" và chưa thanh toán
+      // THANH TOÁN THÀNH CÔNG: Cập nhật đơn hàng thành "đã thanh toán" 
+      // Đơn hàng sẽ KHÔNG THỂ HỦY sau khi thanh toán thành công
       if (order.trangthai === 'cho_xacnhan' && order.trangthai_thanhtoan === 'chua_tt') {
         const updateResult = await pool.query(
           `UPDATE donhang 
@@ -191,7 +191,7 @@ export const handlePayOSWebhook = async (req, res) => {
         );
 
         if (updateResult[0].affectedRows > 0) {
-          console.log('🔄 Order payment status updated: chua_tt → da_tt (order cannot be cancelled now)');
+          console.log('🔄 ✅ THANH TOÁN THÀNH CÔNG: Đơn hàng đã thanh toán và KHÔNG THỂ HỦY');
           
           // Kiểm tra lại trạng thái sau khi cập nhật
           const [updatedOrder] = await pool.query(
@@ -207,10 +207,10 @@ export const handlePayOSWebhook = async (req, res) => {
       }
       
     } else {
-      console.log('❌ Payment failed for order:', orderId, 'Reason:', desc);
+      console.log('❌ Payment failed/cancelled for order:', orderId, 'Reason:', desc);
       
-      // Hủy đơn hàng khi thanh toán thất bại (người dùng hủy tại bước quét QR)
-      // Chỉ hủy nếu đơn hàng đang ở trạng thái "cho_xacnhan" và chưa thanh toán
+      // THANH TOÁN THẤT BẠI/HỦY: Người dùng hủy tại bước quét QR hoặc thanh toán thất bại
+      // Tự động hủy đơn hàng và hoàn tồn kho
       if (order.trangthai === 'cho_xacnhan' && order.trangthai_thanhtoan === 'chua_tt') {
         const cancelResult = await pool.query(
           `UPDATE donhang 
@@ -220,7 +220,7 @@ export const handlePayOSWebhook = async (req, res) => {
         );
         
         if (cancelResult[0].affectedRows > 0) {
-          console.log('🔄 Order cancelled due to payment failure/cancellation');
+          console.log('🔄 ❌ THANH TOÁN HỦY: Đơn hàng đã bị hủy do người dùng không thanh toán');
           
           // Hoàn lại tồn kho
           const [items] = await pool.query(
@@ -283,7 +283,7 @@ export const checkPaymentStatus = async (req, res) => {
       if (transactions.length > 0) {
         const orderId = transactions[0].id_donhang;
         
-        // Cập nhật trạng thái thanh toán thành công (đơn hàng không thể hủy nữa)
+        // THANH TOÁN THÀNH CÔNG: Cập nhật trạng thái thanh toán (đơn hàng không thể hủy nữa)
         const updateResult = await pool.query(
           `UPDATE donhang 
            SET trangthai_thanhtoan = 'da_tt', ngay_capnhat = NOW() 
@@ -292,7 +292,7 @@ export const checkPaymentStatus = async (req, res) => {
         );
         
         if (updateResult[0].affectedRows > 0) {
-          console.log('✅ Order payment completed - order cannot be cancelled now');
+          console.log('✅ THANH TOÁN THÀNH CÔNG: Đơn hàng đã thanh toán và KHÔNG THỂ HỦY');
         } else {
           console.log('⚠️ Order payment status not updated - may already be paid or in different status');
         }
@@ -307,7 +307,7 @@ export const checkPaymentStatus = async (req, res) => {
       if (transactions.length > 0) {
         const orderId = transactions[0].id_donhang;
         
-        // Hủy đơn hàng khi người dùng hủy thanh toán
+        // THANH TOÁN HỦY: Hủy đơn hàng khi người dùng hủy thanh toán
         const cancelResult = await pool.query(
           `UPDATE donhang 
            SET trangthai = 'huy', ngay_capnhat = NOW() 
@@ -316,7 +316,7 @@ export const checkPaymentStatus = async (req, res) => {
         );
         
         if (cancelResult[0].affectedRows > 0) {
-          console.log('❌ Order cancelled due to payment cancellation');
+          console.log('❌ THANH TOÁN HỦY: Đơn hàng đã bị hủy do người dùng không thanh toán');
           
           // Hoàn lại tồn kho
           const [items] = await pool.query(

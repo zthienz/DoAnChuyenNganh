@@ -340,7 +340,7 @@ export const cancelOrder = async (req, res) => {
     // Không cho phép hủy đơn hàng đã thanh toán thành công
     if (order.trangthai_thanhtoan === 'da_tt') {
       return res.status(400).json({ 
-        error: 'Không thể hủy đơn hàng đã thanh toán thành công.' 
+        error: 'Không thể hủy đơn hàng đã thanh toán thành công. Đơn hàng chuyển khoản đã được xác nhận thanh toán.' 
       });
     }
 

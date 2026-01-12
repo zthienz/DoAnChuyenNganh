@@ -120,13 +120,14 @@ function displayOrders(orders) {
         let paymentMethodText = '';
         let paymentStatusText = '';
         
+        // Phương thức thanh toán
         switch(order.phuongthuc_thanhtoan) {
             case 'cod':
                 paymentMethodText = '<span class="badge bg-secondary"><i class="fas fa-money-bill-wave me-1"></i>COD</span>';
                 break;
             case 'bank_transfer':
             case 'payos':
-                paymentMethodText = '<span class="badge bg-primary"><i class="fas fa-university me-1"></i>Chuyển khoản</span>';
+                paymentMethodText = '<span class="badge bg-primary"><i class="fas fa-qrcode me-1"></i>Chuyển khoản QR</span>';
                 break;
             case 'momo':
                 paymentMethodText = '<span class="badge bg-danger"><i class="fas fa-mobile-alt me-1"></i>MoMo</span>';
@@ -138,11 +139,27 @@ function displayOrders(orders) {
                 paymentMethodText = '<span class="badge bg-light text-dark">Khác</span>';
         }
         
-        // Trạng thái thanh toán
+        // Trạng thái thanh toán - LOGIC MỚI
         if (order.trangthai_thanhtoan === 'da_tt') {
-            paymentStatusText = '<span class="badge bg-success ms-1"><i class="fas fa-check me-1"></i>Đã thanh toán</span>';
+            // ĐÃ THANH TOÁN - Hiển thị badge xanh lá
+            paymentStatusText = '<span class="badge bg-success ms-1"><i class="fas fa-check-circle me-1"></i>Đã thanh toán</span>';
+        } else if (order.phuongthuc_thanhtoan === 'bank_transfer' || order.phuongthuc_thanhtoan === 'payos') {
+            // CHUYỂN KHOẢN QR
+            if (order.trangthai === 'huy') {
+                // Đơn hàng đã hủy (người dùng hủy tại bước quét QR)
+                paymentStatusText = '<span class="badge bg-danger ms-1"><i class="fas fa-times-circle me-1"></i>Đã hủy thanh toán</span>';
+            } else {
+                // Đơn hàng chờ thanh toán (chưa quét QR hoặc chưa hoàn tất)
+                paymentStatusText = '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-clock me-1"></i>Chờ thanh toán QR</span>';
+            }
+        } else if (order.phuongthuc_thanhtoan === 'cod') {
+            // COD
+            if (order.trangthai_thanhtoan === 'chua_tt') {
+                paymentStatusText = '<span class="badge bg-secondary ms-1"><i class="fas fa-truck me-1"></i>Thanh toán khi nhận hàng</span>';
+            }
         } else {
-            paymentStatusText = '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-clock me-1"></i>Chưa thanh toán</span>';
+            // Các phương thức khác
+            paymentStatusText = '<span class="badge bg-secondary ms-1"><i class="fas fa-clock me-1"></i>Chưa thanh toán</span>';
         }
         
         html += `

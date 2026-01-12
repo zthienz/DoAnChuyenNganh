@@ -35,31 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Display current user info for debugging
-    displayCurrentUserInfo();
-
     loadOrders();
 });
-
-// Display current user info
-function displayCurrentUserInfo() {
-    const container = document.querySelector('.orders-page .container h2');
-    if (container) {
-        const userInfo = document.createElement('div');
-        userInfo.className = 'alert alert-info mb-3';
-        userInfo.innerHTML = `
-            <i class="fas fa-user me-2"></i>
-            <strong>Tài khoản đăng nhập:</strong> ${currentUser.email} 
-            ${currentUser.hoten ? `(${currentUser.hoten})` : ''}
-            <span class="ms-3"><strong>ID:</strong> ${currentUser.id_nguoidung}</span>
-            <div class="mt-2 small">
-                <i class="fas fa-info-circle me-1"></i>
-                <em>Lưu ý: Người nhận hàng có thể khác với người đặt hàng (đặt hàng tặng người khác)</em>
-            </div>
-        `;
-        container.after(userInfo);
-    }
-}
 
 // Load orders from API
 async function loadOrders() {
@@ -213,41 +190,27 @@ function displayOrders(orders) {
     orders.forEach(order => {
         const statusBadge = getStatusBadge(order.trangthai);
         
-        // Logic hủy đơn hàng mới
+        // Logic hủy đơn hàng - CHỈ CHO PHÉP HỦY KHI CHƯA THANH TOÁN
         let canCancel = false;
         let cancelTooltip = '';
         
-        // Debug log để kiểm tra dữ liệu
-        console.log('🔍 Order debug:', {
-            id: order.id_donhang,
-            ma_donhang: order.ma_donhang,
-            trangthai: order.trangthai,
-            phuongthuc_thanhtoan: order.phuongthuc_thanhtoan,
-            trangthai_thanhtoan: order.trangthai_thanhtoan,
-            canCancel: canCancel,
-            cancelTooltip: cancelTooltip
-        });
-        
-        // Cho phép hủy đơn hàng chỉ khi chờ xác nhận và chưa thanh toán
-        if (order.trangthai === 'cho_xacnhan') {
-            // Kiểm tra trạng thái thanh toán
-            if (order.trangthai_thanhtoan === 'chua_tt') {
-                canCancel = true;
-                cancelTooltip = 'Hủy đơn hàng';
-                console.log('✅ Order can be cancelled - waiting confirmation and not paid');
-            } else if (order.trangthai_thanhtoan === 'da_tt') {
-                canCancel = false;
-                cancelTooltip = 'Không thể hủy đơn hàng đã thanh toán thành công';
-                console.log('❌ Cannot cancel - order already paid');
-            }
+        // LOGIC MỚI: Chỉ cho phép hủy đơn hàng khi CHƯA THANH TOÁN
+        if (order.trangthai === 'cho_xacnhan' && order.trangthai_thanhtoan === 'chua_tt') {
+            // Đơn hàng chờ xác nhận và chưa thanh toán -> CÓ THỂ HỦY
+            canCancel = true;
+            cancelTooltip = 'Hủy đơn hàng';
+        } else if (order.trangthai_thanhtoan === 'da_tt') {
+            // Đơn hàng đã thanh toán -> KHÔNG THỂ HỦY (bất kể trạng thái đơn hàng)
+            canCancel = false;
+            cancelTooltip = 'Không thể hủy đơn hàng đã thanh toán thành công';
         } else if (order.trangthai === 'huy') {
+            // Đơn hàng đã hủy
             canCancel = false;
             cancelTooltip = 'Đơn hàng đã bị hủy';
-            console.log('❌ Order already cancelled');
         } else {
+            // Các trạng thái khác (đang giao, hoàn thành)
             canCancel = false;
             cancelTooltip = 'Không thể hủy đơn hàng ở trạng thái này';
-            console.log('❌ Order not in cancellable status');
         }
         
         const canConfirmReceived = order.trangthai === 'dang_giao';
@@ -259,15 +222,18 @@ function displayOrders(orders) {
             addressStr = `${order.diachi_chitiet}, ${order.quanhuyen}, ${order.thanhpho}`;
         }
         
-        // Hiển thị phương thức thanh toán
+        // Hiển thị phương thức thanh toán và trạng thái thanh toán
         let paymentMethodText = '';
+        let paymentStatusText = '';
+        
+        // Phương thức thanh toán
         switch(order.phuongthuc_thanhtoan) {
             case 'cod':
                 paymentMethodText = '<span class="badge bg-secondary"><i class="fas fa-money-bill-wave me-1"></i>COD</span>';
                 break;
             case 'bank_transfer':
             case 'payos':
-                paymentMethodText = '<span class="badge bg-primary"><i class="fas fa-university me-1"></i>Chuyển khoản</span>';
+                paymentMethodText = '<span class="badge bg-primary"><i class="fas fa-qrcode me-1"></i>Chuyển khoản QR</span>';
                 break;
             case 'momo':
                 paymentMethodText = '<span class="badge bg-danger"><i class="fas fa-mobile-alt me-1"></i>MoMo</span>';
@@ -277,6 +243,29 @@ function displayOrders(orders) {
                 break;
             default:
                 paymentMethodText = '<span class="badge bg-light text-dark">Khác</span>';
+        }
+        
+        // Trạng thái thanh toán - LOGIC MỚI
+        if (order.trangthai_thanhtoan === 'da_tt') {
+            // ĐÃ THANH TOÁN - Hiển thị badge xanh lá
+            paymentStatusText = '<span class="badge bg-success ms-1"><i class="fas fa-check-circle me-1"></i>Đã thanh toán</span>';
+        } else if (order.phuongthuc_thanhtoan === 'bank_transfer' || order.phuongthuc_thanhtoan === 'payos') {
+            // CHUYỂN KHOẢN QR
+            if (order.trangthai === 'huy') {
+                // Đơn hàng đã hủy (người dùng hủy tại bước quét QR)
+                paymentStatusText = '<span class="badge bg-danger ms-1"><i class="fas fa-times-circle me-1"></i>Đã hủy thanh toán</span>';
+            } else {
+                // Đơn hàng chờ thanh toán (chưa quét QR hoặc chưa hoàn tất)
+                paymentStatusText = '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-clock me-1"></i>Chờ thanh toán QR</span>';
+            }
+        } else if (order.phuongthuc_thanhtoan === 'cod') {
+            // COD
+            if (order.trangthai_thanhtoan === 'chua_tt') {
+                paymentStatusText = '<span class="badge bg-secondary ms-1"><i class="fas fa-truck me-1"></i>Thanh toán khi nhận hàng</span>';
+            }
+        } else {
+            // Các phương thức khác
+            paymentStatusText = '<span class="badge bg-secondary ms-1"><i class="fas fa-clock me-1"></i>Chưa thanh toán</span>';
         }
         
         html += `
@@ -297,7 +286,7 @@ function displayOrders(orders) {
                     </div>
                     <div>
                         ${statusBadge}
-                        <span class="ms-2">${paymentMethodText}</span>
+                        <span class="ms-2">${paymentMethodText}${paymentStatusText}</span>
                     </div>
                 </div>
                 <div class="card-body">
@@ -367,11 +356,11 @@ function displayOrders(orders) {
                                 <button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id_donhang})">
                                     <i class="fas fa-times me-1"></i>Hủy đơn
                                 </button>
-                            ` : (cancelTooltip ? `
-                                <button class="btn btn-sm btn-outline-secondary" disabled title="${cancelTooltip}">
+                            ` : `
+                                <button class="btn btn-sm btn-outline-secondary" disabled title="${cancelTooltip}" style="opacity: 0.5; cursor: not-allowed;">
                                     <i class="fas fa-times me-1"></i>Hủy đơn
                                 </button>
-                            ` : '')}
+                            `}
                             ${canConfirmReceived ? `
                                 <button class="btn btn-sm btn-success" onclick="confirmReceived(${order.id_donhang})">
                                     <i class="fas fa-check me-1"></i>Đã nhận hàng

@@ -1197,7 +1197,7 @@ body {
     letter-spacing: 0.5px;
     line-height: 1;
     box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
-}
+
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -2152,4 +2152,89 @@ body {
     border: 5px solid transparent;
     border-top-color: #333;
     z-index: 1000;
+}
+
+/* =============================================
+   ORDER STYLES
+   ============================================= */
+
+/* Order card styles */
+.order-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: box-shadow 0.3s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.order-product-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-product-item:last-child {
+    border-bottom: none;
+}
+
+.order-product-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 15px;
+}
+
+/* Disabled cancel button styles */
+.btn-outline-secondary:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #6c757d !important;
+}
+
+.btn-outline-secondary:disabled:hover {
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #6c757d !important;
+    transform: none !important;
+}
+
+/* Payment status badges */
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.badge.bg-primary {
+    background-color: #007bff !important;
+}
+
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.badge.bg-secondary {
+    background-color: #6c757d !important;
+}
+
+/* Order status specific styles */
+.order-status-paid {
+    border-left: 4px solid #28a745;
+}
+
+.order-status-pending {
+    border-left: 4px solid #ffc107;
+}
+
+.order-status-cancelled {
+    border-left: 4px solid #dc3545;
 }

@@ -109,42 +109,26 @@ async function loadSaleProducts() {
         }
     } catch (error) {
         console.error('❌ Error loading sale products:', error);
-        console.log('🔧 Creating fallback test products...');
         
-        // Create test products as fallback
-        const testProducts = [
+        // Create fallback products
+        const fallbackProducts = [
             {
                 product_id: 1,
-                product_name: 'Sản phẩm test 1',
+                product_name: 'Sản phẩm khuyến mãi 1',
                 price: 100000,
                 sale_price: 150000,
                 image: 'default.jpg'
             },
             {
                 product_id: 2,
-                product_name: 'Sản phẩm test 2',
+                product_name: 'Sản phẩm khuyến mãi 2',
                 price: 200000,
                 sale_price: 300000,
-                image: 'default.jpg'
-            },
-            {
-                product_id: 3,
-                product_name: 'Sản phẩm test 3',
-                price: 150000,
-                sale_price: 200000,
-                image: 'default.jpg'
-            },
-            {
-                product_id: 4,
-                product_name: 'Sản phẩm test 4',
-                price: 250000,
-                sale_price: 350000,
                 image: 'default.jpg'
             }
         ];
         
-        console.log('🧪 Using test products:', testProducts);
-        displaySaleCarousel(testProducts);
+        displaySaleCarousel(fallbackProducts);
     }
 }
 
@@ -1429,113 +1413,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(startSaleCarouselAutoPlay, 2000);
     }
 });
-
-// Test function for carousel - can be called from browser console
-window.testCarousel = function() {
-    console.log('Testing carousel...');
-    console.log('Current carousel data:', saleCarouselData);
-    
-    const carousel = document.getElementById('saleCarousel');
-    console.log('Carousel element found:', !!carousel);
-    
-    if (carousel) {
-        const cards = carousel.querySelectorAll('.sale-card');
-        console.log('Number of cards:', cards.length);
-    }
-    
-    console.log('Testing moveSaleCarousel function...');
-    if (typeof window.moveSaleCarousel === 'function') {
-        console.log('moveSaleCarousel is available globally');
-        window.moveSaleCarousel(1);
-    } else {
-        console.error('moveSaleCarousel is not available globally');
-    }
-};
-
-// Also add a simple manual test
-window.manualMoveCarousel = function(direction) {
-    console.log('Manual move carousel:', direction);
-    moveSaleCarousel(direction);
-};
-// Simple backup carousel function for testing
-window.simpleCarouselMove = function(direction) {
-    console.log('🧪 Simple carousel move:', direction);
-    
-    const carousel = document.getElementById('saleCarousel');
-    if (!carousel) {
-        console.error('No carousel found');
-        return;
-    }
-    
-    const cards = carousel.querySelectorAll('.sale-card');
-    if (cards.length === 0) {
-        console.error('No cards found');
-        return;
-    }
-    
-    // Get current transform
-    const currentTransform = carousel.style.transform || 'translateX(0px)';
-    const currentX = parseInt(currentTransform.match(/-?\d+/) || [0])[0];
-    
-    // Calculate new position
-    const cardWidth = 300; // Fixed width for testing
-    const newX = currentX + (direction * -cardWidth);
-    
-    console.log('Moving from', currentX, 'to', newX);
-    
-    // Apply new transform
-    carousel.style.transition = 'transform 0.5s ease';
-    carousel.style.transform = `translateX(${newX}px)`;
-};
-// Test function to create fake sale products for testing
-window.createTestSaleProducts = function() {
-    console.log('🧪 Creating test sale products...');
-    
-    const testProducts = [
-        {
-            product_id: 1,
-            product_name: 'Test Product 1',
-            price: 100000,
-            sale_price: 150000,
-            image: 'test1.jpg'
-        },
-        {
-            product_id: 2,
-            product_name: 'Test Product 2',
-            price: 200000,
-            sale_price: 300000,
-            image: 'test2.jpg'
-        },
-        {
-            product_id: 3,
-            product_name: 'Test Product 3',
-            price: 150000,
-            sale_price: 200000,
-            image: 'test3.jpg'
-        },
-        {
-            product_id: 4,
-            product_name: 'Test Product 4',
-            price: 250000,
-            sale_price: 350000,
-            image: 'test4.jpg'
-        }
-    ];
-    
-    console.log('📦 Test products created:', testProducts);
-    displaySaleCarousel(testProducts);
-};
-
-// Quick test function
-window.quickTestCarousel = function() {
-    console.log('⚡ Quick carousel test...');
-    createTestSaleProducts();
-    
-    setTimeout(() => {
-        console.log('🎯 Testing carousel movement...');
-        moveSaleCarousel(1);
-    }, 1000);
-};
 
 // =============================================
 // PRODUCT UPDATE LISTENERS
