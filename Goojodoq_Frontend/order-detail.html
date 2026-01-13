@@ -149,6 +149,15 @@
                                     <strong>Phương thức thanh toán:</strong> 
                                     ${order.phuongthuc_thanhtoan === 'cod' ? 'Thanh toán khi nhận hàng' : 'Chuyển khoản'}
                                 </p>
+                                <p class="mb-2">
+                                    <strong>Trạng thái thanh toán:</strong> 
+                                    ${order.trangthai_thanhtoan === 'da_tt' ? 
+                                        '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Đã thanh toán</span>' : 
+                                        order.phuongthuc_thanhtoan === 'cod' ? 
+                                            '<span class="badge bg-secondary"><i class="fas fa-truck me-1"></i>Thanh toán khi nhận hàng</span>' :
+                                            '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Chờ thanh toán</span>'
+                                    }
+                                </p>
                                 ${order.ghichu ? `<p class="mb-2"><strong>Ghi chú:</strong> ${order.ghichu}</p>` : ''}
                             </div>
                         </div>
@@ -180,11 +189,32 @@
                         </div>
 
                         <hr>
-                        <div class="text-end">
-                            <h4>
-                                <strong>Tổng tiền:</strong> 
-                                <span class="text-danger">${formatPrice(order.tong_tien)}</span>
-                            </h4>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4>
+                                    <strong>Tổng tiền:</strong> 
+                                    <span class="text-danger">${formatPrice(order.tong_tien)}</span>
+                                </h4>
+                            </div>
+                            <div>
+                                ${order.trangthai_thanhtoan === 'da_tt' ? `
+                                    <button class="btn btn-outline-secondary" disabled title="Không thể hủy đơn hàng đã thanh toán thành công" style="opacity: 0.4; cursor: not-allowed;">
+                                        <i class="fas fa-times me-1"></i>Hủy đơn
+                                    </button>
+                                ` : order.trangthai === 'cho_xacnhan' && order.trangthai_thanhtoan === 'chua_tt' ? `
+                                    <button class="btn btn-danger" onclick="cancelOrderFromDetail(${order.id_donhang})">
+                                        <i class="fas fa-times me-1"></i>Hủy đơn
+                                    </button>
+                                ` : order.trangthai === 'huy' ? `
+                                    <button class="btn btn-outline-secondary" disabled title="Đơn hàng đã bị hủy" style="opacity: 0.4; cursor: not-allowed;">
+                                        <i class="fas fa-times me-1"></i>Hủy đơn
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-outline-secondary" disabled title="Không thể hủy đơn hàng ở trạng thái này" style="opacity: 0.4; cursor: not-allowed;">
+                                        <i class="fas fa-times me-1"></i>Hủy đơn
+                                    </button>
+                                `}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -208,6 +238,35 @@
                 style: 'currency',
                 currency: 'VND'
             }).format(price);
+        }
+
+        // Hủy đơn hàng từ trang chi tiết
+        async function cancelOrderFromDetail(orderId) {
+            if (!confirm('Bạn có chắc muốn hủy đơn hàng này?\n\nSản phẩm sẽ được hoàn lại vào kho.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/${orderId}/cancel`, {
+                    method: 'PUT'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Không thể hủy đơn hàng');
+                }
+
+                showNotification('Đã hủy đơn hàng thành công!', 'success');
+                
+                // Reload trang để cập nhật trạng thái
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error canceling order:', error);
+                showNotification(error.message || 'Không thể hủy đơn hàng!', 'error');
+            }
         }
     </script>
 </body>

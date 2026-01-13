@@ -307,9 +307,11 @@ function validateForm() {
         return false;
     }
     
-    if (salePrice && salePrice <= price) {
-        console.log('❌ Validation failed: Sale price <= current price');
-        showNotification('Giá gốc phải lớn hơn giá hiện tại', 'error');
+    // Giá gốc phải lớn hơn giá khuyến mãi
+    if (salePrice !== null && salePrice >= price) {
+        console.log('❌ Validation failed: Sale price >= original price');
+        showNotification('Giá khuyến mãi phải nhỏ hơn giá gốc', 'error');
+        document.getElementById('productSalePrice').focus();
         return false;
     }
     

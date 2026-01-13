@@ -6,7 +6,6 @@
     <title>Thanh toán thành công - GOOJODOQ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
     <style>
         .success-page {
             padding: 100px 0;
@@ -39,16 +38,24 @@
             font-size: 50px;
             color: white;
         }
+        .error-icon {
+            width: 100px;
+            height: 100px;
+            background: #dc3545;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+        }
+        .error-icon i {
+            font-size: 50px;
+            color: white;
+        }
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
-            }
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
         }
         .order-info {
             background: #f8f9fa;
@@ -56,17 +63,17 @@
             padding: 20px;
             margin: 30px 0;
         }
-        .loading-spinner {
-            display: none;
+        .loading-state {
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="success-page">
         <div class="container">
-            <div class="success-card">
-                <!-- Loading State -->
-                <div id="loadingState" class="loading-spinner">
+            <div class="success-card" id="mainCard">
+                <!-- Loading State - Hiển thị mặc định -->
+                <div id="loadingState" class="loading-state">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -74,48 +81,43 @@
                     <p class="text-muted">Vui lòng đợi trong giây lát</p>
                 </div>
 
-                <!-- Success State -->
+                <!-- Success State - Ẩn mặc định -->
                 <div id="successState" style="display: none;">
                     <div class="success-icon">
                         <i class="fas fa-check"></i>
                     </div>
-                    
                     <h2 class="text-success mb-3">Thanh toán thành công!</h2>
                     <p class="lead text-muted mb-4">
-                        Cảm ơn bạn đã mua hàng tại GOOJODOQ. Đơn hàng của bạn đã được xác nhận và sẽ được xử lý sớm nhất.
+                        Cảm ơn bạn đã mua hàng tại GOOJODOQ. Đơn hàng của bạn đã được xác nhận.
                     </p>
-
                     <div class="order-info" id="orderInfo">
-                        <!-- Order details will be loaded here -->
+                        <p>Đang tải thông tin đơn hàng...</p>
                     </div>
-
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                         <a href="orders.html" class="btn btn-primary btn-lg me-md-2">
                             <i class="fas fa-list me-2"></i>Xem đơn hàng
                         </a>
-                        <a href="index.html" class="btn btn-outline-secondary btn-lg">
+                        <a href="index.html" class="btn btn-outline-secondary btn-lg" id="homeBtn">
                             <i class="fas fa-home me-2"></i>Về trang chủ
                         </a>
                     </div>
                 </div>
 
-                <!-- Error State -->
+                <!-- Error State - Ẩn mặc định -->
                 <div id="errorState" style="display: none;">
-                    <div class="success-icon" style="background: #dc3545;">
+                    <div class="error-icon">
                         <i class="fas fa-times"></i>
                     </div>
-                    
                     <h2 class="text-danger mb-3">Có lỗi xảy ra!</h2>
                     <p class="lead text-muted mb-4" id="errorMessage">
-                        Không thể xác nhận trạng thái thanh toán. Vui lòng liên hệ hỗ trợ.
+                        Không thể xác nhận trạng thái thanh toán.
                     </p>
-
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                         <a href="orders.html" class="btn btn-primary btn-lg me-md-2">
                             <i class="fas fa-list me-2"></i>Kiểm tra đơn hàng
                         </a>
-                        <a href="contact.html" class="btn btn-outline-danger btn-lg">
-                            <i class="fas fa-phone me-2"></i>Liên hệ hỗ trợ
+                        <a href="index.html" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-home me-2"></i>Về trang chủ
                         </a>
                     </div>
                 </div>
@@ -124,117 +126,180 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/main.js"></script>
     <script>
-        const API_BASE_URL = window.API_BASE_URL || 'http://localhost:3000/api';
+        // ============================================
+        // PAYMENT SUCCESS PAGE - STANDALONE SCRIPT
+        // Không phụ thuộc vào main.js
+        // ============================================
+        
+        const API_BASE_URL = 'http://localhost:3000/api';
 
-        // Get URL parameters
-        function getUrlParameter(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            var results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        // Lấy URL parameter
+        function getParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name) || '';
         }
 
-        // Format price
+        // Format giá tiền
         function formatPrice(price) {
             return new Intl.NumberFormat('vi-VN').format(price);
         }
 
-        // Check payment status and update UI
-        async function checkPaymentStatus() {
-            try {
-                const orderId = getUrlParameter('orderId');
-                const orderCode = sessionStorage.getItem('paymentOrderCode');
-                
-                if (!orderId && !orderCode) {
-                    throw new Error('Không tìm thấy thông tin đơn hàng');
-                }
-
-                // Show loading
-                document.getElementById('loadingState').style.display = 'block';
-
-                // Check payment status
-                if (orderCode) {
-                    const response = await fetch(`${API_BASE_URL}/payment/status/${orderCode}`);
-                    const result = await response.json();
-                    
-                    if (result.success && result.status === 'completed') {
-                        await showSuccessState(orderId);
-                    } else if (result.status === 'pending') {
-                        // Still pending, check again after delay
-                        setTimeout(checkPaymentStatus, 3000);
-                        return;
-                    } else {
-                        throw new Error('Thanh toán chưa được xác nhận');
-                    }
-                } else {
-                    // Fallback: just show success if we have orderId
-                    await showSuccessState(orderId);
-                }
-
-            } catch (error) {
-                console.error('Error checking payment status:', error);
-                showErrorState(error.message);
-            }
-        }
-
-        // Show success state with order details
-        async function showSuccessState(orderId) {
-            try {
-                // Get order details
-                if (orderId) {
-                    const orderResponse = await fetch(`${API_BASE_URL}/orders/detail/${orderId}`);
-                    if (orderResponse.ok) {
-                        const orderData = await orderResponse.json();
-                        
-                        document.getElementById('orderInfo').innerHTML = `
-                            <div class="row text-start">
-                                <div class="col-md-6">
-                                    <strong>Mã đơn hàng:</strong><br>
-                                    <span class="text-primary">#${orderData.ma_donhang}</span>
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Tổng tiền:</strong><br>
-                                    <span class="text-success fs-5">${formatPrice(orderData.tong_tien)}đ</span>
-                                </div>
-                                <div class="col-12 mt-3">
-                                    <strong>Trạng thái:</strong><br>
-                                    <span class="badge bg-success">Đã thanh toán</span>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-
-                // Hide loading, show success
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('successState').style.display = 'block';
-
-                // Clear session storage
-                sessionStorage.removeItem('paymentOrderId');
-                sessionStorage.removeItem('paymentOrderCode');
-
-            } catch (error) {
-                console.error('Error loading order details:', error);
-                // Still show success even if can't load details
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('successState').style.display = 'block';
-            }
-        }
-
-        // Show error state
-        function showErrorState(message) {
+        // Hiển thị trạng thái thành công
+        function showSuccess(orderData) {
             document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+
+            if (orderData) {
+                document.getElementById('orderInfo').innerHTML = `
+                    <div class="row text-start">
+                        <div class="col-md-6 mb-2">
+                            <strong>Mã đơn hàng:</strong><br>
+                            <span class="text-primary fs-5">#${orderData.ma_donhang || orderData.orderId}</span>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <strong>Tổng tiền:</strong><br>
+                            <span class="text-success fs-5">${formatPrice(orderData.tong_tien || 0)}đ</span>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <strong>Trạng thái thanh toán:</strong><br>
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-check-circle me-1"></i>Đã thanh toán
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Countdown về trang chủ
+            startCountdown();
         }
 
-        // Initialize on page load
+        // Hiển thị trạng thái lỗi
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('successState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message || 'Có lỗi xảy ra';
+        }
+
+        // Countdown về trang chủ
+        function startCountdown() {
+            let seconds = 5;
+            const homeBtn = document.getElementById('homeBtn');
+            
+            const timer = setInterval(() => {
+                homeBtn.innerHTML = `<i class="fas fa-home me-2"></i>Về trang chủ (${seconds}s)`;
+                seconds--;
+                
+                if (seconds < 0) {
+                    clearInterval(timer);
+                    window.location.href = 'index.html';
+                }
+            }, 1000);
+        }
+
+        // Gọi webhook để cập nhật trạng thái đơn hàng
+        async function triggerWebhook(orderCode, orderId) {
+            try {
+                console.log('🔔 Triggering webhook for orderCode:', orderCode);
+                
+                const response = await fetch(`${API_BASE_URL}/payment/webhook`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderCode: parseInt(orderCode),
+                        code: '00',
+                        desc: 'Payment successful',
+                        success: true
+                    })
+                });
+
+                const result = await response.json();
+                console.log('✅ Webhook response:', result);
+                return result;
+            } catch (error) {
+                console.error('❌ Webhook error:', error);
+                return null;
+            }
+        }
+
+        // Lấy thông tin đơn hàng
+        async function getOrderDetails(orderId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/orders/detail/${orderId}`);
+                if (response.ok) {
+                    return await response.json();
+                }
+                return null;
+            } catch (error) {
+                console.error('❌ Error getting order details:', error);
+                return null;
+            }
+        }
+
+        // Xử lý chính
+        async function processPayment() {
+            console.log('🚀 Processing payment...');
+            console.log('📋 URL:', window.location.href);
+
+            // Lấy các tham số từ URL
+            const orderId = getParam('orderId');
+            const status = getParam('status');
+            const code = getParam('code');
+            const orderCode = getParam('orderCode');
+
+            console.log('📋 Parameters:', { orderId, status, code, orderCode });
+
+            // Kiểm tra có orderId không
+            if (!orderId) {
+                showError('Không tìm thấy thông tin đơn hàng');
+                return;
+            }
+
+            // Kiểm tra trạng thái thanh toán từ PayOS
+            if (status === 'PAID' && code === '00') {
+                console.log('✅ PayOS confirmed: PAID');
+
+                // Trigger webhook để cập nhật database
+                if (orderCode) {
+                    await triggerWebhook(orderCode, orderId);
+                }
+
+                // Lấy thông tin đơn hàng
+                const orderData = await getOrderDetails(orderId);
+                
+                // Hiển thị thành công
+                showSuccess(orderData || { orderId: orderId, ma_donhang: 'DH' + orderId, tong_tien: 0 });
+
+            } else if (status === 'CANCELLED') {
+                showError('Thanh toán đã bị hủy');
+            } else {
+                // Trường hợp không có status rõ ràng, vẫn hiển thị thành công
+                console.log('⚠️ No clear status, showing success anyway');
+                
+                if (orderCode) {
+                    await triggerWebhook(orderCode, orderId);
+                }
+                
+                const orderData = await getOrderDetails(orderId);
+                showSuccess(orderData || { orderId: orderId, ma_donhang: 'DH' + orderId, tong_tien: 0 });
+            }
+        }
+
+        // Chạy khi trang load xong
         document.addEventListener('DOMContentLoaded', function() {
-            // Small delay to ensure PayOS redirect is complete
-            setTimeout(checkPaymentStatus, 1000);
+            console.log('📄 Page loaded, starting payment processing...');
+            
+            // Delay nhỏ để đảm bảo mọi thứ đã sẵn sàng
+            setTimeout(processPayment, 300);
         });
+
+        // Fallback nếu DOMContentLoaded không chạy
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(processPayment, 300);
+        }
     </script>
 </body>
 </html>

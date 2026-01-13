@@ -195,14 +195,14 @@ function displayOrders(orders) {
         let cancelTooltip = '';
         
         // LOGIC MỚI: Chỉ cho phép hủy đơn hàng khi CHƯA THANH TOÁN
-        if (order.trangthai === 'cho_xacnhan' && order.trangthai_thanhtoan === 'chua_tt') {
-            // Đơn hàng chờ xác nhận và chưa thanh toán -> CÓ THỂ HỦY
-            canCancel = true;
-            cancelTooltip = 'Hủy đơn hàng';
-        } else if (order.trangthai_thanhtoan === 'da_tt') {
+        if (order.trangthai_thanhtoan === 'da_tt') {
             // Đơn hàng đã thanh toán -> KHÔNG THỂ HỦY (bất kể trạng thái đơn hàng)
             canCancel = false;
             cancelTooltip = 'Không thể hủy đơn hàng đã thanh toán thành công';
+        } else if (order.trangthai === 'cho_xacnhan' && order.trangthai_thanhtoan === 'chua_tt') {
+            // Đơn hàng chờ xác nhận và chưa thanh toán -> CÓ THỂ HỦY
+            canCancel = true;
+            cancelTooltip = 'Hủy đơn hàng';
         } else if (order.trangthai === 'huy') {
             // Đơn hàng đã hủy
             canCancel = false;
@@ -256,7 +256,7 @@ function displayOrders(orders) {
                 paymentStatusText = '<span class="badge bg-danger ms-1"><i class="fas fa-times-circle me-1"></i>Đã hủy thanh toán</span>';
             } else {
                 // Đơn hàng chờ thanh toán (chưa quét QR hoặc chưa hoàn tất)
-                paymentStatusText = '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-clock me-1"></i>Chờ thanh toán QR</span>';
+                paymentStatusText = '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-clock me-1"></i>Chờ thanh toán</span>';
             }
         } else if (order.phuongthuc_thanhtoan === 'cod') {
             // COD
@@ -357,7 +357,7 @@ function displayOrders(orders) {
                                     <i class="fas fa-times me-1"></i>Hủy đơn
                                 </button>
                             ` : `
-                                <button class="btn btn-sm btn-outline-secondary" disabled title="${cancelTooltip}" style="opacity: 0.5; cursor: not-allowed;">
+                                <button class="btn btn-sm btn-outline-secondary" disabled title="${cancelTooltip}" style="opacity: 0.4; cursor: not-allowed;">
                                     <i class="fas fa-times me-1"></i>Hủy đơn
                                 </button>
                             `}
